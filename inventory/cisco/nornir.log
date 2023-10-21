@@ -1,0 +1,602 @@
+2023-10-21 11:11:26,059 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:11:26,395 - nornir.core.task -    ERROR -      start() - Host 'R2': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:11:28,415 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:11:32,994 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:12:43,355 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:12:43,670 - nornir.core.task -    ERROR -      start() - Host 'R2': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:12:43,696 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:12:50,257 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:13:28,414 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 2 hosts
+2023-10-21 11:13:28,684 - nornir.core.task -    ERROR -      start() - Host 'R2': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:13:28,883 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:14:26,076 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 1 hosts
+2023-10-21 11:14:32,974 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:15:15,876 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 1 hosts
+2023-10-21 11:15:16,322 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:16:09,291 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 1 hosts
+2023-10-21 11:16:09,754 - nornir.core.task -    ERROR -      start() - Host 'R1': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 288, in channel_authenticate_ssh
+    self._ssh_message_handler(output=authenticate_buf)
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/base_channel.py", line 459, in _ssh_message_handler
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: Host key verification failed
+
+2023-10-21 11:16:47,959 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 1 hosts
+2023-10-21 11:17:40,812 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:18:45,449 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:19:30,928 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:19:51,603 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:20:06,825 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show ip int brief'} on 3 hosts
+2023-10-21 11:23:12,213 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 4 hosts
+2023-10-21 11:23:49,480 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 4 hosts
+2023-10-21 11:24:33,693 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 4 hosts
+2023-10-21 11:24:39,164 - nornir.core.task -    ERROR -      start() - Host 'R4': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 300, in channel_authenticate_ssh
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: password prompt seen more than once, assuming auth failed
+
+2023-10-21 11:27:12,670 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 4 hosts
+2023-10-21 11:27:18,077 - nornir.core.task -    ERROR -      start() - Host 'R4': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 300, in channel_authenticate_ssh
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: password prompt seen more than once, assuming auth failed
+
+2023-10-21 12:17:47,954 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 4 hosts
+2023-10-21 12:17:53,405 - nornir.core.task -    ERROR -      start() - Host 'R4': task 'send_command' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_command.py", line 36, in send_command
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 300, in channel_authenticate_ssh
+    raise ScrapliAuthenticationFailed(msg)
+scrapli.exceptions.ScrapliAuthenticationFailed: password prompt seen more than once, assuming auth failed
+
+2023-10-21 12:19:02,143 -  nornir.core -     INFO -        run() - Running task 'send_command' with args {'command': 'show version'} on 3 hosts
+2023-10-21 12:52:21,476 -  nornir.core -     INFO -        run() - Running task 'ntp_config' with args {} on 3 hosts
+2023-10-21 12:52:21,597 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'send_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/transport/plugins/system/ptyprocess.py", line 483, in read
+    s = self.fileobj.read1(size)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 5] Input/output error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/transport/plugins/system/transport.py", line 158, in read
+    buf = self.session.read(65535)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/transport/plugins/system/ptyprocess.py", line 488, in read
+    raise EOFError("End Of File (EOF). Exception style platform.")
+EOFError: End Of File (EOF). Exception style platform.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/tasks/core/send_config.py", line 58, in send_config
+    scrapli_conn = task.host.get_connection("scrapli", task.nornir.config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir_scrapli/connection.py", line 105, in open
+    connection.open()
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/driver/base/sync_driver.py", line 93, in open
+    self.channel.channel_authenticate_ssh(
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 285, in channel_authenticate_ssh
+    buf = self.read()
+          ^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/channel/sync_channel.py", line 69, in read
+    buf = self.transport.read()
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 223, in decorate
+    return _multiprocessing_timeout(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/decorators.py", line 114, in _multiprocessing_timeout
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/.local/lib/python3.11/site-packages/scrapli/transport/plugins/system/transport.py", line 165, in read
+    raise ScrapliConnectionError(msg) from exc
+scrapli.exceptions.ScrapliConnectionError: encountered EOF reading from transport; typically means the device closed the connection
+
+2023-10-21 12:52:21,598 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'ntp_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kingsley/Documents/Dev/Juniper/Clustering_Project/inventory/cisco/runbook_ntp_config.py", line 9, in ntp_config
+    task.run(task=send_config, config=f"ntp server {task.host['ntp_server']}")
+  File "/home/kingsley/.local/lib/python3.11/site-packages/nornir/core/task.py", line 174, in run
+    raise NornirSubTaskError(task=run_task, result=r)
+nornir.core.exceptions.NornirSubTaskError: Subtask: send_config (failed)
+
+
+2023-10-21 12:54:21,877 -  nornir.core -     INFO -        run() - Running task 'ntp_config' with args {} on 3 hosts
