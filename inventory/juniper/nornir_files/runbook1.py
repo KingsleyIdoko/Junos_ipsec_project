@@ -1,4 +1,4 @@
-from nornir_pyez.plugins.tasks import pyez_facts
+from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
 import os
@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 nr = InitNornir(config_file=f"{script_dir}/config.yml")
 
 response = nr.run(
-    pyez_facts
+    task=pyez_get_config
 )
 
 # response is an AggregatedResult, which behaves like a list

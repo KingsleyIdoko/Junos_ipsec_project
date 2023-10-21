@@ -1,2 +1,8 @@
 2023-10-21 11:36:31,935 -  nornir.core -     INFO -        run() - Running task 'pyez_facts' with args {} on 1 hosts
 2023-10-21 12:26:16,858 -  nornir.core -     INFO -        run() - Running task 'pyez_facts' with args {} on 1 hosts
+2023-10-21 14:23:20,298 -  nornir.core -     INFO -        run() - Running task 'pyez_facts' with args {} on 1 hosts
+2023-10-21 14:27:27,538 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {} on 1 hosts
+2023-10-21 14:27:51,525 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {} on 1 hosts
+2023-10-21 14:29:28,192 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {} on 1 hosts
+2023-10-21 14:34:01,844 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {} on 1 hosts
+2023-10-21 14:34:47,336 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {} on 1 hosts
