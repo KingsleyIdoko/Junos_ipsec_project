@@ -1,0 +1,18 @@
+---
+
+all:
+  children:
+      net_devices:
+        hosts:
+          BEL-DC-ASA-FW:
+          LA-DC-SRX-FW-PRY:
+          NYC-DC-SRX-FW:
+          AMS-DC-SRX-FW:
+      asa_fw:
+        hosts:
+          BEL-DC-ASA-FW:
+      junos_fw:
+        hosts:
+          LA-DC-SRX-FW-PRY:
+          NYC-DC-SRX-FW:
+          AMS-DC-SRX-FW:

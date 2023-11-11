@@ -7,7 +7,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 nr = InitNornir(config_file=f"{script_dir}/config.yml")
 
-result = nr.run(task=send_command, command="show version")
+result = nr.run(task=send_command, command="show ip int brief")
 
 print_result(result)
 

@@ -1,0 +1,7 @@
+---
+
+
+ansible_user: root
+ansible_password: cisco123
+
+
