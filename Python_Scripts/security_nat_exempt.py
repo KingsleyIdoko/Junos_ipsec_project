@@ -58,23 +58,25 @@ class DeviceConfigurator:
                 payload = re_order_nat_policy(list_of_policies)
             except Exception as e:
                 print(f"An error has occured {e}")
-        print(payload)
+        return payload
 
     def push_config(self):
         new_nat_policy = self.build_config()
         nat_re_order_policies  =  self.nat_rule_re_order()
-        response = self.nr.run(task=pyez_config, payload=new_nat_policy, data_format='xml')
-        for res in response:
-            diff_result = self.nr.run(task=pyez_diff)
-            for res in diff_result:
-                if diff_result[res].result is None:
-                    print("No Config Change")
-                    return
-                print(diff_result[res].result)
-                committed = self.nr.run(task=pyez_commit)
-                for res1 in committed:
-                    print(committed[res1].result)
-
+        xml_data =  [nat_re_order_policies]
+        for xml_text in xml_data:
+            response = self.nr.run(task=pyez_config, payload=xml_text, data_format='xml')
+            for res in response:
+                print(response[res].result)
+                diff_result = self.nr.run(task=pyez_diff)
+                for res in diff_result:
+                    if diff_result[res].result is None:
+                        print("No Config Change")
+                        return
+                    print(diff_result[res].result)
+                    committed = self.nr.run(task=pyez_commit)
+                    for res1 in committed:
+                        print(committed[res1].result)
 config = DeviceConfigurator()
-response = config.nat_rule_re_order()
+response = config.push_config()
 
