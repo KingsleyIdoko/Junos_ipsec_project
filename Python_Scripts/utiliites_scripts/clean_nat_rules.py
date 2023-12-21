@@ -161,9 +161,9 @@ def re_order_nat_policy(list_nat_rules):
             continue
         # Otherwise, create a policy element with the rule name
         policy_element = f"""
-        <rule operation="merge">
-            <name>{rule}</name>
-        </rule>"""
+                        <rule operation="merge">
+                            <name>{rule}</name>
+                        </rule>"""
         # Check if the previous rule is None
         if prev_rule is None:
             # Use 'first' as the insert attribute
@@ -177,9 +177,9 @@ def re_order_nat_policy(list_nat_rules):
         nat_elements.append(policy_element)
     # After the loop, append the last rule as the last element of the list of nat elements
     nat_elements.append(f"""
-    <rule insert="last" operation="merge">
-        <name>{last_rule}</name>
-    </rule>""")
+                        <rule insert="last" operation="merge">
+                            <name>{last_rule}</name>
+                        </rule>""")
     # Join the list of nat elements with newlines
     nat_elements = "\n".join(nat_elements)
 
