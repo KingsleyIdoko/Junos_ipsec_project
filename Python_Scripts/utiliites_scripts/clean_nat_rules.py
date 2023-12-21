@@ -146,37 +146,59 @@ def rule_compare(rule1, rule2):
     
 
 
-# def re_order_nat_policy(zone_a, zone_b,closest_policies):
-#     # Use a list to store the policy elements
-#     policy_elements = []
+def re_order_nat_policy(list_nat_rules):
+    # Create an empty list to store the nat elements
+    nat_elements = []
+    # Create a variable to store the previous rule name, and initialize it as None
+    prev_rule = None
+    # Get the last rule name from the list_nat_rules
+    last_rule = list_nat_rules[-1]
+    # Loop through the list of rules
+    for rule in list_nat_rules:
+        # Check if the rule name is the same as the last rule name
+        if rule == last_rule:
+            # Skip this rule
+            continue
+        # Otherwise, create a policy element with the rule name
+        policy_element = f"""
+        <rule operation="merge">
+            <name>{rule}</name>
+        </rule>"""
+        # Check if the previous rule is None
+        if prev_rule is None:
+            # Use 'first' as the insert attribute
+            policy_element = policy_element.replace('<rule', '<rule insert="first"')
+        else:
+            # Use 'after' and the previous rule name as the key
+            policy_element = policy_element.replace('<rule', f'<rule insert="after"  key="[ name={prev_rule} ]"')
+        # Update the previous rule name with the current rule name
+        prev_rule = rule
+        # Append the policy element to the list of nat elements
+        nat_elements.append(policy_element)
+    # After the loop, append the last rule as the last element of the list of nat elements
+    nat_elements.append(f"""
+    <rule insert="last" operation="merge">
+        <name>{last_rule}</name>
+    </rule>""")
+    # Join the list of nat elements with newlines
+    nat_elements = "\n".join(nat_elements)
 
- 
-#                 policy_element = f"""
-#                          <policy insert="after"  key="[ name='{closest_policy}' ]" operation="merge">
-#                             <name>{next_policy}</name>
-#                          </policy>"""
-#                 # Append the policy element to the list
-#                 policy_elements.append(policy_element)
-#     # Join the policy elements with a newline character
-#     policy_elements = "\n".join(policy_elements)
-
-#     # Create the payload with the policy elements
-#     payload = f"""    
-#         <configuration>
-#                 <security>
-#                     <nat>
-#                         <source>
-#                             <rule-set>
-#                                 <name>GLOBAL-NAT-RULE</name>
-#                                 <rule insert={first} operation="merge">
-#                                   {policy_elements}
-#                                 </rule>
-#                             </rule-set>
-#                         </source>
-#                     </nat>
-#                 </security>
-#         </configuration>"""
+    # Create the payload with the nat elements
+    payload = f"""    
+    <configuration>
+        <security>
+            <nat>
+                <source>
+                    <rule-set>
+                        <name>GLOBAL-NAT-RULE</name>
+                        {nat_elements}
+                    </rule-set>
+                </source>
+            </nat>
+        </security>
+    </configuration>"""
     return payload
+
 
 
 
