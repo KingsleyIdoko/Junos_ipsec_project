@@ -1,0 +1,15 @@
+{% for address in source_ip_address%}
+set firewall filter PCAP term 1 from source-address {{ address }}
+{% endfor %}
+set firewall filter PCAP term 1 then sample
+set firewall filter PCAP term 1 then accept
+{% for  addresses in destination_ip_address %}
+set firewall filter PCAP term 2 from destination-address  {{ addresses }}
+{% endfor %}
+set firewall filter PCAP term 2 then sample
+set firewall filter PCAP term 2 then accept
+set firewall filter PCAP term 3 then accept
+set forwarding-options packet-capture file filename  {{ inventory_hostname }}_capture
+set forwarding-options packet-capture file files 2
+set forwarding-options packet-capture file size 2m
+set forwarding-options packet-capture maximum-capture-size 1500

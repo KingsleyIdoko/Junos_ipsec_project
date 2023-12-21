@@ -1,0 +1,18 @@
+{% if inventory_hostname == "LA-DC-SRX-FW-PRY" %}
+{% for gateway,  ike_policy, dst_ip in ike_gateways | ansible.builtin.zip(ike_policies, destination_ip_address) %}
+set security ike gateway {{ gateway }} ike-policy {{ ike_policy }}
+set security ike gateway {{ gateway }} address {{ dst_ip }}
+set security ike gateway {{ gateway }} external-interface {{ WAN_Interface }}
+set security ike gateway {{ gateway }} local-address {{ source_ip_address }}
+set security ike gateway {{ gateway }} version v1-only
+{{ "" }}
+{% endfor %}
+{% else %}
+{% for gateway, ike_policy in ike_gateways | ansible.builtin.zip(ike_policies[:1]) %}
+set security ike gateway {{ gateway }} ike-policy {{ ike_policy }}
+set security ike gateway {{ gateway }} address {{ destination_ip_address }}
+set security ike gateway {{ gateway }} external-interface {{ WAN_Interface }}
+set security ike gateway {{ gateway }} local-address {{ local_ip_address }}
+set security ike gateway {{ gateway }} version v1-only
+{% endfor %}
+{% endif %}

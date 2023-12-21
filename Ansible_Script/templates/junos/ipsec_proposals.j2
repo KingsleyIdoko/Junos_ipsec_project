@@ -1,0 +1,7 @@
+{% for ipsec_prop, auth_method, encrypt_method in ipsec_proposals | ansible.builtin.zip(ipsec_auth_alogrithm, ipsec_encrypt_alogrithm) %}
+set security ipsec proposal {{ ipsec_prop }} protocol esp
+set security ipsec proposal {{ ipsec_prop }} {{ auth_method }}
+set security ipsec proposal {{ ipsec_prop }} {{ encrypt_method }}
+set security ipsec proposal {{ ipsec_prop }} lifetime-seconds 86400
+{{ "" }}
+{% endfor %}

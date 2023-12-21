@@ -1,0 +1,18 @@
+SUBNETS:
+    - NYC_REMOTE_SUBNET:
+        - "10.0.10.0/24"
+        - "192.168.100.0/24"
+    - LA_REMOTE_SUBNET:
+        - "10.0.0.0/24"
+        - "192.168.101.0/24"
+    - AMS_REMOTE_SUBNET:
+        - "10.0.30.0/24"
+        - "192.168.102.0/24"
+    - BEL_REMOTE_SUBNET:
+        - "172.16.10.0/24"
+        - "192.168.103.0/24"
+
+    - BEL_LOCAL_SUBNET: "172.168.10.0/24"
+    - AMS_LOCAL_SUBNET: "10.0.30.0/24"
+    - NYC_LOCAL_SUBNET: "10.0.10.0/24"
+    - LA_LOCAL_SUBNET: "10.0.0.0/24"

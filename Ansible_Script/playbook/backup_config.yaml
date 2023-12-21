@@ -1,0 +1,24 @@
+---
+
+- name: Backup Running Config on Juniper SRX Firewall
+  hosts: net_devices
+  vars_files:
+    - vaultfile.yaml
+  tasks:
+    - name: Grab running-config from Juniper SRX devices
+      junipernetworks.junos.junos_config:
+        backup: true
+        backup_options:
+          filename: "{{ inventory_hostname }}.cfg"
+          dir_path: ../backup_config/
+      when: ansible_network_os == 'junipernetworks.junos.junos'
+
+    - name: Grab running-config from Cisco ASA device
+      cisco.asa.asa_config:
+        backup: yes
+        backup_options:
+          filename: "{{ inventory_hostname }}.cfg"
+          dir_path: backup_config/
+      when: ansible_network_os == 'cisco.asa.asa'
+
+

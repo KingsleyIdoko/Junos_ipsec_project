@@ -1,0 +1,39 @@
+---
+
+- name: "Play 1: Start Packet Capture on Network Devices"
+  hosts: junos_fw
+  vars_files: 
+    - vaultfile.yaml
+  tasks:
+    - name: Display Content of Jinja2 template
+      set_fact:
+        path_1: "templates/junos/enable_packet_capture.j2"
+        path_2: "templates/apply-pcap-wan-inter.j2"
+
+    - name: "Task 1: Push Packet Capture Configs to the device"
+      junipernetworks.junos.junos_config:
+        src: ../templates/junos/enable_packet_capture.j2
+      register: task1_result
+      notify: config_changed
+      when: ansible_network_os == 'junipernetworks.junos.junos'
+      
+
+    - name: "Task 2: Enable capture on {{ inventory_hostname }} WAN Interface"  
+      junipernetworks.junos.junos_config:
+        src: ../templates/junos/apply-pcap-wan-inter.j2
+      register: task2_result
+      notify: config_changed
+      when: ansible_network_os == 'junipernetworks.junos.junos'
+      
+
+  handlers:
+    - name: "Handler 1: Display the configs sent to the {{ inventory_hostname }} device"
+      listen: config_changed
+      debug:
+        msg: 
+          - "{{ lookup('template', path_1) }}"
+          - "{{ lookup('template', path_2) }}"
+          - "Display result of the tasks "
+          - "{{ task1_result }}"
+          - "{{ task2_result}}"
+

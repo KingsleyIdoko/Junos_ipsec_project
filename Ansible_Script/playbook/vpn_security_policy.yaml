@@ -1,0 +1,27 @@
+---
+
+- name: "Play 1: Creating 3 IPsec Proposals on SRX devices"
+  hosts: junos_fw
+  vars_files: 
+    - vaultfile.yaml
+  tasks:
+    - name: Set directory path to the Jinja2 templates
+      set_fact:
+        dir_path: "../templates/junos/security_policy.j2"
+
+    - name: "Task 1: Configuring IPsec Proposals"
+      junipernetworks.junos.junos_config:
+        src: "../templates/junos/security_policy.j2"
+      register: task1_result
+      notify: config_changed
+      when: ansible_network_os == 'junipernetworks.junos.junos'
+
+  handlers:
+    - name: "Handler 1: Display the configs sent to the {{ inventory_hostname }} device"
+      listen: config_changed
+      debug:
+        msg: 
+          - "Display result of the tasks"
+          - "{{ lookup('template', dir_path) }}"
+          - "Response Code"
+          - "{{ task1_result }}"

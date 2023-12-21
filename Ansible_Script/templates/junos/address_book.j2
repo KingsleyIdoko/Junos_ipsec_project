@@ -1,0 +1,42 @@
+{% for subnets in list_of_local_subnets %}
+{% for subnet, value  in subnets.items() %}
+{% if inventory_hostname == "LA-DC-SRX-FW-PRY" and value.name == "la_local_subnet" %}
+set security address-book local_subnets address {{ value.name }} {{ value.prefix }}
+set security address-book local_subnets attach zone trust
+{% elif inventory_hostname == "LA-DC-SRX-FW-PRY" and value.name == "la_floating_nat_range" %}
+set security address-book local_subnets address {{ value.name }} {{ value.prefix }}
+set security address-book local_subnets attach zone trust
+{% elif inventory_hostname == "NYC-DC-SRX-FW" and value.name == "nyc_local_subnet" %}
+set security address-book local_subnets address {{ value.name }} {{ value.prefix }}
+set security address-book local_subnets attach zone trust
+{% elif inventory_hostname == "NYC-DC-SRX-FW" and value.name == "nyc_floating_nat_subnet" %}
+set security address-book local_subnets address {{ value.name }} {{ value.prefix }}
+set security address-book local_subnets attach zone trust
+{% elif inventory_hostname == "AMS-DC-SRX-FW" and value.name == "ams_local_subnet" %}
+set security address-book local_subnets address {{ value.name }} {{ value.prefix }}
+set security address-book local_subnets attach zone trust
+{% endif %}
+{% endfor %}
+{% for subnet in subnets.values() %}
+{% if inventory_hostname == "NYC-DC-SRX-FW" and subnet.name == "nyc_remote_subnets" %}
+{% for name, pref  in subnet.prefix.items() %}
+set security address-book remote_subnet address {{ name }} {{ pref }}
+set security address-book remote_subnet attach zone untrust
+{% endfor %}
+{% elif inventory_hostname == "LA-DC-SRX-FW-PRY" and subnet.name == "la_remote_subnets" %}
+{% for name, pref  in subnet.prefix.items() %}
+set security address-book remote_subnet address {{ name }} {{ pref }}
+set security address-book remote_subnet attach zone untrust
+{% endfor %}
+{% elif inventory_hostname == "AMS-DC-SRX-FW" and subnet.name == "ams_remote_subnets" %}
+{% for name, pref  in subnet.prefix.items() %}
+set security address-book remote_subnet address {{ name }} {{ pref }}
+set security address-book remote_subnet attach zone untrust
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+
+
+

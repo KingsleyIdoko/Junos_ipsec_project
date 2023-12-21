@@ -1,9 +1,0 @@
----
-
-ansible_user: admin
-ansible_ssh_pass: Sc1ool247
-ansible_become_method: enable
-ansible_become_pass: Sc1ool247
-ansible_become: yes
-
-

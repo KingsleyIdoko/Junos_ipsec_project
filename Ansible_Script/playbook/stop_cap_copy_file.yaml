@@ -1,0 +1,25 @@
+--
+
+- name: "Play 1: Start Packet Capture on Network Devices"
+  hosts: junos_fw
+  vars_files:
+    - vaultfile.yaml
+  tasks:
+    - name: "Task 2: Stop capture on {{ inventory_hostname }} WAN Interface"  
+      junipernetworks.junos.junos_config:
+        lines:
+        - delete interfaces  {{ hostname_wan_interface }}  unit 0 family inet filter input PCAP
+        - delete interfaces  {{ hostname_wan_interface }}  unit 0 family inet filter output PCAP
+      when: ansible_network_os == 'junipernetworks.junos.junos'
+      notify: config_changed
+      register: cli_result
+
+    - name: "Task 3: Display out to the CLI"
+      debug:
+        msg: "{{ cli_result }}"
+
+  handlers:
+    - name: "Handler 1: Display cli config changes"
+      listen: config_changed
+      debug:
+        msg: "{{ cli_result.commands }}"

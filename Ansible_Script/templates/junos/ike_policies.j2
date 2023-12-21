@@ -1,0 +1,6 @@
+{% for proposal, ike_policy in ike_proposals | ansible.builtin.zip(ike_policies) %}
+set security ike policy {{ ike_policy }} mode main
+set security ike policy {{ ike_policy }} proposals {{ proposal }}
+set security ike policy {{ ike_policy }} pre-shared-key ascii-text {{ vpn_password }}
+{{ "" }}
+{% endfor %}

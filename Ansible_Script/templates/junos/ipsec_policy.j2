@@ -1,0 +1,5 @@
+{% for ipsec_policy, pf, ipsec_proposal in ipsec_policies | ansible.builtin.zip(pfs, ipsec_proposals) %}
+set security ipsec policy {{ ipsec_policy }} perfect-forward-secrecy keys {{ pf }}
+set security ipsec policy {{ ipsec_policy }} proposals {{ ipsec_proposal }}
+{{ "" }}
+{% endfor %}

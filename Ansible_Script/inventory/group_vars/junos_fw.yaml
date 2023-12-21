@@ -1,0 +1,126 @@
+---
+
+
+ansible_user: "{{ srx_username }}"
+ansible_password: "{{ srx_password }}"
+ansible_connection: ansible.netcommon.netconf
+ansible_network_os: junipernetworks.junos.junos
+
+ike_proposals:
+    - proposal-1 
+    - proposal-2
+    - proposal-3
+    - proposal-4
+ike_dhgroup:
+    - group14
+    - group19
+    - group5
+    - group2
+
+nat: 
+    - name: GLOBAL-NAT-RULE
+    - rules:
+        - rule1
+        - rule2
+
+ike_auth_algorithm:    
+    - authentication-algorithm sha-256    
+    - authentication-algorithm sha-384    
+    - authentication-algorithm md5   
+    - 
+    
+
+ike_encrypt_algorithm:
+    - encryption-algorithm aes-128-cbc
+    - encryption-algorithm 3des-cbc
+    - encryption-algorithm aes-256-cbc
+    - encryption-algorithm aes-128-gcm
+
+ipsec_auth_alogrithm:
+    - authentication-algorithm hmac-sha-256-128
+    - authentication-algorithm hmac-sha1-96 
+    - authentication-algorithm hmac-md5-96
+
+ipsec_encrypt_alogrithm:
+    - encryption-algorithm aes-256-cbc
+    - encryption-algorithm aes-128-cbc
+    - encryption-algorithm aes-192-cbc
+
+ike_policies:
+    - ike_policy-1
+    - ike_policy-2
+    - ike_policy-3
+    - ike_policy-4
+
+ike_gateways:
+    - gateway-1
+    - gateway-2
+    - gateway-3
+
+ipsec_proposals:
+    - ipsec-proposal-1
+    - ipsec-proposal-2
+    - ipsec-proposal-3
+
+ipsec_policies:
+    - ipsec-policy-1
+    - ipsec-policy-2
+    - ipsec-policy-3
+
+zones:
+    - trust
+    - untrust
+pfs: 
+    - group14
+    - group14
+    - group14
+
+list_of_local_subnets:
+    - nyc_local_subnet:
+        prefix: "10.0.10.0/24"
+        name: "nyc_local_subnet"
+    - nyc_floating_nat_subnet:
+        prefix: "192.168.101.0/24"
+        name: "nyc_floating_nat_subnet"
+    - ams_local_subnet:
+        prefix: "192.168.102.0/24"
+        name: "ams_local_subnet"
+    - bel_local_subnet:
+        prefix: "172.16.10.0/24"
+        name: "bel_local_subnet"
+    - la_local_subnet:
+        prefix: "10.0.0.0/24"
+        name: "la_local_subnet"
+    - la_floating_nat_range:
+        prefix: "192.168.100.0/24"
+        name: "la_floating_nat_range"
+    - nyc_remote_subnets:
+        prefix:
+         ams_remote_subnet: "192.168.10.0/24"
+         la_remote_subnet: "10.0.0.0/16"
+         bel_remote_subnet: "172.16.10.0/24"
+         la_remote_nat_subnet: "192.168.100.0/24"
+        name: nyc_remote_subnets
+    - ams_remote_subnets:
+        prefix: 
+         la_remote_subnet: "10.0.0.0/16"
+         bel_remote_subnet: "172.16.10.0/24"
+         nyc_remote_sbunet: "192.168.101.0/24"
+        name: ams_remote_subnets
+    - bel_remote_subnets:
+        prefix:
+         la_remote_subnet: "10.0.0.0/16"
+         ams_remote_subnet: "192.168.10.0/24"
+         nyc_remote_sbunet: "192.168.101.0/24"
+        name: bel_remote_subnets
+    - la_remote_subnets:
+        prefix:
+         bel_remote_subnet: "172.16.10.0/24"
+         ams_remote_subnet: "192.168.10.0/24"
+         nyc_remote_sbunet: "192.168.101.0/24"
+        name: la_remote_subnets
+
+
+
+
+

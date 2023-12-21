@@ -1,0 +1,44 @@
+---
+
+destination_ip_address: "192.168.1.30"
+
+source_ip_address: "192.168.1.20"
+
+local_ip_address: "192.168.1.20"
+
+hostname_wan_interface: "ge-0/0/1" 
+
+WAN_Interface: "ge-0/0/1"
+INSIDE_Interface: "ge-0/0/0"
+
+pcap_direction:
+    - input
+    - output
+    
+ipsec_vpns:
+    - NYC_LA_VPN_TUNNEL
+
+
+
+local_subnets: 
+    - inside_network: "10.0.10.0/24"
+      floating_nat_range: "10.100.101.0/24"
+
+local_subnet: 
+    - nyc_local_subnet
+destination_subnet: 
+    # - ams_remote_subnet
+    # - la_remote_subnet 
+    # - bel_remote_subnet
+    - la_remote_nat_subnet
+
+remote_subnets:
+    - "10.0.0.0/24"
+    - "192.168.100.0/24"
+
+security_policies:
+    - local_vpn:
+        NYC_LA_VPN_POLICY
+    - remote_vpn:
+        LA_NYC_VPN_POLICY
+    

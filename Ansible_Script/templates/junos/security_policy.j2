@@ -1,0 +1,39 @@
+{% for ipsec_vpn_name in ipsec_vpns %}
+{% for vpn_policy in security_policies %}
+{% for vpn_name, vpn_Value in vpn_policy.items() %}
+{% set outbound_policy = vpn_policy['local_vpn'] %}
+{% set inbound_policy = vpn_policy['remote_vpn'] %}
+{% set policies = outbound_policy|zip(inbound_policy)|list %}
+{% for policy in policies %}
+{% for zone_A in zones %}
+{% for zone_B in zones %}
+{% if zone_A != zone_B and vpn_name == "local_vpn" and zone_A == "trust" %}
+{% for source_addr in local_subnet %}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match source-address {{ source_addr }}
+{% endfor %}
+{% for dest in destination_subnet %}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match destination-address {{ dest }}
+{% endfor %}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match application any
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} then permit any
+{# set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} then permit tunnel pair-policy {{ policy[0] }} #}
+{{ " " }}
+{% elif zone_A != zone_B and vpn_name == "remote_vpn" and zone_A == "untrust" %}
+{% for dest in destination_subnet %} 
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match source-address {{ dest }}
+{% endfor %}
+{% for source_addr in local_subnet %}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match destination-address {{ source_addr }}
+{% endfor %}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} match application any
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} then permit tunnel ipsec-vpn {{ ipsec_vpn_name }}
+set security policies from-zone {{ zone_A }} to-zone {{ zone_B }} policy {{ policy[0] }} then permit tunnel pair-policy {{ policy[1] }}
+{{ " " }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+

@@ -1,0 +1,10 @@
+{% for proposal, group, auth, encrypt in ike_proposals | ansible.builtin.zip(ike_dhgroup, ike_auth_algorithm, ike_encrypt_algorithm) %}
+set security ike proposal {{ proposal }} authentication-method pre-shared-keys
+set security ike proposal {{ proposal }} {{ encrypt }}
+set security ike proposal {{ proposal }} dh-group {{ group }}
+set security ike proposal {{ proposal }} lifetime-seconds 28800
+{% if encrypt != "encryption-algorithm aes-128-gcm" %}set security ike proposal {{ proposal }} {{ auth }} 
+{% endif %}
+{{ "" }}
+{% endfor %}
+

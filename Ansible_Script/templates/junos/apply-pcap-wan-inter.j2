@@ -1,0 +1,3 @@
+{% for direct in pcap_direction %}
+set interfaces  {{ hostname_wan_interface }}  unit 0 family inet filter {{ direct }} PCAP
+{% endfor %}

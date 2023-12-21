@@ -1,0 +1,30 @@
+---
+
+
+source_ip_address: 
+      - "192.168.1.10"
+destination_ip_address: 
+      - "192.168.1.30"
+hostname_wan_interface: "GigabitEthernet0/1" 
+
+ipsec-vpns: 
+      - AMS_LA_VPN_TUNNEL
+
+local_subnets: 
+      - "172.168.10.0/24"
+floating_nat_range:
+      - "192.168.101.0/24"
+
+local_subnets: 
+    - "172.16.10.0/24"
+floating_nat_range:
+    - "10.100.102.0/24"
+remote_subnets:
+      - nyc_remote_subnets:
+        - "10.0.0.0/24"
+
+security_policies:
+    local_vpn:
+    - BEL_LA_VPN_POLICY
+    remote_vpn:
+    - LA_BEL_VPN_POLICY

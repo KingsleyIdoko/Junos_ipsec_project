@@ -1,0 +1,40 @@
+---
+
+- name: "Play 1: Define VPN Traffic Security Zones"
+  hosts: junos_fw
+  vars_files: 
+    - vaultfile.yaml
+  tasks:
+    - name: Configuration of Traffic Zones
+      junipernetworks.junos.junos_security_zones: 
+        config:
+          zones:
+          - name: trust
+            description: Inside trust zone
+            host_inbound_traffic:
+              protocols:
+              - name: all
+                except: true
+              system_services:
+              - name: all
+                except: true
+            interfaces:
+              - "{{ INSIDE_Interface }}"
+          - name: untrust
+            description: Outside Untrust Zone
+            host_inbound_traffic:
+              protocols:
+              - name: all
+                except: true
+              system_services:
+              - name: all
+                except: true
+            interfaces:
+              - "{{ WAN_Interface }}"
+
+
+
+
+
+
+

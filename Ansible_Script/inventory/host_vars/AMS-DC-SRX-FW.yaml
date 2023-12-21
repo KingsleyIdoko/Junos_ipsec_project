@@ -1,0 +1,38 @@
+---
+
+destination_ip_address: "192.168.1.30"
+
+source_ip_address: "192.168.1.40"
+
+local_ip_address: "192.168.1.40"
+
+WAN_Interface: "ge-0/0/1"
+INSIDE_Interface: "ge-0/0/0"
+
+pcap_direction:
+    - input
+    - output
+
+ipsec_vpns: 
+    - AMS_LA_VPN_TUNNEL
+
+local_subnets: 
+    - "192.168.10.0/24"
+floating_nat_range:
+    - "10.100.100.0/24"
+
+remote_subnets:
+    - "10.0.0.0/24"
+
+security_policies:
+    - local_vpn:
+        AMS_LA_VPN_POLICY
+    - remote_vpn:
+        LA_AMS_VPN_POLICY
+
+local_subnet: 
+        - ams_local_subnet
+destination_subnet: 
+        # - la_remote_subnet 
+        # - bel_remote_subnet
+        - la_remote_nat_subnet

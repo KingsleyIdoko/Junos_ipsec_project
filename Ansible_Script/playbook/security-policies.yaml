@@ -1,0 +1,54 @@
+---
+
+- name: "Play 1: Define VPN security Policies"
+  hosts: junos_fw
+  vars_files: 
+    - vaultfile.yaml
+  tasks:
+    - name: "Task 1: Configuration of Traffic Zones"
+      junipernetworks.junos.junos_security_policies:
+        config:
+          from_zones:
+            - name: trust
+              to_zones:
+                - name: untrust
+                  policies:
+                    - description: VPN Polices to remotes DCs.
+                      match:
+                        application:
+                          any: true
+                          names:
+                            - ping
+                            - junos-ike
+                            - junos-http
+                            - junos-https
+                        destination_address:
+                          addresses: la_remote_nat_subnet
+                        destination_address_excluded: true
+                        source_address:
+                          addresses: nyc_local_subnet
+                        source_address_excluded: true
+                      name: VPN_POLICY_TRUST_TO_UNTRUST
+                      then:
+                        permit:
+                          tunnel:
+                            ipsec_vpn: NYC_LA_VPN_TUNNEL
+                - name: untrust
+                  policies:
+                    - match:
+                        application:
+                          any: true
+                          names:
+                            - ping
+                            - junos-ike
+                            - junos-http
+                            - junos-https
+                        destination_address:
+                          addresses: nyc_local_subnet
+                        source_address:
+                          addresses: la_remote_nat_subnet
+                      name: VPN_POLICY_UNTRUST_TO_TRUST
+                      then:
+                        permit:
+                          tunnel: 
+                              ipsec_vpn: NYC_LA_VPN_TUNNEL

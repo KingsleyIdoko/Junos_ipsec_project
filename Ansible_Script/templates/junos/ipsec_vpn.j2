@@ -1,0 +1,6 @@
+{% for vpn_tunnel, gw, ipsec_policy in ipsec_vpns | ansible.builtin.zip(ike_gateways, ipsec_policies) %}
+set security ipsec vpn {{ vpn_tunnel }} ike gateway {{ gw }}
+set security ipsec vpn {{ vpn_tunnel }} ike ipsec-policy {{ ipsec_policy }}
+set security ipsec vpn {{ vpn_tunnel }} establish-tunnels immediately
+{{ "" }}
+{% endfor %}

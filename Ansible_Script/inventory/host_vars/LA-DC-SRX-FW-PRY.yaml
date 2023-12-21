@@ -1,0 +1,48 @@
+---
+
+
+source_ip_address: "192.168.1.30"
+
+hostname_wan_interface: "reth1" 
+
+local_ip_address: "192.168.1.30"
+
+WAN_Interface: "reth1" 
+INSIDE_Interface: "reth0"
+
+destination_ip_address: 
+        - "192.168.1.10"
+        - "192.168.1.20"
+        - "192.168.1.40"
+
+pcap_direction:
+    - input
+    - output
+
+ipsec_vpns:
+    - LA_NYC_VPN_TUNNEL
+    - LA_AMS_VPN_TUNNEL
+    - LA_BEL_VPN_TUNNEL  
+
+
+local_subnets: 
+    - inside_network: "10.0.0.0/24"
+      floating_nat_range: "10.100.100.0/24"
+
+security_policies:
+  - local_vpn:
+      - LA_NYC_VPN_POLICY
+      - LA_AMS_VPN_POLICY
+      - LA_BEL_VPN_POLICY
+    remote_vpn:
+      - NYC_LA_VPN_POLICY
+      - AMS_LA_VPN_POLICY
+      - BEL_LA_VPN_POLICY
+
+local_subnet: 
+    - la_local_subnet
+destination_subnet: 
+    # - la_remote_subnet 
+    # - bel_remote_subnet
+    - nyc_remote_sbunet
+
