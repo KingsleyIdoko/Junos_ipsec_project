@@ -55,6 +55,7 @@ class DeviceConfigurator:
             try: 
                 for item in sorted_nat_rules:
                     list_of_policies.append(item['name'])
+                print(list_of_policies)
                 payload = re_order_nat_policy(list_of_policies)
             except Exception as e:
                 print(f"An error has occured {e}")

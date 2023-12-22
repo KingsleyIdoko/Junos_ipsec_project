@@ -145,6 +145,7 @@ def rule_compare(rule1, rule2):
         return rule1['name'] < rule2['name']
     
 
+list_nat_rules = ['rule2', 'rule3', 'rule4', 'rule5', 'rule6', 'rule1']
 
 def re_order_nat_policy(list_nat_rules):
     # Create an empty list to store the nat elements
@@ -170,7 +171,7 @@ def re_order_nat_policy(list_nat_rules):
             policy_element = policy_element.replace('<rule', '<rule insert="first"')
         else:
             # Use 'after' and the previous rule name as the key
-            policy_element = policy_element.replace('<rule', f'<rule insert="after"  key="[ name={prev_rule} ]"')
+            policy_element = policy_element.replace('<rule', f'<rule insert="after" key="[ name=\'{prev_rule}\' ]"')
         # Update the previous rule name with the current rule name
         prev_rule = rule
         # Append the policy element to the list of nat elements
@@ -198,6 +199,9 @@ def re_order_nat_policy(list_nat_rules):
             </security>
     </configuration>"""
     return payload
+
+
+
 
 
 
