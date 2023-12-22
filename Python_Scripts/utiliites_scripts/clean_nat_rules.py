@@ -1,3 +1,5 @@
+import re
+
 def compare_nat(payload):
     # Create a list to store the groups of rules
     collect_dup_rules = []
@@ -23,7 +25,7 @@ def compare_nat(payload):
     # Return the list of groups as the result
     return collect_dup_rules
 
-def Rm_dup_rules(rules):
+def first_duplicate_rule(rules):
     # Create a new list to store the highest rules in each group
     highest_rules = []
 
@@ -200,6 +202,15 @@ def re_order_nat_policy(list_nat_rules):
     </configuration>"""
     return payload
 
+
+
+
+def sort_rules(rule_list):
+    def extract_rule_number(rule):
+        match = re.match(r'rule(\d+)', rule)
+        return int(match.group(1)) if match else float('inf')
+
+    return sorted(rule_list, key=extract_rule_number)
 
 
 
