@@ -3,7 +3,8 @@ from nornir import InitNornir
 from rich import print
 import os
 from utiliites_scripts.nat_exempt import nat_policy
-from utiliites_scripts.clean_nat_rules import rule_compare, Rm_dup_rules,  re_order_nat_policy
+from utiliites_scripts.clean_nat_rules import (rule_compare, Rm_dup_rules, filter_list, nat_delete,
+                                            re_order_nat_policy, compare_nat)
 from xml.dom import minidom
 from lxml import etree
 from functools import cmp_to_key
@@ -52,21 +53,48 @@ class DeviceConfigurator:
         for nat in self.response:
             nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
             sorted_nat_rules = sorted(nat_rules, key=cmp_to_key(rule_compare))
+            grap_duplicate_rules = compare_nat(sorted_nat_rules)
+            del_duplicates = Rm_dup_rules(grap_duplicate_rules)
+            
             try: 
                 for item in sorted_nat_rules:
                     list_of_policies.append(item['name'])
-                print(list_of_policies)
                 payload = re_order_nat_policy(list_of_policies)
             except Exception as e:
                 print(f"An error has occured {e}")
-        return payload
+        return payload, del_duplicates
 
     def push_config(self):
         new_nat_policy = self.build_config()
-        nat_re_order_policies  =  self.nat_rule_re_order()
-        xml_data =  [nat_re_order_policies]
-        for xml_text in xml_data:
-            response = self.nr.run(task=pyez_config, payload=xml_text, data_format='xml')
+        response = self.nr.run(task=pyez_config, payload=new_nat_policy, data_format='xml')
+        for res in response:
+            print(response[res].result)
+            diff_result = self.nr.run(task=pyez_diff)
+            for res in diff_result:
+                if diff_result[res].result is None:
+                    print("No Config Change")
+                    return
+                print(diff_result[res].result)
+                committed = self.nr.run(task=pyez_commit)
+                for res1 in committed:
+                    print(committed[res1].result)
+
+        updated_nat_order, duplicate_rules = self.nat_rule_re_order()
+        response = self.nr.run(task=pyez_config, payload=updated_nat_order, data_format='xml')
+        for res in response:
+            print(response[res].result)
+            diff_result = self.nr.run(task=pyez_diff)
+            for res in diff_result:
+                if diff_result[res].result is None:
+                    print("No Config Change")
+                    return
+                print(diff_result[res].result)
+                committed = self.nr.run(task=pyez_commit)
+                for res1 in committed:
+                    print(committed[res1].result)
+        for rule in duplicate_rules:
+            payload = nat_delete(rule)
+            response = self.nr.run(task=pyez_config, payload=payload, data_format='xml')
             for res in response:
                 print(response[res].result)
                 diff_result = self.nr.run(task=pyez_diff)

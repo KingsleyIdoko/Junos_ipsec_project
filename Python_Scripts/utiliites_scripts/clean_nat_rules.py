@@ -145,7 +145,7 @@ def rule_compare(rule1, rule2):
         return rule1['name'] < rule2['name']
     
 
-list_nat_rules = ['rule2', 'rule3', 'rule4', 'rule5', 'rule6', 'rule1']
+
 
 def re_order_nat_policy(list_nat_rules):
     # Create an empty list to store the nat elements
