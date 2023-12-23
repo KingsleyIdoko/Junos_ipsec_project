@@ -3,7 +3,7 @@ from nornir_pyez.plugins.tasks import pyez_config, pyez_commit, pyez_diff
 def run_pyez_tasks(self, payload, data_format):
     # Run the pyez_config task and store the response
     response = self.nr.run(task=pyez_config, payload=payload, data_format=data_format)
-
+    print(payload)
     for res in response:
         print(response[res].result)
 
@@ -16,7 +16,6 @@ def run_pyez_tasks(self, payload, data_format):
         if diff_result[res].result is None:
             # Print no config change and return
             print("No Config Change: No Commit to Apply")
-            break
         # Otherwise, print the diff result
         else:
             print(diff_result[res].result)

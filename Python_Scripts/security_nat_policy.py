@@ -46,29 +46,35 @@ class DeviceConfigurator:
             nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
             rule_set_name = self.response[nat].result['configuration']['security']['nat']['source']['rule-set'].get('name')
         sorted_nat_rules = sorted(nat_rules, key=cmp_to_key(rule_compare))
-        grap_duplicate_rules = compare_nat(sorted_nat_rules)
-        unique_rules = filter_list(grap_duplicate_rules)
-        dup_rules = first_duplicate_rule(unique_rules)
-        del_duplicates = [item for item in set (dup_rules)]
         try: 
             for item in sorted_nat_rules:
                 list_of_policies.append(item['name'])
             payload = re_order_nat_policy(list_of_policies, rule_set_name)
         except Exception as e:
             print(f"An error has occured {e}")
-        return payload, del_duplicates 
-
+        return payload, rule_set_name
+    
+    def delete_duplicate_rules(self):
+        self.response = self.nr.run(task=pyez_get_config, database=self.database)
+        for nat in self.response:
+            nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
+        sorted_nat_rules = sorted(nat_rules, key=cmp_to_key(rule_compare))
+        grap_duplicate_rules = compare_nat(sorted_nat_rules)
+        unique_rules = filter_list(grap_duplicate_rules)
+        dup_rules = first_duplicate_rule(unique_rules)
+        del_duplicates = [item for item in set (dup_rules)]
+        return del_duplicates
+    
     def push_config(self):
         new_nat_policy = self.build_config()
-        updated_nat_order, del_duplicates = self.nat_rule_re_order()
-        items =  [new_nat_policy, updated_nat_order, del_duplicates]
-        for payload in items:
-            if payload == del_duplicates:
-                for rule in del_duplicates:
-                    payload = nat_delete(rule)
-                    response, committed = run_pyez_tasks(self, payload, 'xml')
-                else:
-                    run_pyez_tasks(self, payload, 'xml')
+        run_pyez_tasks(self, new_nat_policy, 'xml')     
+        updated_nat_order, rule_set_name = self.nat_rule_re_order()
+        run_pyez_tasks(self, updated_nat_order, 'xml')  
+        duplicate_rules =  self.delete_duplicate_rules()
+        print(duplicate_rules)
+        for rule in duplicate_rules:
+            payload = nat_delete(rule, rule_set_name)
+            response, committed = run_pyez_tasks(self, payload, 'xml')
 
 config = DeviceConfigurator()
 response = config.push_config()

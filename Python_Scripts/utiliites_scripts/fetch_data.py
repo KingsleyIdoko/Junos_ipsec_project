@@ -23,8 +23,18 @@ def append_nat_data(result, remote_subnets):
     except:
         sub_nat_rules.append(list_of_rules.get('name'))
 
-    nat_rule_name = "rule" + str(len(sub_nat_rules) + 1)
-    
+    # Initialize the rule number as the length of the sub nat rules list plus one
+    rule_number = len(sub_nat_rules) + 1
+    # Generate the rule name by concatenating 'rule' and the rule number
+    nat_rule_name = "rule" + str(rule_number)
+
+    # Use a while loop to check if the rule name is in sub_nat_rules
+    while nat_rule_name in sub_nat_rules:
+        # If the rule name is in sub_nat_rules, increment the rule number by one
+        rule_number += 1
+        # Generate a new rule name by concatenating 'rule' and the rule number
+        nat_rule_name = "rule" + str(rule_number)
+
     # Append the nat rule name and the nat exempt vpn prefixes to the nat data list
     nat_data.append(nat_rule_name)
     nat_data.append(nat_exempt_vpn_prefixes)

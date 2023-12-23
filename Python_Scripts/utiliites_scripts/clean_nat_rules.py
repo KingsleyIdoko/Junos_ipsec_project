@@ -63,14 +63,14 @@ def filter_list(payload):
     return list_without_duplicates
 
 
-def nat_delete(rule):
+def nat_delete(rule, rule_set_name):
     payload = f"""
     <configuration>
             <security>
                 <nat>
                     <source>
                         <rule-set>
-                            <name>GLOBAL-RULE</name>
+                            <name>{rule_set_name}</name>
                             <rule operation="delete">
                                 <name>{rule}</name>
                             </rule>
@@ -115,6 +115,14 @@ def prefix_compare(prefix1, prefix2):
     # Compare the numerical values of the prefixes
     return num1 - num2
 
+# Define a function to check if a list has duplicate values
+def has_duplicates(lst):
+    # Convert the list to a set
+    s = set(lst)
+    # Check if the set has more than one element
+    return len(s) > 1
+
+
 # Define a function to compare two nat rules
 def rule_compare(rule1, rule2):
     # Get the source address and destination address of the rules
@@ -122,31 +130,53 @@ def rule_compare(rule1, rule2):
     src2 = rule2['src-nat-rule-match'].get('source-address')
     dst1 = rule1['src-nat-rule-match'].get('destination-address')
     dst2 = rule2['src-nat-rule-match'].get('destination-address')
+    
+    # If the source addresses are lists, check if they have duplicate values
+    if isinstance(src1, list) and has_duplicates(src1):
+        # Return a negative value to indicate that rule1 has duplicate source addresses
+        return -1
+    if isinstance(src2, list) and has_duplicates(src2):
+        # Return a positive value to indicate that rule2 has duplicate source addresses
+        return 1
+    
+    # If the destination addresses are lists, check if they have duplicate values
+    if isinstance(dst1, list) and has_duplicates(dst1):
+        # Return a negative value to indicate that rule1 has duplicate destination addresses
+        return -1
+    if isinstance(dst2, list) and has_duplicates(dst2):
+        # Return a positive value to indicate that rule2 has duplicate destination addresses
+        return 1
+    
+    # Otherwise, use the original logic to compare the source and destination addresses
     # If the source addresses are lists, use the first element
     if isinstance(src1, list):
         src1 = src1[0]
     if isinstance(src2, list):
         src2 = src2[0]
+    
     # If the destination addresses are lists, use the first element
     if isinstance(dst1, list):
         dst1 = dst1[0]
     if isinstance(dst2, list):
         dst2 = dst2[0]
+    
     # Compare the source addresses using the prefix compare function
     src_cmp = prefix_compare(src1, src2)
+    
     # If the source addresses are different, return the comparison result
     if src_cmp != 0:
         return src_cmp
+    
     # Otherwise, compare the destination addresses using the prefix compare function
     dst_cmp = prefix_compare(dst1, dst2)
+    
     # If the destination addresses are different, return the comparison result
     if dst_cmp != 0:
         return dst_cmp
+    
     # Otherwise, compare the rule names
     else:
         return rule1['name'] < rule2['name']
-    
-
 
 
 def re_order_nat_policy(list_nat_rules, rule_set_name):
