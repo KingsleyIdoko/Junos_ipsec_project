@@ -21,13 +21,12 @@ class DeviceConfigurator:
         self.nr = InitNornir(config_file=config_file)
 
     def fetch_nat_data(self):
-        nat_data = []
         try:
             self.response = self.nr.run(task=pyez_get_config, database=self.database)
             for nat in self.response:
                 result = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']
                 remote_subnets =  self.response[nat].result['configuration']['security']['address-book'][1]['address']
-                nat_data = append_nat_data(result, nat_data, remote_subnets)
+                nat_data = append_nat_data(result, remote_subnets)
             return nat_data
         except Exception as e:
             print(f"An error has occurred: {e}")
@@ -59,11 +58,10 @@ class DeviceConfigurator:
         return payload, del_duplicates
 
     def push_config(self):
-        new_nat_policy = self.build_config()
-        response, committed = run_pyez_tasks(self, new_nat_policy, 'xml')
-        # updated_nat_order, del_duplicates = self.nat_rule_re_order()
-        # print(updated_nat_order)
-        # response, committed = run_pyez_tasks(self, updated_nat_order, 'xml')
+        # new_nat_policy = self.build_config()
+        # run_pyez_tasks(self, new_nat_policy, 'xml')
+        updated_nat_order, del_duplicates = self.nat_rule_re_order()
+        run_pyez_tasks(self, updated_nat_order, 'xml')
         # for rule in del_duplicates:
         #     payload = nat_delete(rule)
         #     response, committed = run_pyez_tasks(self, payload, 'xml')
