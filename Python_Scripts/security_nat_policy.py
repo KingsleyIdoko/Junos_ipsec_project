@@ -12,7 +12,6 @@ from functools import cmp_to_key
 from utiliites_scripts.fetch_data import append_nat_data
 from utiliites_scripts.commit import run_pyez_tasks
 
-
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class DeviceConfigurator:
@@ -62,12 +61,12 @@ class DeviceConfigurator:
     def push_config(self):
         new_nat_policy = self.build_config()
         response, committed = run_pyez_tasks(self, new_nat_policy, 'xml')
-        updated_nat_order, duplicate_rules = self.nat_rule_re_order()
-        for rule in duplicate_rules:
-            payload = nat_delete(rule)
-            response, committed = run_pyez_tasks(self, payload, 'xml')
-            print(committed)
+        # updated_nat_order, del_duplicates = self.nat_rule_re_order()
+        # print(updated_nat_order)
+        # response, committed = run_pyez_tasks(self, updated_nat_order, 'xml')
+        # for rule in del_duplicates:
+        #     payload = nat_delete(rule)
+        #     response, committed = run_pyez_tasks(self, payload, 'xml')
 
 config = DeviceConfigurator()
 response = config.push_config()
-

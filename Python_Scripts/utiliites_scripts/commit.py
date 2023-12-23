@@ -3,10 +3,9 @@ from nornir_pyez.plugins.tasks import pyez_config, pyez_commit, pyez_diff
 def run_pyez_tasks(self, payload, data_format):
     # Run the pyez_config task and store the response
     response = self.nr.run(task=pyez_config, payload=payload, data_format=data_format)
-    
-    # Print the response result
-    # for res in response:
-    #     print(response[res].result)
+
+    for res in response:
+        print(response[res].result)
 
     # Run the pyez_diff task and store the diff result
     diff_result = self.nr.run(task=pyez_diff)

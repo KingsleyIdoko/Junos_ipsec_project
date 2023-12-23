@@ -65,20 +65,20 @@ def filter_list(payload):
 
 def nat_delete(rule):
     payload = f"""
-            <configuration>
-                <security>
-                    <nat>
-                        <source>
-                            <rule-set>
-                                <name>GLOBAL-NAT-RULE</name>
-                                <rule operation="delete">
-                                    <name>{rule}</name>
-                                </rule>
-                            </rule-set>
-                        </source>
-                    </nat>
-                </security>
-        </configuration>"""
+    <configuration>
+            <security>
+                <nat>
+                    <source>
+                        <rule-set>
+                            <name>GLOBAL-RULE</name>
+                            <rule operation="delete">
+                                <name>{rule}</name>
+                            </rule>
+                        </rule-set>
+                    </source>
+                </nat>
+            </security>
+    </configuration>"""
     return payload
 
 
