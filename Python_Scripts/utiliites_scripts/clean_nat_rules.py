@@ -149,7 +149,7 @@ def rule_compare(rule1, rule2):
 
 
 
-def re_order_nat_policy(list_nat_rules):
+def re_order_nat_policy(list_nat_rules, rule_set_name):
     # Create an empty list to store the nat elements
     nat_elements = []
     # Create a variable to store the previous rule name, and initialize it as None
@@ -193,15 +193,14 @@ def re_order_nat_policy(list_nat_rules):
                 <nat>
                     <source>
                         <rule-set>
-                            <name>GLOBAL-NAT-RULE</name>
-                                {nat_elements}
+                            <name>{rule_set_name}</name>
+                            {nat_elements}
                         </rule-set>
                     </source>
                 </nat>
             </security>
     </configuration>"""
     return payload
-
 
 
 
