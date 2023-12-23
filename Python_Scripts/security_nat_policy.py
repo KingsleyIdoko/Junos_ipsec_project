@@ -5,7 +5,7 @@ import os
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.clean_nat_rules import (rule_compare, first_duplicate_rule, nat_delete,
                                             re_order_nat_policy, compare_nat, filter_list,
-                                            sort_rules)
+                                            rename_nat_rules)
 from xml.dom import minidom
 from lxml import etree
 from functools import cmp_to_key
@@ -65,6 +65,20 @@ class DeviceConfigurator:
         del_duplicates = [item for item in set (dup_rules)]
         return del_duplicates
     
+    def rename_nat_rules(self):
+        renamed_rules = []
+        global_nat_rule, source_zone, destination_zone, rule_set, nat_exempt_vpn_prefixes = self.fetch_nat_data()
+        self.response = self.nr.run(task=pyez_get_config, database=self.database)
+        for nat in self.response:
+            nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
+        updated_rules = rename_nat_rules(nat_rules)
+        for rule_set in updated_rules:
+            payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_set['name'], nat_exempt_vpn_prefixes))
+            formatted_xml = payload.toprettyxml()
+            formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
+            renamed_rules.append(formatted_xml) 
+        return renamed_rules
+
     def push_config(self):
         new_nat_policy = self.build_config()
         run_pyez_tasks(self, new_nat_policy, 'xml')     
@@ -75,6 +89,10 @@ class DeviceConfigurator:
         for rule in duplicate_rules:
             payload = nat_delete(rule, rule_set_name)
             response, committed = run_pyez_tasks(self, payload, 'xml')
+        new_nat_rule_names = self.rename_nat_rules()
+        print(new_nat_rule_names)
+        for xml_data in  new_nat_rule_names:
+            run_pyez_tasks(self, xml_data, 'xml')  
 
 config = DeviceConfigurator()
 response = config.push_config()
