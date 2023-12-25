@@ -243,10 +243,9 @@ def sort_rules(rule_list):
 
 
 # Define a function to rename the NAT rules
-def rename_nat_rules(rules):
+def modify_nat_rule(rules):
     # Create a dictionary that maps the old rule names to the new rule names
     name_map = dict([('rule1', 'rule2'), ('rule2', 'rule1'), ('rule3', 'rule4'), ('rule4', 'rule3')])
-    
     # Loop through the rules
     for rule in rules:
         # Get the old rule name

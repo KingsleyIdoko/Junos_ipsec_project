@@ -49,7 +49,7 @@ def append_nat_data(result, remote_subnets, source_subnet):
 
 
 def Serialize_nat_data(nat_data):
-# Initialize an empty list for the result
+    # Initialize an empty list for the result
     result = []
 
     # Loop through the list of dictionaries
@@ -57,11 +57,22 @@ def Serialize_nat_data(nat_data):
         # Get the name of the rule
         name = rule['name']
         # Get the destination address of the rule
-        dst = rule['src-nat-rule-match'].get('destination-address')
+        dst = [rule['src-nat-rule-match'].get('destination-address')]
+    # Check if the list has two square brackets
+        if len (dst) == 1 and isinstance (dst [0], list):
+        # Unpack the first square bracket
+            dst =  dst[0]
+        else:
+            dst = [rule['src-nat-rule-match'].get('destination-address')]
         # Get the source address of the rule
-        src = rule['src-nat-rule-match'].get('source-address')
+        try:
+            src = [rule['src-nat-rule-match'].get('source-address')]
+        except:
+            src = rule['src-nat-rule-match'].get('source-address')
         # Get the source-nat action of the rule
         action = rule['then']['source-nat']
         # Append the name, destination address, source address, and action to the result list
         result.append([name, dst, src, action])
     return result
+
+

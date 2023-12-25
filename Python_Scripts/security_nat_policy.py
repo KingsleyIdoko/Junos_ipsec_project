@@ -5,7 +5,7 @@ import os
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.clean_nat_rules import (rule_compare, first_duplicate_rule, nat_delete,
                                             re_order_nat_policy, compare_nat, filter_list,
-                                            rename_nat_rules)
+                                            modify_nat_rule)
 from xml.dom import minidom
 from lxml import etree
 from functools import cmp_to_key
@@ -27,8 +27,6 @@ class DeviceConfigurator:
                 result = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']
                 remote_subnets =  self.response[nat].result['configuration']['security']['address-book'][1]['address']
                 source_subnets =  self.response[nat].result['configuration']['security']['address-book'][0]['address']
-                # print(remote_subnets)
-                # print(result)
                 nat_data = append_nat_data(result, remote_subnets, source_subnets)
             return nat_data
         except Exception as e:
@@ -36,8 +34,9 @@ class DeviceConfigurator:
             return None
         
     def build_config(self):
-        global_nat_rule, source_zone, destination_zone, rule_set, rm_prefixes = self.fetch_nat_data()
-        payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_set, rm_prefixes))
+        global_nat_rule, source_zone, destination_zone, rule_name, rm_prefixes, source_subnets = self.fetch_nat_data()
+        nat_type = {'off': None}
+        payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_name, rm_prefixes, nat_type=nat_type))
         formatted_xml = payload.toprettyxml()
         formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
         return formatted_xml
@@ -67,38 +66,37 @@ class DeviceConfigurator:
         dup_rules = first_duplicate_rule(unique_rules)
         del_duplicates = [item for item in set (dup_rules)]
         return del_duplicates
-    
+    @property
     def rename_nat_rules(self):
         renamed_rules = []
         global_nat_rule, source_zone, destination_zone, *_ = self.fetch_nat_data()
         self.response = self.nr.run(task=pyez_get_config,  database=self.database)
         for nat in self.response:
             nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
-        renamed_rules = rename_nat_rules(nat_rules)
+        renamed_rules = modify_nat_rule(nat_rules)
         serialized_data = Serialize_nat_data(renamed_rules)
         for rule, destination, source_address, nat_type in serialized_data:
-            payload = nat_policy(global_nat_rule, source_zone, destination_zone, rule, destination, source_address, nat_type)
-            print(payload)
-        # print(renamed_rules )
-        # payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_set, rm_prefixes, src_prefixes))
-        # formatted_xml = payload.toprettyxml()
-        # formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
-        # return formatted_xml
+            payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule, destination, source_address, nat_type))
+            formatted_xml = payload.toprettyxml()
+            formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
+            renamed_rules.append(formatted_xml)
+        print(renamed_rules)
+        return renamed_rules
 
+    @property
     def push_config(self):
         # new_nat_policy = self.build_config()
         # run_pyez_tasks(self, new_nat_policy, 'xml')     
         # updated_nat_order, rule_set_name = self.nat_rule_re_order()
         # run_pyez_tasks(self, updated_nat_order, 'xml')  
         # duplicate_rules =  self.delete_duplicate_rules()
-        # print(duplicate_rules)
         # for rule in duplicate_rules:
         #     payload = nat_delete(rule, rule_set_name)
         #     response, committed = run_pyez_tasks(self, payload, 'xml')
         new_nat_rule_names = self.rename_nat_rules()
-        for json_data in  new_nat_rule_names:
-            print(json_data)
-            run_pyez_tasks(self, json_data, 'json')  
+        # for json_data in  new_nat_rule_names:
+        #     print(json_data)
+            # run_pyez_tasks(self, json_data, 'xml')  
 
 config = DeviceConfigurator()
-response = config.rename_nat_rules()
+response = config.push_config
