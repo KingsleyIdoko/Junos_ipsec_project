@@ -15,4 +15,17 @@ def input_integer(prompt):
             # Print an error message and ask the user to reenter the input
             print("Invalid input. Please enter an integer.")
 
-
+def create_mss_config(mss_value):
+    payload = f"""
+    <configuration>
+            <security>
+                <flow>
+                    <tcp-mss>
+                        <ipsec-vpn>
+                            <mss>{mss_value}</mss>
+                        </ipsec-vpn>
+                    </tcp-mss>
+                </flow>
+            </security>
+    </configuration>"""
+    return payload

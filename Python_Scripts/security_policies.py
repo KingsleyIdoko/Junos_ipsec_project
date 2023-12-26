@@ -2,7 +2,7 @@ from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, 
 from nornir import InitNornir
 from rich import print
 import os
-from utiliites_scripts.sec_policies import create_policy
+from utiliites_scripts.sec_policies import config_data
 
 # Define the script directory
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -73,37 +73,6 @@ class DeviceConfigurator:
             elif book_name == 'remote_subnet':
                 remote_subnet_names.extend(book_values)    
         return local_subnet_names, remote_subnet_names
-    
-    def config_data(self, local_policy, local_subnet, tunnel_name, remote_policy, remote_subnet):
-        trust_untrust = create_policy(
-            from_zone="trust",
-            to_zone="untrust",
-            name=local_policy,
-            source=local_subnet,
-            destination=remote_subnet,
-            vpn=tunnel_name,
-            pair=remote_policy,
-        )
-        untrust_trust = create_policy(
-            from_zone="untrust",
-            to_zone="trust",
-            name=remote_policy,
-            source=remote_subnet,
-            destination=local_subnet,
-            vpn=tunnel_name,
-            pair=local_policy,
-        )
-        payload = f"""
-        <configuration>
-            <security>
-                <policies>
-                    {trust_untrust}
-                    {untrust_trust}
-                </policies>
-            </security>
-        </configuration>"""
-        return payload
-
 
     def build_config(self):
         tunnel_name, _, hosts, _ = self.get_device_configs()
@@ -120,7 +89,6 @@ class DeviceConfigurator:
 
         # Initialize an empty list to store individual policy dictionaries
         if len(local_policy) and len(remote_policy) > 1:
-            print("working")
             policies = []
             for local_policy, remote_policy, tunnel in zip(local_policy, remote_policy, tunnel_name):  
                 if remote_policy == 'NYC_LA_POLICY':
@@ -132,30 +100,31 @@ class DeviceConfigurator:
                 elif remote_policy == 'BEL_LA_POLICY':
                     local_sub = local_subnet[0]
                     remote_sub = remote_subnet[0]   
-                policy = self.config_data(local_policy, local_sub, tunnel, remote_policy, remote_sub)
+                policy = config_data(local_policy, local_sub, tunnel, remote_policy, remote_sub)
                 policies.append(policy)
         else:
-            policy = self.config_data(local_policy[0], local_subnet, tunnel_name, remote_policy[0], remote_subnet)
+            policy = config_data(local_policy[0], local_subnet, tunnel_name, remote_policy[0], remote_subnet)
             policies = policy
+        print(policies[0])
         return policies
 
     def push_config(self):
         _, _, hostname, _ = self.get_device_configs()
         xml_data = self.build_config()
+        print(xml_data)
         if hostname == "LA-DC-SRX-FW-PRY":
             for index in range(len(xml_data)):
                 response = self.nr.run(task=pyez_config, payload=xml_data[index], data_format='xml')
-                if response:
-                    diff_result = self.nr.run(task=pyez_diff)
-                    for res in diff_result:
-                        if diff_result[res].result == None:
-                            print("No Config Change")
-                        else:
-                            print(diff_result[res].result)
-                            if diff_result:
-                                committed = self.nr.run(task=pyez_commit)
-                                for res1 in committed:
-                                    print(committed[res1].result)
+                diff_result = self.nr.run(task=pyez_diff)
+                for res in diff_result:
+                    if diff_result[res].result == None:
+                        print("No Config Change")
+                    else:
+                        print(diff_result[res].result)
+                        if diff_result:
+                            committed = self.nr.run(task=pyez_commit)
+                            for res1 in committed:
+                                print(committed[res1].result)
         else:
             response = self.nr.run(task=pyez_config, payload=xml_data, data_format='xml')
             if response:

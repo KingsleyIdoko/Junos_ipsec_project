@@ -22,3 +22,32 @@ def create_policy(from_zone, to_zone, name, source, destination, vpn, pair):
                     return policy
 
 
+def config_data(self, local_policy, local_subnet, tunnel_name, remote_policy, remote_subnet):
+    trust_untrust = create_policy(
+        from_zone="trust",
+        to_zone="untrust",
+        name=local_policy,
+        source=local_subnet,
+        destination=remote_subnet,
+        vpn=tunnel_name,
+        pair=remote_policy,
+    )
+    untrust_trust = create_policy(
+        from_zone="untrust",
+        to_zone="trust",
+        name=remote_policy,
+        source=remote_subnet,
+        destination=local_subnet,
+        vpn=tunnel_name,
+        pair=local_policy,
+    )
+    payload = f"""
+    <configuration>
+        <security>
+            <policies>
+                {trust_untrust}
+                {untrust_trust}
+            </policies>
+        </security>
+    </configuration>"""
+    return payload

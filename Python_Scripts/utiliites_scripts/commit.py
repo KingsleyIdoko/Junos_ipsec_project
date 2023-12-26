@@ -5,7 +5,6 @@ def run_pyez_tasks(self, payload, data_format):
     response = self.nr.run(task=pyez_config, payload=payload, data_format=data_format)
     for res in response:
         print(response[res].result)
-
     # Run the pyez_diff task and store the diff result
     diff_result = self.nr.run(task=pyez_diff)
     # Print the diff result
