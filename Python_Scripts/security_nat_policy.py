@@ -86,14 +86,14 @@ class DeviceConfigurator:
 
 
     def push_config(self):
-        # new_nat_policy = self.build_config()
-        # run_pyez_tasks(self, new_nat_policy, 'xml')     
-        # updated_nat_order, rule_set_name = self.nat_rule_re_order()
-        # run_pyez_tasks(self, updated_nat_order, 'xml')  
-        # duplicate_rules =  self.delete_duplicate_rules()
-        # for rule in duplicate_rules:
-        #     payload = nat_delete(rule, rule_set_name)
-        #     response, committed = run_pyez_tasks(self, payload, 'xml')
+        new_nat_policy = self.build_config()
+        run_pyez_tasks(self, new_nat_policy, 'xml')     
+        updated_nat_order, rule_set_name = self.nat_rule_re_order()
+        run_pyez_tasks(self, updated_nat_order, 'xml')  
+        duplicate_rules =  self.delete_duplicate_rules()
+        for rule in duplicate_rules:
+            payload = nat_delete(rule, rule_set_name)
+            response, committed = run_pyez_tasks(self, payload, 'xml')
         new_nat_rule_names = self.rename_nat_rules()
         for xml_data in  new_nat_rule_names:
             run_pyez_tasks(self, xml_data, 'xml')  
