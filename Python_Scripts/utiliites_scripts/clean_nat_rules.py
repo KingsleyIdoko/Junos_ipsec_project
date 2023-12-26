@@ -246,17 +246,25 @@ def sort_rules(rule_list):
 def modify_nat_rule(rules):
     # Create a dictionary that maps the old rule names to the new rule names
     name_map = dict([('rule1', 'rule2'), ('rule2', 'rule1'), ('rule3', 'rule4'), ('rule4', 'rule3')])
+    
+    # Sort the list of dictionaries by the rule name
+    rules = sorted(rules, key=lambda d: d['name'])
+    
     # Loop through the rules
     for rule in rules:
         # Get the old rule name
         old_name = rule['name']
+        
         # Get the new rule name from the dictionary, or use the old name if not found
         new_name = name_map.get(old_name, old_name)
+        
         # Assign the new rule name to the rule
         rule['name'] = new_name
-    
+
     # Return the renamed rules
     return rules
+
+
 
 
 

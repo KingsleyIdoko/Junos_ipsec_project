@@ -11,9 +11,11 @@ def append_nat_data(result, remote_subnets, source_subnet):
 
     for subnet in remote_subnets:
         nat_exempt_vpn_prefixes.append(subnet['ip-prefix'])
-
-    for src_network in source_subnet:
-         src_subnet.append(src_network['ip-prefix'])
+    try:
+        for src_network in source_subnet:
+            src_subnet.append(src_network['ip-prefix'])
+    except:
+        src_subnet.append(source_subnet.get('ip-prefix'))
     
     # Append the name, from zone, and to zone to the nat data list
     nat_data.append(result['name'])
