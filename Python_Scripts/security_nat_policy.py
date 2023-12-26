@@ -4,8 +4,7 @@ from rich import print
 import os
 from utiliites_scripts.nat_exempt import nat_policy, delete_default_rules, update_rule_names
 from utiliites_scripts.clean_nat_rules import (rule_compare, first_duplicate_rule, nat_delete,
-                                            re_order_nat_policy, compare_nat, filter_list,
-                                            modify_nat_rule)
+                                            re_order_nat_policy, compare_nat, filter_list)
 from xml.dom import minidom
 from lxml import etree
 from functools import cmp_to_key

@@ -158,7 +158,6 @@ class DeviceConfigurator:
                                     print(committed[res1].result)
         else:
             response = self.nr.run(task=pyez_config, payload=xml_data, data_format='xml')
-            print(response)
             if response:
                 diff_result = self.nr.run(task=pyez_diff)
                 for res in diff_result:
