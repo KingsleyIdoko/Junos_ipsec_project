@@ -64,21 +64,7 @@ def delete_default_rules():
             </configuration>"""
     return payload
 
-# def update_rule_names(serialized_data):
-#     items_list = []
-#     # Loop through the serialized_data list
-#     for items in serialized_data:
-#         # Append the rule names to the items_list
-#         items_list.append(items[0])
-#     # Sort the items_list in descending order
-#     items_list = sorted(items_list, reverse=False)
-#     # Loop through the serialized_data list and the items_list
-#     for data, item in zip(serialized_data, items_list):
-#         # Update the rule names in the serialized_data list
-#         data[0] = item
 
-#     # Return the updated serialized_data list
-#     return serialized_data
 
 def update_rule_names(rule_list):
     # Check if the list is already sorted in ascending order

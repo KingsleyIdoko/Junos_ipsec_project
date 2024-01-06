@@ -10,6 +10,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 class DeviceConfigurator:
     database = 'committed'
 
+
     def __init__(self, config_file="config.yml"):
         # Initialize the Nornir object with the config file
         self.nr = InitNornir(config_file=config_file)
@@ -40,7 +41,7 @@ class DeviceConfigurator:
             return None, None, None  # Return None for all lists in case of an error  
 
     def get_policy_names(self):
-        _, response, _, _, = self.get_device_configs()
+        _, response, *args = self.get_device_configs()
         trust_to_untrust = []
         untrust_to_trust = []
         for policy in response:
@@ -57,7 +58,7 @@ class DeviceConfigurator:
         return trust_to_untrust, untrust_to_trust
     
     def get_address_book(self):
-        _, _, hostname, address_book = self.get_device_configs()
+        *args, hostname, address_book = self.get_device_configs()
         local_subnet_names = []
         remote_subnet_names = []
         for entry in address_book:

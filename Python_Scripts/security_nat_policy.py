@@ -10,6 +10,7 @@ from lxml import etree
 from functools import cmp_to_key
 from utiliites_scripts.fetch_data import append_nat_data, Serialize_nat_data
 from utiliites_scripts.commit import run_pyez_tasks
+from utiliites_scripts.pool_data import get_pool_data, create_nat_pool
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -69,9 +70,21 @@ class DeviceConfigurator:
     def rename_nat_rules(self):
         xml_data = []
         global_nat_rule, source_zone, destination_zone, *_ = self.fetch_nat_data()
-        self.response = self.nr.run(task=pyez_get_config,  database=self.database)
+        response = self.nr.run(task=pyez_get_config,  database=self.database)
         for nat in self.response:
-            nat_rules = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
+            nat_rules = response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
+            try:
+                nat_pool = response[nat].result['configuration']['security']['nat']['source']['pool']
+                nat_pool_data = get_pool_data(nat_pool)
+                xml_data.append(nat_pool_data)
+            except: 
+                try:
+                    hostname = response[nat].result['configuration']['system']['host-name']
+                except: 
+                    hostname = response[nat].result['configuration']['groups'][0]['system']['host-name']
+                src_subnets =  response[nat].result['configuration']['security']['address-book'][0]['address']
+                nat_pool_data = create_nat_pool(hostname, src_subnets)
+                xml_data.append(nat_pool_data)
         serialized_data = Serialize_nat_data(nat_rules)
         payload = update_rule_names(serialized_data)
         for rule, destination, source_address, nat_type in serialized_data:
