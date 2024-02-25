@@ -1,12 +1,13 @@
 
 def create_nat_pool(hostname, remote_subnet):
-    print(hostname)
     if hostname == "LA-DC-SRX-FW-PRY":
           pool_name = "LA-NYC-POOL-NAT"
           pool_prefix = remote_subnet[1].get('ip-prefix')
     elif hostname == "NYC-DC-SRX-FW":
             pool_name = "NYC-LA-POOL-NAT"
             pool_prefix = remote_subnet[1].get('ip-prefix')
+    else:
+         return None
     payload = f""" <configuration>
                 <security>
                     <nat>

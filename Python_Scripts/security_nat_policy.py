@@ -21,23 +21,28 @@ class DeviceConfigurator:
 
     def fetch_nat_data(self):
         try:
-            self.response = self.nr.run(task=pyez_get_config, database=self.database)
-            for nat in self.response:
-                result = self.response[nat].result['configuration']['security']['nat']['source']['rule-set']
-                remote_subnets =  self.response[nat].result['configuration']['security']['address-book'][1]['address']
-                source_subnets =  self.response[nat].result['configuration']['security']['address-book'][0]['address']
-                nat_data = append_nat_data(result, remote_subnets, source_subnets)
+            response = self.nr.run(task=pyez_get_config, database=self.database)
+            for nat in response:
+                result = response[nat].result['configuration']['security']['nat']['source']['rule-set']
+                remote_subnets =  response[nat].result['configuration']['security']['address-book'][1]['address']
+                source_subnets =  response[nat].result['configuration']['security']['address-book'][0]['address']
+                try:
+                    hostname = response[nat].result['configuration']['system']['host-name']
+                except: 
+                    hostname = response[nat].result['configuration']['groups'][0]['system']['host-name']
+                nat_data = append_nat_data(result, hostname, remote_subnets, source_subnets)
             return nat_data
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
         
-    def build_config(self):
+    def new_nat_rule(self):
         global_nat_rule, source_zone, destination_zone, rule_name, rm_prefixes, source_subnets = self.fetch_nat_data()
         nat_type = {'off': None}
-        payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_name, rm_prefixes, nat_type=nat_type))
+        payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule_name, nat_type, rm_prefixes))
         formatted_xml = payload.toprettyxml()
         formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
+        print(formatted_xml)
         return formatted_xml
     
     def nat_rule_re_order(self):
@@ -71,24 +76,27 @@ class DeviceConfigurator:
         xml_data = []
         global_nat_rule, source_zone, destination_zone, *_ = self.fetch_nat_data()
         response = self.nr.run(task=pyez_get_config,  database=self.database)
-        for nat in self.response:
+        for nat in response:
             nat_rules = response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
             try:
                 nat_pool = response[nat].result['configuration']['security']['nat']['source']['pool']
                 nat_pool_data = get_pool_data(nat_pool)
                 xml_data.append(nat_pool_data)
-            except: 
+            except:
+          
                 try:
                     hostname = response[nat].result['configuration']['system']['host-name']
-                except: 
+                except:
                     hostname = response[nat].result['configuration']['groups'][0]['system']['host-name']
                 src_subnets =  response[nat].result['configuration']['security']['address-book'][0]['address']
                 nat_pool_data = create_nat_pool(hostname, src_subnets)
-                xml_data.append(nat_pool_data)
+                if nat_pool_data:
+                    xml_data.append(nat_pool_data)
         serialized_data = Serialize_nat_data(nat_rules)
         payload = update_rule_names(serialized_data)
         for rule, destination, source_address, nat_type in serialized_data:
-            payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule, destination, source_address, nat_type))
+            payload = minidom.parseString(nat_policy(global_nat_rule, source_zone, destination_zone, rule, 
+                                                     nat_type, destination, source_address ))
             formatted_xml = payload.toprettyxml()
             formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
             xml_data.append(formatted_xml)
@@ -96,9 +104,8 @@ class DeviceConfigurator:
         xml_data.insert(0, clean_nat_rule)
         return xml_data
 
-
     def push_config(self):
-        new_nat_policy = self.build_config()
+        new_nat_policy = self.new_nat_rule()
         run_pyez_tasks(self, new_nat_policy, 'xml')     
         updated_nat_order, rule_set_name = self.nat_rule_re_order()
         run_pyez_tasks(self, updated_nat_order, 'xml')  

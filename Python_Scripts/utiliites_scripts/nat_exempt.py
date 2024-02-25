@@ -1,6 +1,6 @@
 import textwrap
 
-def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name, remote_prefixes, source_prefixes=[None], nat_type=None):
+def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_type, remote_prefixes, source_prefixes=[None], pool_name=None):
     # Initialize an empty list to store the destination addresses
     prefixes = []
     for type_nat, value in nat_type.items():
@@ -8,27 +8,19 @@ def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name, remote
             source_nat = f"""<source-nat><off/></source-nat>"""
         
         elif type_nat == 'interface':
-            source_nat = f"""<source-nat><interface></interface></source-nat>"""      
+            source_nat = f"""<source-nat><interface></interface></source-nat>"""     
+        elif type_nat == 'pool':
+            f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
         else:
             source_nat = f"""<source-nat><interface></interface></source-nat>"""  
-
     if source_prefixes !=  [None]:
         if len(source_prefixes) > 1:
             for src_prefix in source_prefixes:
-                # Append the destination address element with the prefix value
                 prefixes.append(f"<source-address>{src_prefix}</source-address>")
         else:
             prefixes.append(f"<source-address>{source_prefixes[0]}</source-address>")
-
-    # Loop through the nat exempt vpn prefixes
-
     for dst_prefix in remote_prefixes:
-        # Append the destination address element with the prefix value
         prefixes.append(f"<destination-address>{dst_prefix}</destination-address>")
-    # except:
-    #         prefixes.append(f"<destination-address>{remote_prefixes}</destination-address>")
-
-    # Join the destination address elements with proper indentation
     prefixes = textwrap.indent('\n'.join(prefixes),'')
 
     # Create the payload with the f-string and the variable values
