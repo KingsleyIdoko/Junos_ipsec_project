@@ -3,8 +3,11 @@ def append_nat_data(result, hostname, remote_subnets, source_subnet):
     nat_exempt_vpn_prefixes = []
     src_subnet = []
     nat_data = []
-    for subnet in remote_subnets:
-        nat_exempt_vpn_prefixes.append(subnet['ip-prefix'])
+    try:
+        for subnet in remote_subnets:
+            nat_exempt_vpn_prefixes.append(subnet['ip-prefix'])
+    except:
+            nat_exempt_vpn_prefixes.append(remote_subnets['ip-prefix'])
     try:
         for src_network in source_subnet:
             src_subnet.append(src_network['ip-prefix'])
