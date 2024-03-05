@@ -69,6 +69,7 @@ class SecurityNatPolicy:
         response = self.nr.run(task=pyez_get_config,  database=self.database)
         for nat in response:
             nat_rules = response[nat].result['configuration']['security']['nat']['source']['rule-set']['rule']
+            print(nat_rules)
             try:
                 nat_pool = response[nat].result['configuration']['security']['nat']['source']['pool']
                 nat_pool_data = get_pool_data(nat_pool)
