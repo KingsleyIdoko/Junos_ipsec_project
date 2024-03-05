@@ -26,7 +26,6 @@ class DeviceConfigurator:
                     self.address_book =  value.result['configuration']['security']['address-book']
                     self.device_hostnames = value.result['configuration']['system']['host-name']
                 except:
-                    pass
                     tunnel_names = []
                     self.vpn_tunnel_names = value.result['configuration']['security']['ipsec']['vpn']
                     for vpn in self.vpn_tunnel_names:

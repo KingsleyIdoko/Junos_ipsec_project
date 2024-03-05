@@ -10,9 +10,11 @@ def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_t
         elif type_nat == 'interface':
             source_nat = f"""<source-nat><interface></interface></source-nat>"""     
         elif type_nat == 'pool':
-            source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
-        else:
-            source_nat = f"""<source-nat><interface></interface></source-nat>"""  
+            if pool_name:
+                source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
+            else:
+                pool_name = nat_type['pool'].get('pool-name')
+                source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
     if source_prefixes !=  [None]:
         if len(source_prefixes) > 1:
             for src_prefix in source_prefixes:

@@ -25,6 +25,10 @@ def append_nat_data(result, hostname, remote_subnets, source_subnet):
                 sub_nat_rules.append(rule_names.get('name'))
         rule_number = len(sub_nat_rules) + 1
         nat_rule_name = "rule" + str(rule_number)
+        rule_number  = 1
+        while nat_rule_name in sub_nat_rules:
+                nat_rule_name = "rule" + str(rule_number)
+                rule_number += 1
         new_nat_names =  nat_rule_name
     else:
         new_nat_names = "rule1"
@@ -68,6 +72,9 @@ def Serialize_nat_data(nat_data):
         # Get the source address of the rule
             try:
                 src = [rule['src-nat-rule-match'].get('source-address')]
+                if len (src) == 1 and isinstance (src [0], list):
+            # Unpack the first square bracket
+                    src =  src[0]
             except:
                 src = rule['src-nat-rule-match'].get('source-address')
             # Get the source-nat action of the rule

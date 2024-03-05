@@ -7,8 +7,10 @@ from lxml import etree
 from utiliites_scripts.fetch_data import append_nat_data
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.commit import run_pyez_tasks
+from utiliites_scripts.selectprefix import select_prefix, select_nat_type
 script_dir = os.path.dirname(os.path.realpath(__file__))
-class DeviceConfigurator:
+
+class NatPolicy:
     database = 'committed'
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
@@ -27,9 +29,15 @@ class DeviceConfigurator:
                 except: 
                     hostname = response[nat].result['configuration']['groups'][0]['system']['host-name']
                 if hostname == "NYC-DC-SRX-FW":
-                    remote_subnets = remote_subnets[3]
+                    print("Select Remote Prefixes............\n")
+                    remote_subnets = select_prefix(remote_subnets)
+                    print("Select Source Prefixes............\n")
+                    source_subnets = select_prefix(source_subnets)
                 elif hostname == "LA-DC-SRX-FW-PRY":
-                    remote_subnets = remote_subnets[2]
+                    print("Select Remote Prefixes............\n")
+                    remote_subnets = select_prefix(remote_subnets)
+                    print("Select Source Prefixes............\n")
+                    source_subnets = select_prefix(source_subnets)
                 nat_data = append_nat_data(result, hostname, remote_subnets, source_subnets)
             return nat_data, pool_name
         except Exception as e:
@@ -38,7 +46,8 @@ class DeviceConfigurator:
         
     def overlapping_subnet(self):
         xml_data = []
-        nat_type = {'pool': None}
+        dictionaries = [{'off': None}, {'pool': None}, {'interface': None}]
+        nat_type = select_nat_type(dictionaries)
         nat_data, pool_name = self.fetch_nat_data()
         global_nat_rule, source_zone, destination_zone, rule_name, remote_prefixes, source_prefixes = nat_data
         payload = minidom.parseString(nat_policy( global_nat_rule, source_zone, destination_zone, rule_name, nat_type, remote_prefixes, source_prefixes, pool_name))
@@ -49,5 +58,6 @@ class DeviceConfigurator:
     def push_config(self):
         new_nat_policy = self.overlapping_subnet()
         run_pyez_tasks(self, new_nat_policy, 'xml') 
-config = DeviceConfigurator()
+        
+config = NatPolicy()
 result = config.push_config()

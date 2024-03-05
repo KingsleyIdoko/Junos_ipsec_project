@@ -115,69 +115,60 @@ def prefix_compare(prefix1, prefix2):
     # Compare the numerical values of the prefixes
     return num1 - num2
 
-# Define a function to check if a list has duplicate values
-def has_duplicates(lst):
-    # Convert the list to a set
-    s = set(lst)
-    # Check if the set has more than one element
-    return len(s) > 1
+
 
 
 # Define a function to compare two nat rules
 def rule_compare(rule1, rule2):
-    # Get the source address and destination address of the rules
-    src1 = rule1['src-nat-rule-match'].get('source-address')
-    src2 = rule2['src-nat-rule-match'].get('source-address')
-    dst1 = rule1['src-nat-rule-match'].get('destination-address')
-    dst2 = rule2['src-nat-rule-match'].get('destination-address')
+    # Extract the source-address and destination-address from each rule
+    src1 = rule1["src-nat-rule-match"]["source-address"]
+    dst1 = rule1["src-nat-rule-match"]["destination-address"]
+    src2 = rule2["src-nat-rule-match"]["source-address"]
+    dst2 = rule2["src-nat-rule-match"]["destination-address"]
     
-    # If the source addresses are lists, check if they have duplicate values
-    if isinstance(src1, list) and has_duplicates(src1):
-        # Return a negative value to indicate that rule1 has duplicate source addresses
-        return -1
-    if isinstance(src2, list) and has_duplicates(src2):
-        # Return a positive value to indicate that rule2 has duplicate source addresses
-        return 1
+    # Split the address and the prefix length by "/"
+    src1_addr, src1_prefix = src1.split("/")
+    dst1_addr, dst1_prefix = dst1.split("/")
+    src2_addr, src2_prefix = src2.split("/")
+    dst2_addr, dst2_prefix = dst2.split("/")
     
-    # If the destination addresses are lists, check if they have duplicate values
-    if isinstance(dst1, list) and has_duplicates(dst1):
-        # Return a negative value to indicate that rule1 has duplicate destination addresses
-        return -1
-    if isinstance(dst2, list) and has_duplicates(dst2):
-        # Return a positive value to indicate that rule2 has duplicate destination addresses
-        return 1
+    # Convert the prefix length to integer
+    src1_prefix = int(src1_prefix)
+    dst1_prefix = int(dst1_prefix)
+    src2_prefix = int(src2_prefix)
+    dst2_prefix = int(dst2_prefix)
     
-    # Otherwise, use the original logic to compare the source and destination addresses
-    # If the source addresses are lists, use the first element
-    if isinstance(src1, list):
-        src1 = src1[0]
-    if isinstance(src2, list):
-        src2 = src2[0]
-    
-    # If the destination addresses are lists, use the first element
-    if isinstance(dst1, list):
-        dst1 = dst1[0]
-    if isinstance(dst2, list):
-        dst2 = dst2[0]
-    
-    # Compare the source addresses using the prefix compare function
-    src_cmp = prefix_compare(src1, src2)
-    
-    # If the source addresses are different, return the comparison result
-    if src_cmp != 0:
-        return src_cmp
-    
-    # Otherwise, compare the destination addresses using the prefix compare function
-    dst_cmp = prefix_compare(dst1, dst2)
-    
-    # If the destination addresses are different, return the comparison result
-    if dst_cmp != 0:
-        return dst_cmp
-    
-    # Otherwise, compare the rule names
+    # Compare the source-addresses by prefix length first, then by numerical value
+    if src1_prefix > src2_prefix:
+        return -1  # rule1 is more specific than rule2
+    elif src1_prefix < src2_prefix:
+        return 1  # rule2 is more specific than rule1
     else:
-        return rule1['name'] < rule2['name']
-
+        # The prefix length is the same, compare the numerical value
+        # Convert the address to integer by joining the four octets
+        src1_addr = int("".join(src1_addr.split(".")))
+        src2_addr = int("".join(src2_addr.split(".")))
+        if src1_addr < src2_addr:
+            return -1  # rule1 is smaller than rule2
+        elif src1_addr > src2_addr:
+            return 1  # rule1 is larger than rule2
+        else:
+            # The source-address is the same, compare the destination-address by prefix length first, then by numerical value
+            if dst1_prefix > dst2_prefix:
+                return -1  # rule1 is more specific than rule2
+            elif dst1_prefix < dst2_prefix:
+                return 1  # rule2 is more specific than rule1
+            else:
+                # The prefix length is the same, compare the numerical value
+                dst1_addr = int("".join(dst1_addr.split(".")))
+                dst2_addr = int("".join(dst2_addr.split(".")))
+                if dst1_addr < dst2_addr:
+                    return -1  # rule1 is smaller than rule2
+                elif dst1_addr > dst2_addr:
+                    return 1  # rule1 is larger than rule2
+                else:
+                    return 0  # rule1 and rule2 are equal
+                
 
 def re_order_nat_policy(list_nat_rules, rule_set_name):
     # Create an empty list to store the nat elements
