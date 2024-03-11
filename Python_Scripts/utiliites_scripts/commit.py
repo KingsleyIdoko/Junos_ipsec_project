@@ -14,7 +14,7 @@ def run_pyez_tasks(self, payload, data_format):
         if diff_result[res].result is None:
             # Print no config change and return
             print("No Config Change: No Commit to Apply")
-        # Otherwise, print the diff result
+            committed = self.nr.run(task=pyez_commit)
         else:
             print(diff_result[res].result)
             # Run the pyez_commit task and store the committed result

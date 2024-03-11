@@ -1,4 +1,5 @@
 import re
+from ipaddress import ip_network
 
 def compare_nat(payload):
     # Create a list to store the groups of rules
@@ -116,59 +117,25 @@ def prefix_compare(prefix1, prefix2):
     return num1 - num2
 
 
-
-
-# Define a function to compare two nat rules
-def rule_compare(rule1, rule2):
-    # Extract the source-address and destination-address from each rule
-    src1 = rule1["src-nat-rule-match"]["source-address"]
-    dst1 = rule1["src-nat-rule-match"]["destination-address"]
-    src2 = rule2["src-nat-rule-match"]["source-address"]
-    dst2 = rule2["src-nat-rule-match"]["destination-address"]
-    
-    # Split the address and the prefix length by "/"
-    src1_addr, src1_prefix = src1.split("/")
-    dst1_addr, dst1_prefix = dst1.split("/")
-    src2_addr, src2_prefix = src2.split("/")
-    dst2_addr, dst2_prefix = dst2.split("/")
-    
-    # Convert the prefix length to integer
-    src1_prefix = int(src1_prefix)
-    dst1_prefix = int(dst1_prefix)
-    src2_prefix = int(src2_prefix)
-    dst2_prefix = int(dst2_prefix)
-    
-    # Compare the source-addresses by prefix length first, then by numerical value
-    if src1_prefix > src2_prefix:
-        return -1  # rule1 is more specific than rule2
-    elif src1_prefix < src2_prefix:
-        return 1  # rule2 is more specific than rule1
+def destination_sort_key(rule):
+    dst = rule["src-nat-rule-match"].get("destination-address")
+    if isinstance(dst, list):
+        # Find the most specific (smallest prefix length, which is a larger number) and count of prefixes
+        specificity = min((32 - ip_network(addr, strict=False).prefixlen for addr in dst), default=0)
+        prefix_count = len(dst)
+        # Ensuring lists are considered, but also using count as a tiebreaker (more prefixes = less specific)
+        return (1, specificity, prefix_count)
     else:
-        # The prefix length is the same, compare the numerical value
-        # Convert the address to integer by joining the four octets
-        src1_addr = int("".join(src1_addr.split(".")))
-        src2_addr = int("".join(src2_addr.split(".")))
-        if src1_addr < src2_addr:
-            return -1  # rule1 is smaller than rule2
-        elif src1_addr > src2_addr:
-            return 1  # rule1 is larger than rule2
-        else:
-            # The source-address is the same, compare the destination-address by prefix length first, then by numerical value
-            if dst1_prefix > dst2_prefix:
-                return -1  # rule1 is more specific than rule2
-            elif dst1_prefix < dst2_prefix:
-                return 1  # rule2 is more specific than rule1
-            else:
-                # The prefix length is the same, compare the numerical value
-                dst1_addr = int("".join(dst1_addr.split(".")))
-                dst2_addr = int("".join(dst2_addr.split(".")))
-                if dst1_addr < dst2_addr:
-                    return -1  # rule1 is smaller than rule2
-                elif dst1_addr > dst2_addr:
-                    return 1  # rule1 is larger than rule2
-                else:
-                    return 0  # rule1 and rule2 are equal
-                
+        # Single address: more specific, especially 0.0.0.0/0
+        if dst == "0.0.0.0/0":
+            # Least specific possible, treated specially
+            return (2, 0, 1)  # Count is irrelevant here but needed for consistent return structure
+        network = ip_network(dst, strict=False)
+        # More specific than any list, and 32 - prefixlen for specificity. Count is 1 for single addresses.
+        return (0, 32 - network.prefixlen, 1)
+
+
+
 
 def re_order_nat_policy(list_nat_rules, rule_set_name):
     # Create an empty list to store the nat elements
