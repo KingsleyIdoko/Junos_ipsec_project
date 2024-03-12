@@ -7,7 +7,7 @@ from lxml import etree
 from utiliites_scripts.fetch_data import append_nat_data
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.selectprefix import select_prefix, select_nat_type
+from utiliites_scripts.selectprefix import select_prefix
 from utiliites_scripts.pool_data import (nat_pool_creation, check_nat_pull_duplicates,
                                          is_valid_nat_pool_name, is_valid_ipv4_address,
                                          delete_nat_pool, extract_pool_names)
@@ -106,8 +106,8 @@ class NatPolicyManager:
 
     def create_nat_rule(self):
         print("\nSpecify NAT rule type:")
-        print("1. nat_exempt rule")
-        print("2. interface rule")
+        print("1. nat exempt")
+        print("2. interface nat")
         print("3. nat_pool")
         nat_type = input("Enter your choice (1-3): ")
         if nat_type == "1":
@@ -120,7 +120,7 @@ class NatPolicyManager:
             return result
         elif nat_type == "3":
             nat_type = {'pool': None},
-            result = self.generate_nat_rule(nat_type)
+            result = self.generate_nat_rule(nat_type,)
             return result
         else:
             print("Invalid choice. Please specify a valid NAT rule type.")
@@ -130,13 +130,25 @@ class NatPolicyManager:
         nat_type = self.get_nat_rule_type()
         print(f"Deleting NAT Rule of type: {nat_type}")
 
-    def generate_nat_rule(self, nat_type):
+    def generate_nat_rule(self, nat_type, pool_name=None):
         *_, nat_data = self.fetch_nat_data()
         global_nat_rule, source_zone, destination_zone, rule_name, remote_prefixes, source_prefixes = nat_data
-        payload = minidom.parseString(nat_policy( global_nat_rule, source_zone, destination_zone, rule_name, nat_type, remote_prefixes, source_prefixes, pool_name))
-        # formatted_xml = payload.toprettyxml()
-        # formatted_xml = '\n'.join([line for line in formatted_xml.split('\n') if line.strip()])
-        # return formatted_xml
+        print(f"Creating source nat Rules............")
+        print(f"Select Source prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
+        source_subnets = select_prefix(source_prefixes)
+        print(f"Select Remote prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
+        while True:
+                    print("Select Remote prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
+                    remote_subnets = select_prefix(remote_prefixes)
+                    if remote_subnets:  # Check if the selection is not empty
+                        break
+                    else:
+                        print("Error: At least one destination subnet must be selected. Selection cannot be 'None'. Please try again.")
+        payload = minidom.parseString(nat_policy( global_nat_rule, source_zone, destination_zone, rule_name, 
+                                                 nat_type, remote_subnets, source_subnets, pool_name))
+        formatted_xml = payload.toprettyxml()
+        print(formatted_xml)
+        return formatted_xml
         
     def push_config(self):
         xml_data = self.nat_operations()
@@ -146,4 +158,4 @@ class NatPolicyManager:
         
         
 config = NatPolicyManager()
-result = config.generate_nat_rule()
+result = config.create_nat_rule()

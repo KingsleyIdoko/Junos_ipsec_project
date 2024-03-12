@@ -1,26 +1,25 @@
 import textwrap
 
-def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_type, remote_prefixes, source_prefixes=[None], pool_name=None):
+def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_types, remote_prefixes, source_prefixes=[None], pool_name=None):
     # Initialize an empty list to store the destination addresses
     prefixes = []
-    for type_nat, value in nat_type.items():
-        if type_nat == 'off':
-            source_nat = f"""<source-nat><off/></source-nat>"""
-        
-        elif type_nat == 'interface':
-            source_nat = f"""<source-nat><interface></interface></source-nat>"""     
-        elif type_nat == 'pool':
-            if pool_name:
-                source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
-            else:
-                pool_name = nat_type['pool'].get('pool-name')
-                source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
-    if source_prefixes !=  [None]:
-        if len(source_prefixes) > 1:
-            for src_prefix in source_prefixes:
-                prefixes.append(f"<source-address>{src_prefix}</source-address>")
-        else:
-            prefixes.append(f"<source-address>{source_prefixes[0]}</source-address>")
+    for  type_nat in nat_types:
+        for type_key, type_value in type_nat.items():
+            if type_key == 'off':
+                source_nat = f"""<source-nat><off/></source-nat>"""
+            
+            elif type_key == 'interface':
+                source_nat = f"""<source-nat><interface></interface></source-nat>"""     
+
+            elif type_key == 'pool':
+                if pool_name:
+                    source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
+                else:
+                    pool_name = nat_types['pool'].get('pool-name')
+                    source_nat = f"""<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>"""
+    if source_prefixes and source_prefixes != [None]:
+        for src_prefix in source_prefixes:
+            prefixes.append(f"<source-address>{src_prefix}</source-address>")
     for dst_prefix in remote_prefixes:
         prefixes.append(f"<destination-address>{dst_prefix}</destination-address>")
     prefixes = textwrap.indent('\n'.join(prefixes),'')
@@ -83,3 +82,4 @@ def update_rule_names(rule_list):
         
         # Return the updated rule_list
         return rule_list
+    
