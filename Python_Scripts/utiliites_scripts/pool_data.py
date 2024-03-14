@@ -122,7 +122,7 @@ def check_nat_pull_duplicates(data, nat_pool_name, address_name):
     return False
 
 
-def is_valid_nat_pool_name(name):
+def is_valid_name(name):
     # Regular expression to match names with A-Z, a-z, and _
     return bool(re.match(r'^[A-Za-z_]+$', name))
 
@@ -146,3 +146,20 @@ def extract_pool_names(config):
                 pool_names.append(pool_name)
     
     return pool_names
+
+
+def select_zone(zones):
+    print("Select zones..........\n")
+    for i, zone in enumerate(zones, start=1):
+        print(f"{i}. {zone}")
+    
+    while True:  # Keep asking until a valid input is received
+        try:
+            message = input("Please select zone: ")
+            message_int = int(message)  # Convert input to integer
+            if 1 <= message_int <= len(zones):  # Check if input is within the range
+                return zones[message_int - 1]  # Return the selected zone
+            else:
+                print(f"Please select a number between 1 and {len(zones)}.")
+        except ValueError:  # Handle case where input is not a number
+            print("Invalid input. Please enter a number.")

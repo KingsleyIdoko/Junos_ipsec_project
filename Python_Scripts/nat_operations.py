@@ -9,7 +9,7 @@ from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.selectprefix import select_prefix
 from utiliites_scripts.pool_data import (nat_pool_creation, check_nat_pull_duplicates,
-                                         is_valid_nat_pool_name, is_valid_ipv4_address,
+                                         is_valid_name, is_valid_ipv4_address,
                                          delete_nat_pool, extract_pool_names)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -27,13 +27,10 @@ class NatPolicyManager:
                 source_subnets =  response[nat].result['configuration']['security']['address-book'][0]['address']
                 nat_pool = response[nat].result['configuration']['security']['nat']['source']['pool']
                 pool_names = extract_pool_names(result)
-                
                 try:
                     hostname = response[nat].result['configuration']['system']['host-name']
                 except: 
                     hostname = response[nat].result['configuration']['groups'][0]['system']['host-name']
-                # source_subnets = select_prefix(source_subnets)
-                # nat_data = append_nat_data(result, hostname, remote_subnets, source_subnets)
                 nat_data = append_nat_data(result, hostname, remote_subnets, source_subnets)
             return nat_pool, pool_names, nat_data
         except Exception as e:
@@ -69,7 +66,7 @@ class NatPolicyManager:
         print("Creating NAT Pool.......\n")
         while True:
             pool_name = input("Specify name of pool: ")
-            if not is_valid_nat_pool_name(pool_name):
+            if not is_valid_name(pool_name):
                 print("Name is not valid.")
                 continue
             address_name = input("Specify NAT pool address: ")
@@ -85,25 +82,29 @@ class NatPolicyManager:
 
     def delete_nat_pool(self):
         print("Select NAT Pool to delete: ")
-        raw_nat_pool, pool_names = self.fetch_nat_data()
-        nat_pool = raw_nat_pool if isinstance(raw_nat_pool, list) else [raw_nat_pool]
-        list_nat_pool = {index + 1: pool['name'] for index, pool in enumerate(nat_pool)}
-        for index, name in list_nat_pool.items():
-            print(f"{index}. '{name}'")
         try:
-            user_choice = int(input("Enter the number of the NAT pool to delete: "))
-            while user_choice not in list_nat_pool:
-                print("Invalid number specified. Try again.")
+            raw_nat_pool, pool_names = self.fetch_nat_data()
+            nat_pool = raw_nat_pool if isinstance(raw_nat_pool, list) else [raw_nat_pool]
+            list_nat_pool = {index + 1: pool['name'] for index, pool in enumerate(nat_pool)}
+            for index, name in list_nat_pool.items():
+                print(f"{index}. '{name}'")
+            try:
                 user_choice = int(input("Enter the number of the NAT pool to delete: "))
-        except ValueError:
-            print("Please enter a valid integer.")
-            return
-        selected_nat_pool_name = list_nat_pool.get(user_choice)
-        if selected_nat_pool_name in pool_names:
-            print("Pool name is in use, cannot be deleted.")
-            return
-        return delete_nat_pool(selected_nat_pool_name)
-
+                while user_choice not in list_nat_pool:
+                    print("Invalid number specified. Try again.")
+                    user_choice = int(input("Enter the number of the NAT pool to delete: "))
+            except ValueError:
+                print("Please enter a valid integer.")
+                return
+            selected_nat_pool_name = list_nat_pool.get(user_choice)
+            if selected_nat_pool_name in pool_names:
+                print("Pool name is in use, cannot be deleted.")
+                return
+            return delete_nat_pool(selected_nat_pool_name)
+        except Exception as e:
+            print(f"An error has occurred: {e}")
+            return None
+        
     def create_nat_rule(self):
         print("\nSpecify NAT rule type:")
         print("1. nat exempt")
@@ -133,6 +134,10 @@ class NatPolicyManager:
     def generate_nat_rule(self, nat_type, pool_name=None):
         *_, nat_data = self.fetch_nat_data()
         global_nat_rule, source_zone, destination_zone, rule_name, remote_prefixes, source_prefixes = nat_data
+        # print("Select Global Nat name: ")
+        # 1. use existing rule-set Name:
+        # 2. create new Name:
+
         print(f"Creating source nat Rules............")
         print(f"Select Source prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
         source_subnets = select_prefix(source_prefixes)
