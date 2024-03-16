@@ -1,5 +1,6 @@
     
-def create_address_book(addressbook_name, address_name, ipv4_address, zone):
+def address_book(addressbook_name, address_name, ipv4_address, zone):
+    print(addressbook_name)
     payload = f"""
         <configuration>
                 <security>
@@ -25,21 +26,35 @@ def map_subnets_to_zones(subnets):
 
 def select_address_book(address_books):
     print("Select existing address_book.......\n")
-    
-    # Create a list of address book names from the dictionaries
-    address_book_names = [list(book.keys())[0] for book in address_books]
-    
-    # Display the options to the user
-    for i, name in enumerate(address_book_names, start=1):
-        print(f"{i}. {name}")
-    
-    # Get user input
+    if isinstance(address_books, dict):
+        address_books = [address_books]
+    address_book_items = []
+    for book in address_books:
+        for key, value in book.items():
+            address_book_items.append((value, key))
+    address_book_items.append(("create new zone", "subnet"))
+    for i, (value, key) in enumerate(address_book_items, start=1):
+        print(f"{i}. {value}: {key}")
     while True:
         try:
             message = int(input("Specify option: "))
-            if 1 <= message <= len(address_book_names):
-                return address_book_names[message - 1]
+            if message == len(address_book_items):
+                create_zone()  
+                create_address_book() 
+                return "New zone and address book created", None  
+            elif 1 <= message < len(address_book_items):
+                selected_zone, address_book_name = address_book_items[message - 1]
+                return address_book_name, selected_zone
             else:
-                print(f"Please specify a number between 1 and {len(address_book_names)}.")
+                print(f"Please specify a number between 1 and {len(address_book_items)}.")
         except ValueError:
             print("Invalid input. Please enter a number.")
+
+
+def create_zone():
+    print("Creating new zone...")
+    # Implement zone creation logic here
+
+def create_address_book():
+    print("Creating new address book...")
+    # Implement address book creation logic here
