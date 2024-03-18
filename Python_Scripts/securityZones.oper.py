@@ -22,9 +22,7 @@ class SecurityZoneManager:
             print("2. Create Security Zone")
             print("3. Update Security Zone")
             print("4. Delete Security Zone")
-            
             operation = input("Enter your choice (1-4): ")
-            
             if operation == "1":
                 result = self.get_security_zone()
                 return result

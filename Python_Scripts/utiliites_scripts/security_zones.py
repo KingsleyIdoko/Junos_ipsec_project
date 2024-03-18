@@ -10,6 +10,7 @@ def is_valid_string(input_string):
         return False
 
 def select_zone(zones, list_interfaces):
+    print(list_interfaces)
     print("Select a zone:\n")
     for i, zone in enumerate(zones, start=1):
         print(f"{i}. {zone}")
@@ -52,7 +53,7 @@ def select_zone_info(zone, list_interfaces):
     print("2. Description")
     print("3. Host-Inbound-Traffic")
     services, protocols, zone_description = None, None, zone['description'] 
-    services = protocols = None
+    services, protocols = get_traffic_details(zone)
     while True:
         try:
             choice = int(input("Enter your choice (1-3): "))
@@ -90,9 +91,6 @@ def select_zone_info(zone, list_interfaces):
     else:
         interface = get_interface_name(zone)
     zone_name = zone['name']
-    print(services, protocols)
-    if services == None:
-        services, protocols = get_traffic_details(zone)
     response = create_new_zone(zone_name, zone_description, services, protocols, interface)
     return response
 
@@ -129,8 +127,21 @@ def update_zone(zones, list_interfaces):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-def create_new_zone(zone_name, zone_description, services, protocols, select_interface):
+def create_new_zone(zone_name, zone_description, services, protocols, select_interfaces):
     print("Creating a new zone...")
+
+    if isinstance(services, list):
+        services_xml = ''.join([f"<system-services><name>{service}</name></system-services>" for service in services])
+    else:
+        services_xml = f"<system-services><name>{services}</name></system-services>"
+    if isinstance(protocols, list):
+        protocols_xml = ''.join([f"<protocols><name>{protocol}</name></protocols>" for protocol in protocols])
+    else:
+        protocols_xml = f"<protocols><name>{protocols}</name></protocols>"
+    if isinstance(select_interfaces, list):
+        interfaces_xml = ''.join([f"<interfaces><name>{interface}</name></interfaces>" for interface in select_interfaces])
+    else:
+        interfaces_xml = f"<interfaces><name>{select_interfaces}</name></interfaces>"
     payload = f"""
         <configuration>
             <security>
@@ -139,23 +150,16 @@ def create_new_zone(zone_name, zone_description, services, protocols, select_int
                         <name>{zone_name}</name>
                         <description>{zone_description}</description>
                         <host-inbound-traffic>
-                            <system-services>
-                                <name>{services}</name>
-                                <except/>
-                            </system-services>
-                            <protocols>     
-                                <name>{protocols}</name>
-                                <except/>
-                            </protocols>
+                            {services_xml}
+                            {protocols_xml}
                         </host-inbound-traffic>
-                        <interfaces>
-                            <name>{select_interface}</name>
-                        </interfaces>
+                        {interfaces_xml}
                     </security-zone>
                 </zones>                
             </security>                 
     </configuration>"""
-    return payload 
+    return payload
+
 
 def get_system_services():
     services = [
@@ -164,47 +168,54 @@ def get_system_services():
         "reverse-telnet", "rlogin", "rpm", "rsh", "snmp", "snmp-trap", "ssh", "tcp-encap", "telnet", "tftp",
         "traceroute", "webapi-clear-text", "webapi-ssl", "xnm-clear-text"
     ]
-    print("Select a system service:\n")
+    print("Select system services (e.g., 1, 4, 7):\n")
     for i, service in enumerate(services, start=1):
         print(f"{i}. {service}")
-    while True:
+
+    selected_services = []
+    choices = input("\nEnter your choices: ").split(',')
+    for choice in choices:
         try:
-            choice = int(input("\nEnter your choice: "))
-            if 1 <= choice <= len(services):
-                selected_service = services[choice - 1]
-                print(f"You selected: {selected_service}")
-                return selected_service
+            choice_int = int(choice.strip())  # Remove any extra whitespace
+            if 1 <= choice_int <= len(services):
+                selected_services.append(services[choice_int - 1])
             else:
-                print(f"Please select a number between 1 and {len(services)}.")
+                print(f"Choice {choice} is out of range. Ignoring.")
         except ValueError:
-            print("Invalid input. Please enter a number.")
+            print(f"Invalid choice '{choice}'. Ignoring.")
+
+    print(f"You selected: {', '.join(selected_services)}")
+    return selected_services
 
 def get_system_protocols():
     protocols = [
         "all", "bfd", "bgp", "dvmrp", "igmp", "ldp", "msdp", "nhrp", "ospf", "ospf3",
         "pgm", "pim", "rip", "ripng", "router-discovery", "rsvp", "sap", "vrrp"
     ]
-    print("Select a system protocol:\n")
+    print("Select system protocols (e.g., 2, 5, 8):\n")
     for i, protocol in enumerate(protocols, start=1):
         print(f"{i}. {protocol}")
-    
-    while True:
+
+    selected_protocols = []
+    choices = input("\nEnter your choices: ").split(',')
+    for choice in choices:
         try:
-            choice = int(input("\nEnter your choice: "))
-            if 1 <= choice <= len(protocols):
-                selected_protocol = protocols[choice - 1]
-                print(f"You selected: {selected_protocol}")
-                return selected_protocol
+            choice_int = int(choice.strip())  # Remove any extra whitespace
+            if 1 <= choice_int <= len(protocols):
+                selected_protocols.append(protocols[choice_int - 1])
             else:
-                print(f"Please select a number between 1 and {len(protocols)}.")
+                print(f"Choice {choice} is out of range. Ignoring.")
         except ValueError:
-            print("Invalid input. Please enter a number.")
+            print(f"Invalid choice '{choice}'. Ignoring.")
+
+    print(f"You selected: {', '.join(selected_protocols)}")
+    return selected_protocols
+
 
 def get_interfaze(interfaces):
     print("Select a system protocol:\n")
     for i, interface in enumerate(interfaces, start=1):
         print(f"{i}. {interface}")
-    
     while True:
         try:
             choice = int(input("\nEnter your choice: "))
