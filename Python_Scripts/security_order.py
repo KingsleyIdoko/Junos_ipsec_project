@@ -9,7 +9,7 @@ from utiliites_scripts.sec_reordering import re_order_policy
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Define the class Config
-class Config:
+class SecurityPolicyManager:
     # Define the class attributes
     database = 'committed'
 

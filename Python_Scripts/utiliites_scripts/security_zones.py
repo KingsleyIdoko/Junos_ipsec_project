@@ -10,7 +10,6 @@ def is_valid_string(input_string):
         return False
 
 def select_zone(zones, list_interfaces):
-    print(list_interfaces)
     print("Select a zone:\n")
     for i, zone in enumerate(zones, start=1):
         print(f"{i}. {zone}")
@@ -213,18 +212,43 @@ def get_system_protocols():
 
 
 def get_interfaze(interfaces):
-    print("Select a system protocol:\n")
-    for i, interface in enumerate(interfaces, start=1):
-        print(f"{i}. {interface}")
-    while True:
-        try:
-            choice = int(input("\nEnter your choice: "))
-            if 1 <= choice <= len(interfaces):
-                selected_interfaces = interfaces[choice - 1]
-                print(f"You selected: {selected_interfaces}")
-                return selected_interfaces
-            else:
-                print(f"Please select a number between 1 and {len(interfaces)}.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
+    try:
+        print("Select a system Interfaces:\n")
+        for i, interface in enumerate(interfaces, start=1):
+            print(f"{i}. {interface}")
+        while True:
+            try:
+                choice = int(input("\nEnter your choice: "))
+                if 1 <= choice <= len(interfaces):
+                    selected_interfaces = interfaces[choice - 1]
+                    print(f"You selected: {selected_interfaces}")
+                    return selected_interfaces
+                else:
+                    print(f"Please select a number between 1 and {len(interfaces)}.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+    except:
+        print("There are no free interfaces....\n")
+        create_new_intefaces()
+        get_interfaze(interfaces)
 
+
+def zone_interface_names(data):
+    # Ensure data is a list for uniform processing
+    if isinstance(data, dict):
+        data = [data]
+    
+    # Extract interface names
+    interface_names = [zone['interfaces']['name'] for zone in data]
+    
+    return interface_names
+
+
+def find_available_interfaces(all_interfaces, used_interfaces):
+    # Strip unit numbers from used_interfaces to compare only base names
+    used_base_names = {iface.split('.')[0] for iface in used_interfaces}
+    
+    # Find interfaces in all_interfaces not used (considering base names only)
+    available_interfaces = [iface for iface in all_interfaces if iface not in used_base_names]
+    
+    return available_interfaces
