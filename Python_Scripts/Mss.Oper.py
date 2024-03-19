@@ -18,16 +18,21 @@ class SecurityMssManager:
 
     def get_mss(self):
         pass
+
     def create_mss(self):
         pass
+
     def update_mss(self):
         pass
+
     def delete_mss(self):
         pass
+
     def push_config(self):
-        mss_config = self.build_config()
-        print(mss_config)
-        run_pyez_tasks(self, mss_config, 'xml')  
+        xml_data = self.nat_operations()
+        if not xml_data:
+            return None
+        run_pyez_tasks(self, xml_data, 'xml')   
 
 config =  SecurityMssManager()   
 response = config.push_config()

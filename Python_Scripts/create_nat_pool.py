@@ -76,7 +76,6 @@ class NatPool:
                         </configuration>"""
                     print(payload)
             return payload
-
         
     def push_config(self):
         new_nat_pool = self.create_nat_pool()
