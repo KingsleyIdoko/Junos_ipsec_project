@@ -46,6 +46,7 @@ def select_zone(zones, list_interfaces):
 
 
 def select_zone_info(zone, list_interfaces):
+    print(zone)
     print("\nSelected Zone Configuration Details:")
     print(f"1. Name: {zone['name']}")
     print(f"2. Description: {zone['description']}")
@@ -76,11 +77,11 @@ def select_zone_info(zone, list_interfaces):
         choice = input("Enter your choice (1-3): ")
         if choice == '1':
             print("The zone name cannot be updated. Please choose another option.")
-            continue  # Continue asking for input instead of breaking the loop
+            continue  
         elif choice == '2':
             zone_description = input("Specify new description: ")
             if is_valid_string(zone_description):
-                break  # Go back to the menu after setting the description
+                break  
             else:
                 print("Description is not valid. Please enter a valid description (no more than 5 words).")
                 continue
@@ -90,17 +91,22 @@ def select_zone_info(zone, list_interfaces):
             choice2 = int(input("Enter your choice (1-2): "))
             if choice2 == 1:
                 print("Select System-Services")
-                services = get_system_services()  # Assumes a list is returned
+                services = get_system_services()  
             elif choice2 == 2:
                 print("Select Protocols")
-                protocols = get_system_protocols()  # Assumes a list is returned
-            continue  # Go back to the menu after updating services or protocols
+                protocols = get_system_protocols()  
+            break  
         else:
             print("Please select a valid option (1-3).")
+            continue
 
-    print("Do you want to update the zone interface? (yes/no): ")
-    update_interface = input().lower()
-    interface = get_interfaze(list_interfaces) if update_interface == 'yes' else get_interface_name(zone)
+    update_interface = input("Do you want to update the zone interface? (yes/no): ").lower()
+    if update_interface == 'yes' and list_interfaces:
+        interface = get_interfaze(list_interfaces)
+    else:
+        if not list_interfaces:
+            print("There are no free interfaces. Using the existing interface.")
+        interface = zone['interfaces']['name']
 
     zone_name = zone['name']
     response = create_new_zone(zone_name, zone_description, services, protocols, interface)

@@ -75,8 +75,6 @@ class SecurityZoneManager:
     
     def update_security_zone(self):
         zones, *_, interface_list = self.get_security_zone()
-        print(zones)
-        print(interface_list)
         payload = update_zone(zones, interface_list)
         return payload
     
