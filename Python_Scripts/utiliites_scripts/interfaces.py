@@ -1,4 +1,5 @@
 import re
+import ipaddress
 def is_valid_mac_address(mac):
     pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
     return bool(pattern.match(mac))
@@ -9,6 +10,12 @@ def is_valid_string(input_string):
         words = input_string.split()
         return len(words) <= 5
     else:
+        return False
+def is_valid_ipv4_address(address):
+    try:
+        ipaddress.ip_network(address, strict=False)
+        return True
+    except ValueError:
         return False
 
 def get_interfaces(device_interfaces):
@@ -32,13 +39,6 @@ def is_valid_string(input_string):
         return len(words) <= 10
     else:
         return False
-    
-    def create_interfaces(self):
-        interfaces = self.get_interfaces()
-        filtered_interface = select_interface(interfaces)
-        int_params = ['description', 'disable', 'encapsulation', 'ether-options', 'gigether-options', 
-        'hold-time', 'link-mode', 'mac', 'mtu', 'speed', 'unit', 'vlan-tagging']  
-        config_interface(int_params, filtered_interface)
         
 def select_interface(nested_interfaces):
     if not nested_interfaces or not isinstance(nested_interfaces[0], list):
@@ -67,7 +67,6 @@ def config_interface(int_params, filtered_interface):
     print(f"Configuring interface {filtered_interface['name']}:\n")
     for index, name in enumerate(int_params, start=1):
         print(f"{index}. {name}")
-
     while True:
         try:
             choice = int(input("\nEnter your choice: ")) - 1
@@ -105,30 +104,74 @@ def config_description(desc):
         xml_data = f"""<description>{desc}</description>"""
         return xml_data
 
-def config_int_status(interface_name):
-    payload = f"""
-    <configuration>
-        <interfaces>
-            <interface operation="create">
-                <name>{interface_name}</name>
-                <disable/>
-            </interface>
-        </interfaces>
-    </configuration>"""
+def config_int_status():
+    while True:
+        try:
+            choice = int(input("Enter 1 to enable or 0 to disable the interface: "))
+            if choice == 1:
+                print("Interface will be enabled (removing <disable/> if present).")
+                payload = """<disable operation="delete"/>"""
+                break  
+            elif choice == 0:
+                print("Interface will be disabled (adding <disable/>).")
+                payload = "<disable/>"
+                break  
+            else:
+                print("Invalid choice. Please enter 1 to enable or 0 to disable.")
+        except ValueError:
+            print("Invalid input. Please enter a valid number (1 or 0).")
     return payload
 
+def set_int_params(interface_name):
+    while True:
+        try:
+            unit = input("Enter unit number: ")
+            print("Configure interface as Layer 2, Layer 2.5 (ISO), or Layer 3\n")
+            choice = float(input("Enter choice (2 for Layer2, 2.5 for ISO, 3 for Layer3): "))
+            data = ""
 
-def gigabit_options(interface_name):
-    payload = f"""
-    <configuration>
-        <interfaces>
-            <interface operation="create">
-                <name>{interface_name}</name>
-                <disable/>
-            </interface>
-        </interfaces>
-    </configuration>"""
-    return payload
+            if choice == 2:
+                while True:
+                    port_type = input("Specify 0 as access, 1 as trunk: ")
+                    if port_type in ["0", "1"]:
+                        port_mode = "access" if port_type == "0" else "trunk"
+                        data = f"""
+                                <ethernet-switching>
+                                    <interface-mode>{port_mode}</interface-mode>
+                                </ethernet-switching>"""
+                        break
+                    else:
+                        print("Invalid choice selected, try again.")
+            elif choice == 3:
+                while True:
+                    subnet = input("Enter the IP address (e.g., 192.168.1.1/24): ")
+                    if is_valid_ipv4_address(subnet):
+                        data = f"""
+                                <inet>
+                                    <address>
+                                        <name>{subnet}</name>
+                                    </address>
+                                </inet>"""  
+                        break
+                    else:
+                        print("IP address specified is not valid.")
+            elif choice == 2.5:
+                data  = """
+                        <iso operation="create">
+                        </iso>"""
+            else:
+                print("Invalid layer choice specified.")
+                continue
+
+            payload = f"""<unit>
+                            <name>{unit}</name>
+                            <family>
+                                {data}
+                            </family>       
+                          </unit>"""
+            return payload
+        except ValueError:
+            print("Invalid input. Please enter a numeric value.")
 
 def config_mac(interface_name):
     while True:

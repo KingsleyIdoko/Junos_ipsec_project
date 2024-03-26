@@ -65,7 +65,7 @@ class InterfaceManager:
     def create_interfaces(self):
         interfaces = self.get_interfaces()
         filtered_interface = select_interface(interfaces)
-        int_params = ['description', 'disable', 'gigether-options', 
+        int_params = ['description', 'disable | enable', 'gigether-options', 
         'mac', 'mtu', 'speed', 'unit']  
         config_interface(int_params, filtered_interface)
 
