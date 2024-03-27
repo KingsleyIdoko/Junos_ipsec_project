@@ -19,9 +19,8 @@ class InterfaceManager:
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Intefaces")
-            print("2. Create Interfaces")
-            print("3. Update Interfaces")
-            print("4. Delete Interfaces")
+            print("2. Update Interfaces")
+            print("3. Delete Interfaces")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
                 response = self.get_interfaces(interactive=True)
@@ -47,11 +46,12 @@ class InterfaceManager:
                     all_results = []  
                     for interface in response:
                         result = response[interface].result['configuration']['interfaces']['interface']
+                        lacp_chasis = response[interface].result['configuration']['chassis']['aggregated-devices']['ethernet']
                         all_results.append(result)  
                     if interactive:
                         for result in all_results:
                             print(result)  
-                    return all_results  
+                    return all_results, lacp_chasis
                 else:
                     print("No response received, trying again...")
             except Exception as e:
@@ -63,11 +63,11 @@ class InterfaceManager:
 
 
     def create_interfaces(self):
-        interfaces = self.get_interfaces()
+        interfaces, lacp_chasis  = self.get_interfaces()
         filtered_interface = select_interface(interfaces)
-        int_params = ['description', 'disable | enable', 'gigether-options', 
-        'mac', 'mtu', 'speed', 'unit']  
-        config_interface(int_params, filtered_interface)
+        int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing',
+        'LACP','MAC', 'MTU', 'Speed']  
+        config_interface(int_params, filtered_interface, lacp_chasis)
 
     def update_interfaces(self):
         pass

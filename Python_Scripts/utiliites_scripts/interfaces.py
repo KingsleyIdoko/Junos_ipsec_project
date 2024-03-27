@@ -51,7 +51,7 @@ def select_interface(nested_interfaces):
             print(f"{index}. {interface['name']}")
         
         try:
-            choice = int(input("\nEnter choice: ")) - 1 
+            choice = int(input("\nEnter choice: "))
             if choice < 0 or choice >= len(interfaces):
                 print("Invalid choice. Please enter a number listed above.\n")
                 continue  
@@ -63,38 +63,45 @@ def select_interface(nested_interfaces):
 
 
 
-def config_interface(int_params, filtered_interface):
+def config_interface(int_params, filtered_interface, lacp_chasis):
     print(f"Configuring interface {filtered_interface['name']}:\n")
     for index, name in enumerate(int_params, start=1):
         print(f"{index}. {name}")
     while True:
         try:
-            choice = int(input("\nEnter your choice: ")) - 1
+            choice = int(input("\nEnter your choice: ")) 
             if choice < 0 or choice >= len(int_params):
                 print("Invalid choice. Please enter a number listed above.\n")
                 continue
-            selected_param = int_params[choice]
+            selected_param = int_params[choice - 1]
             print(f"\nYou selected: {selected_param}")
-            if choice == 0: 
+            print(choice)
+            if choice == 1: 
                 while True:
                     desc = input(f"Enter description for {filtered_interface['name']}: ")
                     if is_valid_string(desc):
-                        payload = config_description(desc) 
-                        break 
+                        gen_config = config_description(desc) 
+                        break
                     else:
                         print("Invalid description. Please try again.")
-                return
             elif choice == 2:
-                return config_int_status()
+                gen_config =  config_int_status()
+            elif choice == 3:
+                gen_config = set_int_params()
+            elif choice == 4:
+                gen_config = config_lacp()
+            elif choice == 5:
+                gen_config = config_lacp(lacp_chasis, filtered_interface)
             payload = f"""
             <configuration>
                 <interfaces>
                     <interface operation="create">
                         <name>{filtered_interface['name']}</name>
-                        {payload}
+                        {gen_config}
                     </interface>
                 </interfaces>
             </configuration>"""
+            print(payload)
             return payload
         except ValueError:
             print("Invalid input. Please enter a number.\n")
@@ -122,17 +129,17 @@ def config_int_status():
             print("Invalid input. Please enter a valid number (1 or 0).")
     return payload
 
-def set_int_params(interface_name):
+def set_int_params():
     while True:
         try:
-            unit = input("Enter unit number: ")
-            print("Configure interface as Layer 2, Layer 2.5 (ISO), or Layer 3\n")
-            choice = float(input("Enter choice (2 for Layer2, 2.5 for ISO, 3 for Layer3): "))
+            unit = int(input("Enter unit number: "))
+            print("Configure interface as L2, L2.5 (ISO), or L3  \n")
+            choice = float(input("Enter choice 2 or 2.5 or 3:  "))
             data = ""
 
             if choice == 2:
                 while True:
-                    port_type = input("Specify 0 as access, 1 as trunk: ")
+                    port_type = str(input("Specify 0 as access, 1 as trunk: "))
                     if port_type in ["0", "1"]:
                         port_mode = "access" if port_type == "0" else "trunk"
                         data = f"""
@@ -173,284 +180,55 @@ def set_int_params(interface_name):
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
 
-def config_mac(interface_name):
+def config_mac():
     while True:
         mac_address = input("Please enter Mac Address (e.g., 50:00:00:0f:00:03): ")
         if is_valid_mac_address(mac_address):
             payload = f"""
-            <configuration>
-                <interfaces>
-                    <interface operation="create">
-                        <name>{interface_name}</name>
-                        <mac>{mac_address}</mac>
-                    </interface>
-                </interfaces>
-            </configuration>"""
-            print("MAC address configured successfully.")
+                        <mac>{mac_address}</mac>"""
+            print("MAC address configured successfully configured.")
             return payload
         else:
             print("You entered an invalid MAC address. Please try again.")
 
-def config_speed(interface_name, speed):
-    payload = f"""
-    <configuration>
-        <interfaces>
-            <interface operation="create">
-                <name>{interface_name}</name>
-                <speed>{speed}<speed/>
-            </interface>
-        </interfaces>
-    </configuration>"""
-    return payload
 
-def config_unit(interface_name):
-    payload = f"""
-    <configuration>
-        <interfaces>
-            <interface operation="create">
-                    <unit>
-                         <name>0</name>    
-                    </unit>  
-            </interface>
-        </interfaces>
-    </configuration>"""
-    return payload
+def config_lacp(lacp_chasis, filtered_interface):
+    interface_name  = filtered_interface['name']
+    if lacp_chasis:
+        print(f"There are device_count {lacp_chasis['device-count']} already created")
+        payload = """
+            <configuration>
+                <interfaces>
+                    <interface operation="create">
+                        <name>{interface_name}</name>
+                        <gigether-options>
+                            <ieee-802.3ad>
+                                <bundle>{ae0}</bundle>
+                            </ieee-802.3ad>
+                        </gigether-options>
+                        <aggregated-ether-options>
+                            <lacp>          
+                                <active/>   
+                                <periodic>{fast}</periodic>
+                            </lacp>         
+                        </aggregated-ether-options>
+                    </interface>            
+                </interfaces>               
+            </configuration>"""
+        return payload
+    else:
+        print("No logical interfaces currently exist")
+        print("Enable device_count before creating logical interfaces")
+        device_count = int(input("Enter number of count: "))
+        payload = """
+            <configuration>
+                <chassis operation="create">
+                    <aggregated-devices>
+                        <ethernet>
+                            <device-count>{device_count}</device-count>
+                        </ethernet>
+                    </aggregated-devices>
+                </chassis>
+            <configuration>"""
+        return payload 
 
-
-
-# payload = f"""
-#     <configuration>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                 </interface>
-#             </interfaces>
-#     </configuration>"""
-
-
-
-#     <configuration>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>
-#                             <ethernet-switching>
-#                                 <interface-mode>access</interface-mode>
-#                             </ethernet-switching>
-#                         </family>
-#                     </unit>
-#                 </interface>
-#             </interfaces>
-#     </configuration>
-
-
-#     <configuration>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>
-#                         </family>
-#                     </unit>
-#                 </interface>
-#             </interfaces>
-#     </configuration>
-#     <cli>
-#         <banner>[edit]</banner>
-#     </cli>
-
-
-
-#     <configuration>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>
-#                             <ethernet-switching>
-#                                 <interface-mode>trunk</interface-mode>
-#                             </ethernet-switching>
-#                         </family>
-#                     </unit>
-#                 </interface>
-#             </interfaces>
-#     </configuration>
-
-
-#     <configuration>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <gigether-options>
-#                         <ieee-802.3ad>
-#                             <bundle>ae0</bundle>
-#                         </ieee-802.3ad>
-#                     </gigether-options>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>
-#                             <ethernet-switching>
-#                                 <interface-mode>trunk</interface-mode>
-#                             </ethernet-switching>
-#                         </family>
-#                     </unit>             
-#                 </interface>            
-#             </interfaces>               
-#     </configuration>  
-
-
-
-# <configuration>
-#             <chassis operation="create">
-#                 <aggregated-devices>
-#                     <ethernet>
-#                         <device-count>5</device-count>
-#                     </ethernet>
-#                 </aggregated-devices>
-#             </chassis>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <gigether-options>
-#                         <ieee-802.3ad>
-#                             <bundle>ae0</bundle>
-#                         </ieee-802.3ad>
-#                     </gigether-options>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>     
-#                             <ethernet-switching>
-#                                 <interface-mode>trunk</interface-mode>
-#                             </ethernet-switching>
-#                         </family>       
-#                     </unit>             
-#                 </interface>            
-#             </interfaces>               
-#     </configuration>        
-
-
-
-#     <configuration>
-#             <chassis operation="create">
-#                 <aggregated-devices>
-#                     <ethernet>
-#                         <device-count>5</device-count>
-#                     </ethernet>
-#                 </aggregated-devices>
-#             </chassis>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <gigether-options>
-#                         <ieee-802.3ad>
-#                             <bundle>ae0</bundle>
-#                         </ieee-802.3ad>
-#                     </gigether-options>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>     
-#                             <ethernet-switching>
-#                                 <interface-mode>trunk</interface-mode>
-#                             </ethernet-switching>
-#                         </family>       
-#                     </unit>             
-#                 </interface>            
-#                 <interface operation="create">
-#                     <name>ae0</name>    
-#                     <aggregated-ether-options>
-#                         <lacp>          
-#                             <active/>   
-#                             <periodic>fast</periodic>
-#                         </lacp>         
-#                     </aggregated-ether-options>
-#                 </interface>            
-#             </interfaces>               
-#     </configuration>  
-
-
-
-#     <configuration>
-#             <chassis operation="create">
-#                 <aggregated-devices>
-#                     <ethernet>
-#                         <device-count>5</device-count>
-#                     </ethernet>
-#                 </aggregated-devices>
-#             </chassis>
-#             <interfaces>
-#                 <interface operation="create">
-#                     <name>ge-0/0/5</name>
-#                     <description>This is the VPN ZONE Traffic</description>
-#                     <mtu>9192</mtu>
-#                     <mac>50:00:00:0f:00:03</mac>
-#                     <gigether-options>
-#                         <ieee-802.3ad>
-#                             <bundle>ae0</bundle>
-#                         </ieee-802.3ad>
-#                     </gigether-options>
-#                     <unit>
-#                         <name>0</name>
-#                         <family>
-#                             <inet>      
-#                                 <address>
-#                                     <name>10.0.0.1/24</name>
-#                                 </address>
-#                             </inet>     
-#                             <ethernet-switching>
-#                                 <interface-mode>trunk</interface-mode>
-#                             </ethernet-switching>
-#                         </family>       
-#                     </unit>             
-#                 </interface>            
-#                 <interface operation="create">
-#                     <name>ae0</name>    
-#                     <aggregated-ether-options>
-#                         <lacp>          
-#                             <active/>   
-#                             <periodic>fast</periodic>
-#                         </lacp>         
-#                     </aggregated-ether-options>
-#                 </interface>            
-#             </interfaces>               
-#     </configuration> 
