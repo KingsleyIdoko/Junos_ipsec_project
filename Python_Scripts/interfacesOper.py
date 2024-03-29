@@ -63,11 +63,21 @@ class InterfaceManager:
 
 
     def create_interfaces(self):
+        payload =  []
         interfaces, lacp_chasis  = self.get_interfaces()
         filtered_interface = select_interface(interfaces)
         int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing',
         'LACP','MAC', 'MTU', 'Speed']  
-        config_interface(int_params, filtered_interface, lacp_chasis)
+        config_output = config_interface(int_params, filtered_interface, lacp_chasis)
+        if isinstance(config_output, list):
+            for items in config_output:
+                payload.append(items)
+            return payload
+        print(config_output)
+        return config_output
+
+
+    
 
     def update_interfaces(self):
         pass
@@ -79,7 +89,9 @@ class InterfaceManager:
         xml_data = self.nat_operations()
         if not xml_data:
             return None
-        run_pyez_tasks(self, xml_data, 'xml') 
+        for xml in xml_data:
+            run_pyez_tasks(self, xml, 'xml') 
+
 
 config = InterfaceManager()
 response = config.push_config()

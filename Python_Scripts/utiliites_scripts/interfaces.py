@@ -1,5 +1,6 @@
 import re
 import ipaddress
+from utiliites_scripts.commit import run_pyez_tasks
 def is_valid_mac_address(mac):
     pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
     return bool(pattern.match(mac))
@@ -17,6 +18,15 @@ def is_valid_ipv4_address(address):
         return True
     except ValueError:
         return False
+    
+def get_lacp_periodic_mode():
+    pattern = re.compile(r'^(fast|slow)$', re.IGNORECASE)  # Matches "fast" or "slow", case-insensitive
+    while True:
+        lacp_periodic = input("Enter LACP periodic mode (fast/slow): ")
+        if pattern.match(lacp_periodic):
+            return lacp_periodic.lower()  # Return the valid input in lowercase
+        else:
+            print("Invalid input. Please enter 'fast' or 'slow'. Try again.")
 
 def get_interfaces(device_interfaces):
     interface_names = []
@@ -61,9 +71,8 @@ def select_interface(nested_interfaces):
         except ValueError:
             print("Invalid input. Please enter a number.\n")
 
-
-
 def config_interface(int_params, filtered_interface, lacp_chasis):
+    delete_int =  None
     print(f"Configuring interface {filtered_interface['name']}:\n")
     for index, name in enumerate(int_params, start=1):
         print(f"{index}. {name}")
@@ -79,8 +88,9 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
             if choice == 1: 
                 while True:
                     desc = input(f"Enter description for {filtered_interface['name']}: ")
+                    interface_name = filtered_interface['name']
                     if is_valid_string(desc):
-                        gen_config = config_description(desc) 
+                        gen_config = config_description(desc, interface_name) 
                         break
                     else:
                         print("Invalid description. Please try again.")
@@ -89,26 +99,35 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
             elif choice == 3:
                 gen_config = set_int_params()
             elif choice == 4:
-                gen_config = config_lacp()
-            elif choice == 5:
+                delete_int = default_interface(filtered_interface)
                 gen_config = config_lacp(lacp_chasis, filtered_interface)
-            payload = f"""
-            <configuration>
-                <interfaces>
-                    <interface operation="create">
-                        <name>{filtered_interface['name']}</name>
+            elif choice == 5:
+                gen_config = config_mac()
+            elif choice == 6:
+                gen_config = config_mtu()
+            elif choice == 7:
+                gen_config = config_speed()
+            payload= f"""
+                <configuration>
+                        <interfaces>
                         {gen_config}
-                    </interface>
-                </interfaces>
-            </configuration>"""
-            print(payload)
-            return payload
+                        </interfaces>
+                </configuration>"""
+            if delete_int:
+                return  delete_int, payload
+            else:
+                return payload
         except ValueError:
             print("Invalid input. Please enter a number.\n")
 
    
-def config_description(desc):
-        xml_data = f"""<description>{desc}</description>"""
+def config_description(desc, interface_name):
+        xml_data = f"""
+                            <interface>
+                                <name>{interface_name}</name>
+                                <description operation="delete"/>
+                                <description operation="create">{desc}</description>
+                            </interface>"""
         return xml_data
 
 def config_int_status():
@@ -191,36 +210,45 @@ def config_mac():
         else:
             print("You entered an invalid MAC address. Please try again.")
 
+def config_mtu():
+    pass
+
+def config_speed():
+    pass
 
 def config_lacp(lacp_chasis, filtered_interface):
-    interface_name  = filtered_interface['name']
+    interface_name = filtered_interface['name']
     if lacp_chasis:
-        print(f"There are device_count {lacp_chasis['device-count']} already created")
-        payload = """
-            <configuration>
-                <interfaces>
-                    <interface operation="create">
-                        <name>{interface_name}</name>
+        logical_ports_count = int(lacp_chasis['device-count'])
+        while True:
+            try:
+                ae_port = int(input("Enter logical port number: "))
+                if 0 <= ae_port < logical_ports_count:
+                    print(f"ae{ae_port} was selected!")
+                    ae_port_str = f"ae{ae_port}"
+                    break
+                else:
+                    print(f"You entered an invalid number, select number (0 - {logical_ports_count -1 })")
+            except ValueError:
+                print("Invalid input. Please enter a numeric value.")
+        lacp_periodic_mode = get_lacp_periodic_mode()
+
+        payload = f"""
                         <gigether-options>
                             <ieee-802.3ad>
-                                <bundle>{ae0}</bundle>
+                                <bundle>{ae_port_str}</bundle>
                             </ieee-802.3ad>
                         </gigether-options>
                         <aggregated-ether-options>
-                            <lacp>          
-                                <active/>   
-                                <periodic>{fast}</periodic>
-                            </lacp>         
-                        </aggregated-ether-options>
-                    </interface>            
-                </interfaces>               
-            </configuration>"""
+                            <lacp>
+                                <active/>
+                                <periodic>{lacp_periodic_mode}</periodic>
+                            </lacp>
+                        </aggregated-ether-options>"""
         return payload
     else:
-        print("No logical interfaces currently exist")
-        print("Enable device_count before creating logical interfaces")
-        device_count = int(input("Enter number of count: "))
-        payload = """
+        device_count = int(input("Enter number of logical ports to create: "))
+        payload = f"""
             <configuration>
                 <chassis operation="create">
                     <aggregated-devices>
@@ -229,6 +257,18 @@ def config_lacp(lacp_chasis, filtered_interface):
                         </ethernet>
                     </aggregated-devices>
                 </chassis>
-            <configuration>"""
-        return payload 
+            </configuration>"""
+        return payload
 
+
+def default_interface(interface_name):
+    name = interface_name.get("name")
+    payload = f"""
+        <configuration>
+            <interfaces>
+                <interface operation="delete">
+                    <name>{name}</name>
+                </interface>
+            </interfaces>
+    </configuration>"""
+    return payload
