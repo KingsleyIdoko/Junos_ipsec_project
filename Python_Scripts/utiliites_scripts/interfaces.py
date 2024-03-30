@@ -59,9 +59,8 @@ def select_interface(nested_interfaces):
         print("Please choose an interface for configuration by entering its number:\n")
         for index, interface in enumerate(interfaces, start=1):
             print(f"{index}. {interface['name']}")
-        
         try:
-            choice = int(input("\nEnter choice: "))
+            choice = int(input("\nEnter choice: ")) - 1
             if choice < 0 or choice >= len(interfaces):
                 print("Invalid choice. Please enter a number listed above.\n")
                 continue  
@@ -72,81 +71,99 @@ def select_interface(nested_interfaces):
             print("Invalid input. Please enter a number.\n")
 
 def config_interface(int_params, filtered_interface, lacp_chasis):
-    delete_int =  None
+    delete_int = None
     print(f"Configuring interface {filtered_interface['name']}:\n")
     for index, name in enumerate(int_params, start=1):
         print(f"{index}. {name}")
     while True:
         try:
-            choice = int(input("\nEnter your choice: ")) 
-            if choice < 0 or choice >= len(int_params):
+            choice = int(input("\nEnter your choice: "))
+            if choice < 1 or choice > len(int_params):
                 print("Invalid choice. Please enter a number listed above.\n")
                 continue
             selected_param = int_params[choice - 1]
             print(f"\nYou selected: {selected_param}")
-            print(choice)
+            interface_name = filtered_interface.get('name')
+            old_description =  filtered_interface.get('description')
+            gen_config = None  
             if choice == 1: 
                 while True:
                     desc = input(f"Enter description for {filtered_interface['name']}: ")
-                    interface_name = filtered_interface['name']
                     if is_valid_string(desc):
-                        gen_config = config_description(desc, interface_name) 
+                        gen_config = config_description(desc, interface_name, old_description)
                         break
                     else:
                         print("Invalid description. Please try again.")
+                        continue
             elif choice == 2:
-                gen_config =  config_int_status()
-            elif choice == 3:
-                gen_config = set_int_params()
+                gen_config = config_int_status(interface_name, filtered_interface)
             elif choice == 4:
                 delete_int = default_interface(filtered_interface)
                 gen_config = config_lacp(lacp_chasis, filtered_interface)
-            elif choice == 5:
-                gen_config = config_mac()
-            elif choice == 6:
-                gen_config = config_mtu()
-            elif choice == 7:
-                gen_config = config_speed()
-            payload= f"""
-                <configuration>
-                        <interfaces>
-                        {gen_config}
-                        </interfaces>
-                </configuration>"""
-            if delete_int:
-                return  delete_int, payload
+            if gen_config:  
+                payload = f"""
+                    <configuration>
+                            <interfaces>
+                            {gen_config}
+                            </interfaces>
+                    </configuration>"""
+                return (delete_int, payload) if delete_int else payload
             else:
-                return payload
+                print("No configuration changes to apply.")
+                return delete_int if delete_int else None
         except ValueError:
             print("Invalid input. Please enter a number.\n")
 
    
-def config_description(desc, interface_name):
-        xml_data = f"""
-                            <interface>
-                                <name>{interface_name}</name>
-                                <description operation="delete"/>
-                                <description operation="create">{desc}</description>
-                            </interface>"""
-        return xml_data
-
-def config_int_status():
+def config_description(desc, interface_name, old_description=None):
+        if old_description:
+            xml_data = f"""   <interface>
+                                    <name>{interface_name}</name>
+                                    <description operation="delete"/>
+                                    <description operation="create">{desc}</description>
+                                    </interface>"""
+            return xml_data
+        else:
+            xml_data = f"""   <interface>
+                                    <name>{interface_name}</name>
+                                    <description operation="create">{desc}</description>
+                                    </interface>"""
+            return xml_data
+def config_int_status(interface_name, filtered_interface):
     while True:
         try:
             choice = int(input("Enter 1 to enable or 0 to disable the interface: "))
+            disabled_interface = check_interface_disabled(filtered_interface)           
             if choice == 1:
-                print("Interface will be enabled (removing <disable/> if present).")
-                payload = """<disable operation="delete"/>"""
-                break  
+                if disabled_interface:  
+                    print("Interface will be enabled (removing <disable/> if present).")
+                    payload = f"""
+                                <interface>
+                                    <name>{interface_name}</name>
+                                    <disable operation="delete"/>
+                                </interface>"""
+                else:
+                    print("Interface is already enabled.")
+                    payload = None  
+                break
             elif choice == 0:
-                print("Interface will be disabled (adding <disable/>).")
-                payload = "<disable/>"
-                break  
+                if not disabled_interface:  
+                    print("Interface will be disabled (adding <disable/>).")
+                    payload = f"""
+                                <interface>
+                                    <name>{interface_name}</name>
+                                    <disable operation="create"/>
+                                </interface>"""
+                else:
+                    print("Interface is already disabled.")
+                    payload = None  
+                break
             else:
                 print("Invalid choice. Please enter 1 to enable or 0 to disable.")
         except ValueError:
             print("Invalid input. Please enter a valid number (1 or 0).")
     return payload
+
 
 def set_int_params():
     while True:
@@ -272,3 +289,16 @@ def default_interface(interface_name):
             </interfaces>
     </configuration>"""
     return payload
+
+
+
+def check_interface_disabled(interface_config):
+    if 'disable' in interface_config:
+        if interface_config['disable'] is None:
+            return True
+        else:
+            return True
+    else:
+        return False
+
+

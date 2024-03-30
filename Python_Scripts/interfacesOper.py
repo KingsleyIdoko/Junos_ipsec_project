@@ -25,9 +25,6 @@ class InterfaceManager:
             if operation == "1":
                 response = self.get_interfaces(interactive=True)
             elif operation == "2":
-                response = self.create_interfaces()
-                return response
-            elif operation == "3":
                 response = self.update_interfaces()
                 return response
             elif operation == "4":
@@ -39,19 +36,23 @@ class InterfaceManager:
 
     def get_interfaces(self, interactive=False, retries=3):
         attempt = 0
+        lacp_chasis = None  
         while attempt < retries:
             try:
                 response = self.nr.run(task=pyez_get_config, database=self.database)
                 if response:
-                    all_results = []  
+                    all_results = []
                     for interface in response:
                         result = response[interface].result['configuration']['interfaces']['interface']
-                        lacp_chasis = response[interface].result['configuration']['chassis']['aggregated-devices']['ethernet']
-                        all_results.append(result)  
+                        try:
+                            lacp_chasis = response[interface].result['configuration']['chassis']['aggregated-devices']['ethernet']
+                        except KeyError:
+                            lacp_chasis = None
+                        all_results.append(result)
                     if interactive:
                         for result in all_results:
-                            print(result)  
-                    return all_results, lacp_chasis
+                            print(result)
+                    return (all_results, lacp_chasis) if lacp_chasis else all_results
                 else:
                     print("No response received, trying again...")
             except Exception as e:
@@ -62,26 +63,32 @@ class InterfaceManager:
         return None
 
 
-    def create_interfaces(self):
-        payload =  []
-        interfaces, lacp_chasis  = self.get_interfaces()
-        filtered_interface = select_interface(interfaces)
-        int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing',
-        'LACP','MAC', 'MTU', 'Speed']  
-        config_output = config_interface(int_params, filtered_interface, lacp_chasis)
-        if isinstance(config_output, list):
-            for items in config_output:
-                payload.append(items)
-            return payload
-        print(config_output)
-        return config_output
-
-
-    
-
     def update_interfaces(self):
-        pass
-    
+        payload = []
+        get_interfaces_output = self.get_interfaces()
+        if isinstance(get_interfaces_output, tuple) and len(get_interfaces_output) == 2:
+            interfaces, lacp_chasis = get_interfaces_output
+        else:
+            interfaces = get_interfaces_output
+            lacp_chasis = None
+        if interfaces:
+            filtered_interface = select_interface(interfaces)
+            if not filtered_interface: 
+                return None
+            int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 'LACP', 'MAC', 'MTU', 'Speed']
+            config_output = config_interface(int_params, filtered_interface, lacp_chasis)
+            if isinstance(config_output, list):  
+                payload.extend(config_output)
+            else:  
+                if config_output:  
+                    payload.append(config_output)
+            return payload
+        else:
+            print("Failed to retrieve interfaces.")
+            return None
+
+
+
     def delete_interfaces(self):
         pass
 
@@ -89,8 +96,12 @@ class InterfaceManager:
         xml_data = self.nat_operations()
         if not xml_data:
             return None
-        for xml in xml_data:
-            run_pyez_tasks(self, xml, 'xml') 
+        elif isinstance(xml_data, list):
+            for xml in xml_data:
+                run_pyez_tasks(self, xml, 'xml') 
+                return None
+        else:
+             run_pyez_tasks(self, xml_data, 'xml') 
 
 
 config = InterfaceManager()
