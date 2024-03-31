@@ -1,6 +1,5 @@
 import re
 import ipaddress
-from utiliites_scripts.commit import run_pyez_tasks
 def is_valid_mac_address(mac):
     pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
     return bool(pattern.match(mac))
@@ -12,19 +11,30 @@ def is_valid_string(input_string):
         return len(words) <= 5
     else:
         return False
+
+
 def is_valid_ipv4_address(address):
     try:
-        ipaddress.ip_network(address, strict=False)
-        return True
+        network = ipaddress.ip_network(address, strict=False)
+        if network.prefixlen == 32:
+            return True
+        else:
+            ip_addr = ipaddress.ip_address(address.split('/')[0])
+            if ip_addr == network.network_address or ip_addr == network.broadcast_address:
+                return False
+            else:
+                return True
+
     except ValueError:
         return False
+
     
 def get_lacp_periodic_mode():
-    pattern = re.compile(r'^(fast|slow)$', re.IGNORECASE)  # Matches "fast" or "slow", case-insensitive
+    pattern = re.compile(r'^(fast|slow)$', re.IGNORECASE)  
     while True:
         lacp_periodic = input("Enter LACP periodic mode (fast/slow): ")
         if pattern.match(lacp_periodic):
-            return lacp_periodic.lower()  # Return the valid input in lowercase
+            return lacp_periodic.lower()  
         else:
             print("Invalid input. Please enter 'fast' or 'slow'. Try again.")
 
@@ -85,6 +95,7 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
             print(f"\nYou selected: {selected_param}")
             interface_name = filtered_interface.get('name')
             old_description =  filtered_interface.get('description')
+            ip_address_name = filtered_interface['unit']['family']['inet']['address']['name']
             gen_config = None  
             if choice == 1: 
                 while True:
@@ -97,16 +108,19 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
                         continue
             elif choice == 2:
                 gen_config = config_int_status(interface_name, filtered_interface)
+            elif choice == 3:
+                gen_config = set_int_params(interface_name, ip_address_name)
             elif choice == 4:
                 delete_int = default_interface(filtered_interface)
                 gen_config = config_lacp(lacp_chasis, filtered_interface)
             if gen_config:  
                 payload = f"""
                     <configuration>
-                            <interfaces>
+                        <interfaces>
                             {gen_config}
-                            </interfaces>
+                        </interfaces>
                     </configuration>"""
+                print(payload)
                 return (delete_int, payload) if delete_int else payload
             else:
                 print("No configuration changes to apply.")
@@ -165,11 +179,11 @@ def config_int_status(interface_name, filtered_interface):
     return payload
 
 
-def set_int_params():
+def set_int_params(interface_name, ip_address_name):
     while True:
         try:
             unit = int(input("Enter unit number: "))
-            print("Configure interface as L2, L2.5 (ISO), or L3  \n")
+            print("Configure interface as :Layer(2), Layer(2.5)(ISO), or Laywer(3)  \n")
             choice = float(input("Enter choice 2 or 2.5 or 3:  "))
             data = ""
 
@@ -178,40 +192,48 @@ def set_int_params():
                     port_type = str(input("Specify 0 as access, 1 as trunk: "))
                     if port_type in ["0", "1"]:
                         port_mode = "access" if port_type == "0" else "trunk"
-                        data = f"""
-                                <ethernet-switching>
-                                    <interface-mode>{port_mode}</interface-mode>
-                                </ethernet-switching>"""
+                        data = f"""<ethernet-switching>
+                                            <interface-mode>{port_mode}</interface-mode>
+                                        </ethernet-switching>"""
                         break
                     else:
                         print("Invalid choice selected, try again.")
             elif choice == 3:
                 while True:
-                    subnet = input("Enter the IP address (e.g., 192.168.1.1/24): ")
-                    if is_valid_ipv4_address(subnet):
-                        data = f"""
-                                <inet>
-                                    <address>
-                                        <name>{subnet}</name>
-                                    </address>
-                                </inet>"""  
+                    subnet = input("Enter the IP address (e.g. 192.168.1.1/24): ")
+                    if subnet == ip_address_name:
+                        print(f"IP Address already exist on the interface ({interface_name})")
+                    elif is_valid_ipv4_address(subnet):
+                        if ip_address_name:
+                            data =      f"""<inet>
+                                            <address insert="after"  key="[ name='{ip_address_name}' ]" operation="create">
+                                                    <name>{subnet}</name>
+                                                </address>
+                                        </inet>"""  
+                        else:
+                            data =      f"""<inet>
+                                                <address>
+                                                    <name>{subnet}</name>
+                                                </address>
+                                        </inet>"""   
                         break
                     else:
                         print("IP address specified is not valid.")
             elif choice == 2.5:
-                data  = """
-                        <iso operation="create">
-                        </iso>"""
+                data  = f"""<iso operation="create">
+                                        </iso>"""
             else:
                 print("Invalid layer choice specified.")
                 continue
-
-            payload = f"""<unit>
-                            <name>{unit}</name>
-                            <family>
-                                {data}
-                            </family>       
-                          </unit>"""
+            payload = f"""<interface>
+                                <name>{interface_name}</name>
+                                <unit>
+                                    <name>{unit}</name>
+                                    <family>
+                                        {data}
+                                    </family>       
+                                </unit>
+                            </interface>"""
             return payload
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
@@ -237,6 +259,7 @@ def config_lacp(lacp_chasis, filtered_interface):
     interface_name = filtered_interface['name']
     if lacp_chasis:
         logical_ports_count = int(lacp_chasis['device-count'])
+        print(logical_ports_count)
         while True:
             try:
                 ae_port = int(input("Enter logical port number: "))
