@@ -61,18 +61,20 @@ class VlansManager:
 
 
     def create_vlan(self):
-        print("Creating vlan.......\n")
+        print("Creating VLAN.......\n")
         while True:
-            existin_vlans, *_ = self.get_vlans()
-            vlan_ids = [vlan['vlan-id'] for vlan in existin_vlans['vlan']]
-            vlan_id = get_valid_integer("Please enter a valid Vlan num (1-4094): ")
-            vlan_name = get_valid_string("Enter vlan name: ")
-            if vlan_id in vlan_ids:
-                print(f"Vland {vlan_id} already exist, Try again")
+            existing_vlans, *_ = self.get_vlans()  
+            vlan_ids = [vlan['vlan-id'] for vlan in existing_vlans['vlan']]  
+            vlan_id = get_valid_integer("Please enter a valid VLAN num (1-4094): ")
+            if str(vlan_id) in vlan_ids:  
+                print(f"VLAN {vlan_id} already exists. Try again.")
+                continue  
             else:
+                vlan_name = get_valid_string("Enter VLAN name: ")
                 payload = gen_vlan_config(vlan_id, vlan_name)
-                break
-        return payload
+                print(f"VLAN {vlan_id} created successfully.")
+                return payload
+
 
     def update_vlan(self):
         print("Updating VLAN.............\n")
@@ -106,27 +108,27 @@ class VlansManager:
                     break 
 
 
-    def delete_vlan(self, choice=None, check_used = True):
+    def delete_vlan(self, choice=None, check_used=True):
         print("Deleting VLAN...")
+        existing_vlans, vlan_members = self.get_vlans()
+        used_vlans, int_name = extract_vlan_members(vlan_members)  
         while True:
-            existing_vlans, vlan_members = self.get_vlans()
-            used_vlans, int_name = extract_vlan_members(vlan_members)
             if not choice:
                 choice = get_valid_integer("Enter VLAN-ID to delete: ")
-            if check_used == True:
-                if str(choice) in used_vlans:
-                    print(f"VLAN {choice} is in use. First remove it from the interface {int_name}.")
-                    break
+            
+            if check_used and str(choice) in used_vlans:
+                print(f"VLAN {choice} is in use. First, remove it from the interface {int_name}.")
+                break  
+
+            matched_vlan_name = match_vlan_id(str(choice), existing_vlans)
+            if matched_vlan_name:
+                payload = gen_delete_vlan_config(matched_vlan_name)
+                print(f"VLAN {choice} deleted successfully.")
+                return payload 
             else:
-                matched_vlan_name = match_vlan_id(str(choice), existing_vlans)
-                if matched_vlan_name:
-                    payload = gen_delete_vlan_config(matched_vlan_name)
-                    print(f"VLAN {choice} deleted successfully.")
-                    return payload
-                else:
-                    print("No VLAN found with that ID.")
-                    break
-                
+                print("No VLAN found with that ID.")
+                break  
+                    
 
     def push_config(self):
         xml_data = self.vlans_operations()
@@ -134,7 +136,6 @@ class VlansManager:
             return 
         elif isinstance(xml_data, list):
             for xml in xml_data:
-                print("Yes it a list")
                 run_pyez_tasks(self, xml, 'xml') 
             return None
         else:
