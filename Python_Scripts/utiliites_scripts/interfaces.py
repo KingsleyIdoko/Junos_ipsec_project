@@ -95,7 +95,10 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
             print(f"\nYou selected: {selected_param}")
             interface_name = filtered_interface.get('name')
             old_description =  filtered_interface.get('description')
-            ip_address_name = filtered_interface['unit']['family']['inet']['address']['name']
+            try:
+                ip_address_name = filtered_interface['unit']['family']['inet']['address']['name']
+            except:
+                ip_address_name = None
             gen_config = None  
             if choice == 1: 
                 while True:
@@ -179,7 +182,7 @@ def config_int_status(interface_name, filtered_interface):
     return payload
 
 
-def set_int_params(interface_name, ip_address_name):
+def set_int_params(interface_name, ip_address_name=None):
     while True:
         try:
             unit = int(input("Enter unit number: "))

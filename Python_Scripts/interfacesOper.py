@@ -15,7 +15,7 @@ class InterfaceManager:
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
 
-    def nat_operations(self):
+    def interface_operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Intefaces")
@@ -23,13 +23,11 @@ class InterfaceManager:
             print("3. Delete Interfaces")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                response = self.get_interfaces(interactive=True)
+                return self.get_interfaces(interactive=True)
             elif operation == "2":
-                response = self.update_interfaces()
-                return response
+                return self.update_interfaces()
             elif operation == "4":
-                response =  self.delete_interfaces()
-                return response
+                return self.delete_interfaces()
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
@@ -52,6 +50,7 @@ class InterfaceManager:
                     if interactive:
                         for result in all_results:
                             print(result)
+                            return None
                     return (all_results, lacp_chasis) if lacp_chasis else all_results
                 else:
                     print("No response received, trying again...")
@@ -93,7 +92,7 @@ class InterfaceManager:
         pass
 
     def push_config(self):
-        xml_data = self.nat_operations()
+        xml_data = self.interface_operations()
         if not xml_data:
             return None
         elif isinstance(xml_data, list):

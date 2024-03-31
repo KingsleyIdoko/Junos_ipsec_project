@@ -7674,3 +7674,604 @@ warning: statement not found: 30)
 2024-03-31 18:01:43,359 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
 2024-03-31 18:01:45,111 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
 2024-03-31 18:01:53,568 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:03:51,894 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:04:00,557 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:04:12,590 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:04:25,085 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                <configuration>\n                        <vlans>\n                            <vlan operation="create">\n                                <name>vlan__20</name>\n                                <vlan-id>20</vlan-id>\n                            </vlan>\n                        </vlans>\n                </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 18:04:25,294 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 18:04:28,194 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 18:05:45,140 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:05:52,707 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:06:36,972 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:07:45,775 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:07:52,718 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:07:53,968 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': [{'name': 'ge-0/0/0', 'description': 'This is the inside trusted zone', 'unit': {'name': '0', 'family': {'inet': {'address': {'name': '192.168.10.254/24'}}}}}, {'name': 'ge-0/0/1', 'description': 'This is the outside untrusted zone', 'unit': {'name': '0', 'family': {'inet': {'filter': {'input': {'filter-name': 'PCAP'}, 'output': {'filter-name': 'PCAP'}}, 'address': {'name': '192.168.1.40/24'}}}}}, {'name': 'ge-0/0/2', 'unit': {'name': '0', 'family': {'ethernet-switching': {'vlan': {'members': '20'}}}}}, {'name': 'fxp0', 'unit': {'name': '0'}}], 'data_format': 'xml'} on 1 hosts
+2024-03-31 18:07:54,072 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 282, in load_config
+    if contents.tag != "configuration":
+AttributeError: 'list' object has no attribute 'tag'
+
+2024-03-31 18:07:54,074 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-03-31 18:08:20,909 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:08:40,693 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 18:08:58,056 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                               <interface>\n                                    <name>ge-0/0/0</name>\n                                    <description operation="delete"/>\n                                    <description operation="create">This is the inside zone interface</description>\n                                    </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 18:08:58,249 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 18:09:02,189 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 18:09:12,404 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 20:52:25,109 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 20:52:43,390 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_get_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1374, in open
+    self._conn = netconf_ssh.connect(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 187, in connect
+    return connect_ssh(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 139, in connect_ssh
+    session.connect(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/transport/ssh.py", line 288, in connect
+    raise SSHError("Could not open socket to %s:%s" % (host, port))
+ncclient.transport.errors.SSHError: Could not open socket to AMS-DC-SRX-FW:830
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_get_config.py", line 16, in pyez_get_config
+    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/connections/__init__.py", line 41, in open
+    connection.open()
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1414, in open
+    raise EzErrors.ConnectTimeoutError(self)
+jnpr.junos.exception.ConnectTimeoutError: ConnectTimeoutError(AMS-DC-SRX-FW)
+
+2024-03-31 20:52:43,394 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-03-31 20:52:43,395 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-03-31 20:59:22,022 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 20:59:32,428 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:03:50,269 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:04:21,278 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                               <interface>\n                                    <name>ge-0/0/2</name>\n                                    <description operation="create">This is the DMZ Zone</description>\n                                    </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:04:21,508 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:04:26,114 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 21:04:27,999 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_commit' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 373, in _request
+    raise RPCError(to_ele(self._reply._raw), errs=errors)
+ncclient.operations.rpc.RPCError: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 199, in commit_check
+    self.rpc.commit_configuration(check=True, **rpc_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 363, in _exec_rpc
+    return self._junos.execute(rpc, **dec_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: vlan__20, message: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_commit.py", line 13, in pyez_commit
+    if config.commit_check() == True:
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 207, in commit_check
+    raise CommitError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.CommitError: CommitError(edit_path: [edit vlans], bad_element: vlan__20, message: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed)
+
+2024-03-31 21:10:43,879 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:11:46,544 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:12:07,093 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:12:21,958 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                               <interface>\n                                    <name>ge-0/0/2</name>\n                                    <description operation="create">This is the DMZ Zone</description>\n                                    </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:12:22,178 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:12:25,027 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 21:19:27,282 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:19:35,455 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:19:48,977 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:19:59,698 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                <configuration>\n                        <vlans>\n                            <vlan operation="create">\n                                <name>vlan__20</name>\n                                <vlan-id>20</vlan-id>\n                            </vlan>\n                        </vlans>\n                </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:19:59,862 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:20:04,574 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 21:20:06,311 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_commit' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 373, in _request
+    raise RPCError(to_ele(self._reply._raw), errs=errors)
+ncclient.operations.rpc.RPCError: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 199, in commit_check
+    self.rpc.commit_configuration(check=True, **rpc_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 363, in _exec_rpc
+    return self._junos.execute(rpc, **dec_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: vlan__20, message: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_commit.py", line 13, in pyez_commit
+    if config.commit_check() == True:
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 207, in commit_check
+    raise CommitError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.CommitError: CommitError(edit_path: [edit vlans], bad_element: vlan__20, message: error: l2ald: Duplicate vlan-id exists for vlan vlan_20
+error: Failed to parse vlan hierarchy completely
+error: configuration check-out failed)
+
+2024-03-31 21:25:06,900 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:25:15,424 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:25:15,776 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': None, 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:25:15,887 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 596, in load
+    raise RuntimeError("Unhandled load request")
+RuntimeError: Unhandled load request
+
+2024-03-31 21:25:15,888 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-03-31 21:28:48,655 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:56,083 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:56,486 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:56,882 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:57,239 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:57,456 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:57,870 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:58,258 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:58,655 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:58,947 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:59,290 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:59,429 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:28:59,673 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:00,005 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:00,338 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:00,722 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:00,903 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:01,173 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:01,344 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:01,553 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:01,712 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:01,923 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:02,345 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:02,513 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:02,637 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:02,824 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:03,204 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:03,393 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:03,785 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:04,216 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:04,429 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:04,744 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:04,965 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:05,371 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:05,786 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:06,066 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:06,335 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:06,543 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:06,787 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:07,089 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:07,518 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:07,737 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:08,087 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:08,289 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:08,490 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:08,775 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:09,174 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:09,384 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:09,626 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:09,948 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:10,192 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:10,421 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:10,630 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:10,792 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:11,176 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:11,413 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:11,618 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:12,025 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:12,288 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:12,733 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:13,172 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:13,403 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:13,643 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:13,852 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:14,048 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:14,233 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:14,530 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:14,719 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:14,924 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:15,354 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:15,617 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:15,883 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:16,094 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:16,315 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:16,643 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:17,072 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:17,312 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:17,523 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:17,919 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:18,113 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:18,368 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:18,566 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:18,958 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:19,246 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:19,688 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:20,075 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:20,217 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:20,643 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:20,900 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:21,223 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:21,464 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:21,718 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:21,980 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:22,382 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:22,576 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:22,788 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:23,097 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:23,389 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:23,779 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:23,981 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:24,323 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:24,534 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:24,744 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:25,124 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:25,336 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:25,745 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:26,176 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:26,395 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:26,800 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:27,208 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:27,371 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:27,789 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:28,009 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:28,396 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:28,706 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:28,991 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:29,328 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:29,554 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:29,758 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:30,136 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:30,520 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:30,954 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:31,134 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:31,553 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:31,746 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:32,137 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:32,400 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:32,578 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:32,798 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:32,995 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:33,300 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:33,559 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:33,753 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:34,162 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:34,563 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:34,933 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:35,264 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:35,409 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:35,698 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:35,889 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:36,095 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:36,426 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:36,622 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:36,912 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:37,295 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:37,561 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:37,750 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:37,970 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:38,319 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:38,509 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:38,919 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:39,177 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:39,563 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:39,789 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:40,026 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:40,245 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:40,550 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:40,930 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:41,358 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:41,716 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:41,897 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:42,328 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:42,538 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:42,741 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:43,146 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:43,596 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:44,025 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:44,414 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:44,854 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:45,110 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:45,300 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:45,510 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:45,735 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:46,119 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:46,455 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:46,688 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:46,992 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:47,184 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:47,607 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:48,054 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:48,258 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:48,570 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:49,006 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:49,232 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:49,668 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:49,964 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:50,287 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:50,695 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:50,901 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:51,275 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:51,527 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:51,751 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:51,963 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:52,273 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:52,654 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:53,091 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:53,303 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:53,545 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:53,835 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:54,116 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:54,440 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:54,832 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:55,071 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:55,265 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:55,537 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:55,925 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:56,124 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:56,379 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:56,765 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:57,148 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:57,398 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:57,713 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:57,939 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:58,371 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:58,622 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:58,845 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:59,145 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:59,501 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:29:59,874 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:00,172 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:00,595 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:00,822 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:01,050 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:01,311 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:01,524 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:01,777 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:01,942 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:02,182 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:02,471 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:02,692 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:02,884 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:03,287 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:03,584 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:03,953 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:04,150 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:04,514 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:04,760 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:05,054 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:05,281 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:05,588 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:05,794 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:06,212 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:06,570 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:06,805 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:06,991 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:07,419 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:07,616 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:07,839 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:08,245 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:08,678 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:08,890 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:09,230 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:09,444 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:09,672 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:10,104 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:10,444 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:10,639 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:10,863 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:11,209 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:11,513 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:11,819 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:12,202 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:12,586 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:12,810 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:13,131 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:13,485 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:13,863 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:14,163 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:14,384 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:14,808 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:15,141 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:15,536 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:15,884 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:16,147 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:16,367 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:16,571 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:16,974 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:17,176 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:17,502 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:17,715 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:17,933 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:18,300 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:18,637 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:18,825 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:19,039 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:19,403 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:19,735 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:19,986 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:20,182 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:20,394 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:20,608 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:20,823 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:21,083 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:21,281 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:21,705 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:22,083 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:22,373 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:22,657 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:22,985 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:23,424 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:23,616 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:23,994 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:24,256 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:24,473 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:24,865 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:25,308 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:25,505 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:25,821 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:26,018 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:26,307 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:26,515 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:26,719 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:27,127 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:27,459 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:27,864 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:28,199 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:28,405 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:28,648 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:28,888 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:29,317 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:29,622 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:29,821 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:30,227 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:30,562 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:30,756 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:30,961 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:31,373 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:31,639 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:32,059 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:32,451 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:32,844 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:33,262 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:33,462 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:33,698 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:33,915 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:34,136 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:34,342 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:34,606 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:34,826 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:35,048 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:35,468 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:35,891 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:36,331 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:36,754 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:36,978 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:37,188 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:37,401 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:37,616 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:38,032 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:38,299 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:38,517 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:38,932 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:39,131 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:39,332 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:39,540 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:39,964 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:40,409 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:40,590 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:40,784 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:41,031 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:41,389 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:41,590 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:46,220 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:52,627 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:30:52,783 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:30:53,013 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:30:55,623 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 21:32:40,024 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:32:46,589 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:32:46,985 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:32:47,198 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:33:46,295 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:33:52,311 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:33:52,719 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:33:52,939 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:34:10,127 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts
+2024-03-31 21:34:30,541 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:34:35,275 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:34:35,597 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:34:35,806 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:35:03,584 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts
+2024-03-31 21:35:10,996 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:35:18,804 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:35:19,142 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:35:19,371 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:36:52,926 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts
+2024-03-31 21:36:58,389 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:37:10,066 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:37:10,469 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:37:10,696 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:38:01,467 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts
+2024-03-31 21:38:05,963 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:38:12,199 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:38:12,479 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:38:12,706 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:38:43,798 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts
+2024-03-31 21:38:48,567 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:39:00,500 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 21:39:00,879 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n            <configuration>\n                    <vlans>\n                        <vlan operation="delete">\n                            <name>vlan_20</name>\n                        </vlan>\n                    </vlans>\n            </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:39:01,105 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:39:03,854 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 21:39:07,423 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                <configuration>\n                        <vlans>\n                            <vlan operation="create">\n                                <name>vlan__20</name>\n                                <vlan-id>20</vlan-id>\n                            </vlan>\n                        </vlans>\n                </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 21:39:07,663 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 21:39:10,676 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
