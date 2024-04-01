@@ -1,5 +1,12 @@
 import re
 import ipaddress
+from vlansOper import VlansManager
+from utiliites_scripts.commons import (get_valid_ipv4_address, 
+                                       get_valid_integer, 
+                                       get_valid_string,
+                                       get_vlan_name_by_id)
+                                       
+vlan_manager = VlansManager(config_file="config.yml")
 def is_valid_mac_address(mac):
     pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
     return bool(pattern.match(mac))
@@ -24,7 +31,6 @@ def is_valid_ipv4_address(address):
                 return False
             else:
                 return True
-
     except ValueError:
         return False
 
@@ -112,7 +118,7 @@ def config_interface(int_params, filtered_interface, lacp_chasis):
             elif choice == 2:
                 gen_config = config_int_status(interface_name, filtered_interface)
             elif choice == 3:
-                gen_config = set_int_params(interface_name, ip_address_name)
+                gen_config = set_int_params(interface_name, ip_address_name, filtered_interface)
             elif choice == 4:
                 delete_int = default_interface(filtered_interface)
                 gen_config = config_lacp(lacp_chasis, filtered_interface)
@@ -182,43 +188,70 @@ def config_int_status(interface_name, filtered_interface):
     return payload
 
 
-def set_int_params(interface_name, ip_address_name=None):
+def set_int_params(interface_name, ip_address_name=None, filtered_interface=None):
+    data = []
     while True:
         try:
             unit = int(input("Enter unit number: "))
             print("Configure interface as :Layer(2), Layer(2.5)(ISO), or Laywer(3)  \n")
             choice = float(input("Enter choice 2 or 2.5 or 3:  "))
-            data = ""
-
             if choice == 2:
                 while True:
+                    rm_l3_config = filtered_interface['unit']['family'].get('inet')
+                    if rm_l3_config:
+                        print("Layer 3 configuration exist on the interface removing it")
+                        inet_family = f"""<inet operation="delete"/>"""
+                        data.append(inet_family)
                     port_type = str(input("Specify 0 as access, 1 as trunk: "))
                     if port_type in ["0", "1"]:
+                        eth_switch_config = []
                         port_mode = "access" if port_type == "0" else "trunk"
-                        data = f"""<ethernet-switching>
-                                            <interface-mode>{port_mode}</interface-mode>
+                        vlan_members, *_ = vlan_manager.get_vlans()
+                        print("Do you want to assign or allow vlans on the port: ")
+                        assign_vlan  = get_valid_string("Enter yes/no: ")
+                        if assign_vlan == "yes":
+                            if vlan_members:
+                                while True:
+                                    vlan_name = get_vlan_name_by_id(vlan_members)
+                                    if vlan_name:
+                                        vlan_name = f"""<vlan><members>{vlan_name}</members></vlan>"""
+                                        break
+                        else:
+                            return None
+                        port_type =  f"""<interface-mode>{port_mode}</interface-mode>"""
+                        eth_switch_config.append(port_type)
+                        eth_switch = f"""<ethernet-switching>
                                         </ethernet-switching>"""
+                        data.append(eth_switch)
                         break
                     else:
                         print("Invalid choice selected, try again.")
             elif choice == 3:
+                data = []
                 while True:
-                    subnet = input("Enter the IP address (e.g. 192.168.1.1/24): ")
+                    rm_l2_config = filtered_interface['unit']['family'].get('ethernet-switching')
+                    if rm_l2_config:
+                        print("Layer 2 configuration exist on the interface removing it")
+                        eth_switch = f"""<ethernet-switching operation="delete"/>"""
+                        data.append(eth_switch)
+                    subnet = get_valid_ipv4_address("Enter the IP address (e.g. 192.168.1.1/24): ")
                     if subnet == ip_address_name:
                         print(f"IP Address already exist on the interface ({interface_name})")
                     elif is_valid_ipv4_address(subnet):
                         if ip_address_name:
-                            data =      f"""<inet>
+                            inet =      f"""<inet>
                                             <address insert="after"  key="[ name='{ip_address_name}' ]" operation="create">
                                                     <name>{subnet}</name>
                                                 </address>
                                         </inet>"""  
+                            data.append(inet)
                         else:
-                            data =      f"""<inet>
+                            inet =      f"""<inet>
                                                 <address>
                                                     <name>{subnet}</name>
                                                 </address>
-                                        </inet>"""   
+                                        </inet>"""  
+                            data.append(inet) 
                         break
                     else:
                         print("IP address specified is not valid.")
@@ -228,6 +261,8 @@ def set_int_params(interface_name, ip_address_name=None):
             else:
                 print("Invalid layer choice specified.")
                 continue
+            if isinstance(data, list):
+                data = "\n".join(data)
             payload = f"""<interface>
                                 <name>{interface_name}</name>
                                 <unit>

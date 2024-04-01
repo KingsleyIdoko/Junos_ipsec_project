@@ -8679,3 +8679,527 @@ error: configuration check-out failed)
 2024-03-31 21:58:53,142 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                <configuration>\n                        <vlans>\n                            <vlan operation="create">\n                                <name>vlan_30</name>\n                                <vlan-id>30</vlan-id>\n                            </vlan>\n                        </vlans>\n                </configuration>', 'data_format': 'xml'} on 1 hosts
 2024-03-31 21:58:53,360 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
 2024-03-31 21:58:55,800 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 22:00:16,142 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 22:00:31,168 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 22:00:40,721 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                               <interface>\n                                    <name>ge-0/0/2</name>\n                                    <description operation="delete"/>\n                                    <description operation="create">This is the DMZ Zone</description>\n                                    </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 22:00:40,940 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 22:00:57,796 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 22:01:10,249 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                               <interface>\n                                    <name>ge-0/0/2</name>\n                                    <description operation="delete"/>\n                                    <description operation="create">This is the DMZZ zone</description>\n                                    </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 22:01:10,420 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 22:01:11,626 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 22:01:24,980 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-03-31 22:01:45,677 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet>\n                                                <address>\n                                                    <name>10.0.0.100/24</name>\n                                                </address>\n                                        </inet>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-03-31 22:01:45,834 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-03-31 22:01:57,224 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-03-31 22:01:57,695 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_commit' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 373, in _request
+    raise RPCError(to_ele(self._reply._raw), errs=errors)
+ncclient.operations.rpc.RPCError: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 199, in commit_check
+    self.rpc.commit_configuration(check=True, **rpc_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 363, in _exec_rpc
+    return self._junos.execute(rpc, **dec_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: ethernet-switching, message: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_commit.py", line 13, in pyez_commit
+    if config.commit_check() == True:
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 207, in commit_check
+    raise CommitError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.CommitError: CommitError(edit_path: [edit interfaces ge-0/0/2 unit 0 family], bad_element: ethernet-switching, message: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed))
+
+2024-04-01 09:42:01,845 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 09:42:20,228 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_get_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1374, in open
+    self._conn = netconf_ssh.connect(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 187, in connect
+    return connect_ssh(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 139, in connect_ssh
+    session.connect(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/transport/ssh.py", line 288, in connect
+    raise SSHError("Could not open socket to %s:%s" % (host, port))
+ncclient.transport.errors.SSHError: Could not open socket to AMS-DC-SRX-FW:830
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_get_config.py", line 16, in pyez_get_config
+    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/connections/__init__.py", line 41, in open
+    connection.open()
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1414, in open
+    raise EzErrors.ConnectTimeoutError(self)
+jnpr.junos.exception.ConnectTimeoutError: ConnectTimeoutError(AMS-DC-SRX-FW)
+
+2024-04-01 09:42:20,231 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 09:42:20,234 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 09:47:05,072 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 09:47:08,162 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_get_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1374, in open
+    self._conn = netconf_ssh.connect(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 187, in connect
+    return connect_ssh(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 139, in connect_ssh
+    session.connect(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/transport/ssh.py", line 288, in connect
+    raise SSHError("Could not open socket to %s:%s" % (host, port))
+ncclient.transport.errors.SSHError: Could not open socket to AMS-DC-SRX-FW:830
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_get_config.py", line 16, in pyez_get_config
+    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/connections/__init__.py", line 41, in open
+    connection.open()
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1414, in open
+    raise EzErrors.ConnectTimeoutError(self)
+jnpr.junos.exception.ConnectTimeoutError: ConnectTimeoutError(AMS-DC-SRX-FW)
+
+2024-04-01 09:47:08,165 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 09:47:08,168 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 09:48:27,099 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 09:48:37,475 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 09:49:02,745 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/1</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet>\n                                            <address insert="after"  key="[ name=\'192.168.1.40/24\' ]" operation="create">\n                                                    <name>10.40.10.2/24</name>\n                                                </address>\n                                        </inet>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 09:49:02,942 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 09:49:09,896 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-04-01 09:49:29,449 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 09:49:45,793 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet>\n                                                <address>\n                                                    <name>10.12.10.1/24</name>\n                                                </address>\n                                        </inet>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 09:49:46,020 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 09:49:51,785 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-04-01 09:49:52,421 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_commit' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 373, in _request
+    raise RPCError(to_ele(self._reply._raw), errs=errors)
+ncclient.operations.rpc.RPCError: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 199, in commit_check
+    self.rpc.commit_configuration(check=True, **rpc_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 363, in _exec_rpc
+    return self._junos.execute(rpc, **dec_args)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: ethernet-switching, message: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_commit.py", line 13, in pyez_commit
+    if config.commit_check() == True:
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 207, in commit_check
+    raise CommitError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.CommitError: CommitError(edit_path: [edit interfaces ge-0/0/2 unit 0 family], bad_element: ethernet-switching, message: error: Family ethernet-switching and rest of the families are mutually exclusive
+error: configuration check-out failed: (statements constraint check failed))
+
+2024-04-01 09:57:39,471 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 10:07:55,551 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 10:08:27,712 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 10:09:11,150 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 10:09:42,645 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        [\'<ethernet-switching operation="delete"/>\', \'<ethernet-switching operation="delete"/>\', \'<inet>\\n                                                <address>\\n                                                    <name>10.70.10.1/24</name>\\n                                                </address>\\n                                        </inet>\']\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 10:09:42,803 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 375, in _request
+    raise self._reply.error
+ncclient.operations.rpc.RPCError: syntax error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 287, in load_config
+    return self._junos.execute(rpc, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: [', message: syntax error)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 506, in try_load
+    raise ConfigLoadError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.ConfigLoadError: ConfigLoadError(severity: error, bad_element: [', message: error: syntax error)
+
+2024-04-01 10:09:42,805 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-04-01 10:37:05,548 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 10:37:32,435 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        [\'<ethernet-switching operation="delete"/>\', \'<inet>\\n                                                <address>\\n                                                    <name>10.40.10.1/24</name>\\n                                                </address>\\n                                        </inet>\']\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 10:37:32,633 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 375, in _request
+    raise self._reply.error
+ncclient.operations.rpc.RPCError: syntax error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 287, in load_config
+    return self._junos.execute(rpc, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: [', message: syntax error)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 506, in try_load
+    raise ConfigLoadError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.ConfigLoadError: ConfigLoadError(severity: error, bad_element: [', message: error: syntax error)
+
+2024-04-01 10:37:32,634 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-04-01 12:20:13,586 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 12:35:26,246 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 12:35:52,543 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        [\'<ethernet-switching operation="delete"/>\', \'<inet>\\n                                                <address>\\n                                                    <name>10.70.30.1/23</name>\\n                                                </address>\\n                                        </inet>\']\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 12:35:52,745 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 375, in _request
+    raise self._reply.error
+ncclient.operations.rpc.RPCError: syntax error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 287, in load_config
+    return self._junos.execute(rpc, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: [', message: syntax error)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 506, in try_load
+    raise ConfigLoadError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.ConfigLoadError: ConfigLoadError(severity: error, bad_element: [', message: error: syntax error)
+
+2024-04-01 12:35:52,746 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-04-01 12:37:12,339 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 12:37:28,987 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        [\'<ethernet-switching operation="delete"/>\', \'<inet>\\n                                                <address>\\n                                                    <name>10.70.20.1/24</name>\\n                                                </address>\\n                                        </inet>\']\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 12:37:29,182 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 375, in _request
+    raise self._reply.error
+ncclient.operations.rpc.RPCError: syntax error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 287, in load_config
+    return self._junos.execute(rpc, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: [', message: syntax error)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 506, in try_load
+    raise ConfigLoadError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.ConfigLoadError: ConfigLoadError(severity: error, bad_element: [', message: error: syntax error)
+
+2024-04-01 12:37:29,183 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-04-01 12:38:10,701 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 12:38:25,017 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        [\'<ethernet-switching operation="delete"/>\', \'<inet>\\n                                                <address>\\n                                                    <name>10.70.10.1/24</name>\\n                                                </address>\\n                                        </inet>\']\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 12:38:25,195 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 834, in execute
+    rpc_rsp_e = self._rpc_reply(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 165, in wrapper
+    raise ex
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 117, in wrapper
+    rsp = function(self, *args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1470, in _rpc_reply
+    return self._conn.rpc(rpc_cmd_e, filter_xml)._NCElement__doc
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 257, in execute
+    return cls(self._session,
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/third_party/juniper/rpc.py", line 52, in request
+    return self._request(rpc)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/operations/rpc.py", line 375, in _request
+    raise self._reply.error
+ncclient.operations.rpc.RPCError: syntax error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 500, in try_load
+    got = self.rpc.load_config(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/rpcmeta.py", line 287, in load_config
+    return self._junos.execute(rpc, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 76, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/decorators.py", line 31, in wrapper
+    return function(*args, **kwargs)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 854, in execute
+    raise EzErrors.RpcError(cmd=rpc_cmd_e, rsp=rsp, errs=ex)
+jnpr.junos.exception.RpcError: RpcError(severity: error, bad_element: [', message: syntax error)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_config.py", line 37, in pyez_config
+    config.load(payload, format=data_format, update=False)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 589, in load
+    return try_load(rpc_contents, rpc_xattrs, ignore_warning=ignore_warning)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/utils/config.py", line 506, in try_load
+    raise ConfigLoadError(cmd=err.cmd, rsp=err.rsp, errs=err.errs)
+jnpr.junos.exception.ConfigLoadError: ConfigLoadError(severity: error, bad_element: [', message: error: syntax error)
+
+2024-04-01 12:38:25,197 -  nornir.core -  WARNING -        run() - Task 'pyez_diff' has not been run – 0 hosts selected
+2024-04-01 12:48:45,028 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 12:49:02,352 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <ethernet-switching operation="delete"/>\n<inet>\n                                                <address>\n                                                    <name>10.70.30.1/24</name>\n                                                </address>\n                                        </inet>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 12:49:02,503 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 12:49:11,792 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-04-01 13:01:15,534 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 13:01:35,359 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet>\n                                            <address insert="after"  key="[ name=\'10.70.30.1/24\' ]" operation="create">\n                                                    <name>10.30.20.1/24</name>\n                                                </address>\n                                        </inet>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 13:01:35,502 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 13:01:38,883 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-04-01 13:12:15,241 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 13:12:35,350 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/2</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet operation="delete"/>\n<ethernet-switching>\n                                            <interface-mode>access</interface-mode>\n                                        </ethernet-switching>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 13:12:35,533 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 13:12:44,711 -  nornir.core -     INFO -        run() - Running task 'pyez_commit' with args {} on 1 hosts
+2024-04-01 13:48:18,569 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:13:16,029 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:14:43,851 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:15:44,676 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:16:24,089 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:16:36,744 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:16:58,587 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:17:09,688 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:18:09,585 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:18:23,263 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:20:11,256 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:20:29,889 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_get_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1374, in open
+    self._conn = netconf_ssh.connect(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 187, in connect
+    return connect_ssh(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 139, in connect_ssh
+    session.connect(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/transport/ssh.py", line 288, in connect
+    raise SSHError("Could not open socket to %s:%s" % (host, port))
+ncclient.transport.errors.SSHError: Could not open socket to AMS-DC-SRX-FW:830
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_get_config.py", line 16, in pyez_get_config
+    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/connections/__init__.py", line 41, in open
+    connection.open()
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1414, in open
+    raise EzErrors.ConnectTimeoutError(self)
+jnpr.junos.exception.ConnectTimeoutError: ConnectTimeoutError(AMS-DC-SRX-FW)
+
+2024-04-01 14:20:29,893 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 14:20:29,894 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 14:20:51,831 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:20:54,921 - nornir.core.task -    ERROR -      start() - Host 'R3': task 'pyez_get_config' failed with traceback:
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1374, in open
+    self._conn = netconf_ssh.connect(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 187, in connect
+    return connect_ssh(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/manager.py", line 139, in connect_ssh
+    session.connect(*args, **kwds)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/ncclient/transport/ssh.py", line 288, in connect
+    raise SSHError("Could not open socket to %s:%s" % (host, port))
+ncclient.transport.errors.SSHError: Could not open socket to AMS-DC-SRX-FW:830
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/task.py", line 99, in start
+    r = self.task(self, **self.params)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/tasks/pyez_get_config.py", line 16, in pyez_get_config
+    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 494, in get_connection
+    self.open_connection(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir/core/inventory.py", line 546, in open_connection
+    conn_obj.open(
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/nornir_pyez/plugins/connections/__init__.py", line 41, in open
+    connection.open()
+  File "/home/kingsleyidoko/.local/share/virtualenvs/Dev-Pp5j-ryW/lib/python3.9/site-packages/jnpr/junos/device.py", line 1414, in open
+    raise EzErrors.ConnectTimeoutError(self)
+jnpr.junos.exception.ConnectTimeoutError: ConnectTimeoutError(AMS-DC-SRX-FW)
+
+2024-04-01 14:20:54,925 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 14:20:54,927 -  nornir.core -  WARNING -        run() - Task 'pyez_get_config' has not been run – 0 hosts selected
+2024-04-01 14:22:31,451 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 14:22:44,323 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 15:39:11,308 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 15:40:50,564 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 15:41:04,064 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 16:57:12,827 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 16:57:23,298 -  nornir.core -     INFO -        run() - Running task 'pyez_get_config' with args {'database': 'committed'} on 1 hosts
+2024-04-01 16:57:36,024 -  nornir.core -     INFO -        run() - Running task 'pyez_config' with args {'payload': '\n                    <configuration>\n                        <interfaces>\n                            <interface>\n                                <name>ge-0/0/1</name>\n                                <unit>\n                                    <name>0</name>\n                                    <family>\n                                        <inet operation="delete"/>\n<ethernet-switching>\n                                        </ethernet-switching>\n                                    </family>       \n                                </unit>\n                            </interface>\n                        </interfaces>\n                    </configuration>', 'data_format': 'xml'} on 1 hosts
+2024-04-01 16:57:36,191 -  nornir.core -     INFO -        run() - Running task 'pyez_diff' with args {} on 1 hosts
+2024-04-01 16:58:12,356 -  nornir.core -     INFO -        run() - Running task 'pyez_rollback' with args {} on 1 hosts

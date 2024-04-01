@@ -7,8 +7,6 @@ from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.commons import get_valid_string, get_valid_integer
 from utiliites_scripts.vlans import extract_vlan_members, gen_delete_vlan_config, match_vlan_id
 
-
-
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class VlansManager:
@@ -22,7 +20,7 @@ class VlansManager:
             print("1. Get Vlans")
             print("2. Create Vlan")
             print("3. Update Vlan")
-            print("4. Delete Vlan")  # Fixed the numbering here
+            print("4. Delete Vlan")  
             try:
                 operation = int(input("Enter your choice (1-4): "))
                 if 1 <= operation <= 4:
@@ -60,21 +58,22 @@ class VlansManager:
         return None
 
 
-    def create_vlan(self):
+    def create_vlan(self, vlan_id=None, vlan_name=None):
         print("Creating VLAN.......\n")
         while True:
             existing_vlans, *_ = self.get_vlans()  
             vlan_ids = [vlan['vlan-id'] for vlan in existing_vlans['vlan']]  
-            vlan_id = get_valid_integer("Please enter a valid VLAN num (1-4094): ")
+            if not vlan_id:
+                vlan_id = get_valid_integer("Please enter a valid VLAN num (1-4094): ")
             if str(vlan_id) in vlan_ids:  
                 print(f"VLAN {vlan_id} already exists. Try again.")
                 continue  
             else:
-                vlan_name = get_valid_string("Enter VLAN name: ")
+                if not vlan_name:
+                    vlan_name = get_valid_string("Enter VLAN name: ")
                 payload = gen_vlan_config(vlan_id, vlan_name)
                 print(f"VLAN {vlan_id} created successfully.")
                 return payload
-
 
     def update_vlan(self):
         print("Updating VLAN.............\n")
@@ -141,6 +140,6 @@ class VlansManager:
         else:
              run_pyez_tasks(self, xml_data, 'xml') 
 
-
-config = VlansManager()
-response = config.push_config()
+if __name__ == "__main__":
+    config = VlansManager()
+    response = config.push_config()

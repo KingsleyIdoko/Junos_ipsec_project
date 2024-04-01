@@ -19,12 +19,15 @@ class InterfaceManager:
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Intefaces")
-            print("2. Update Interfaces")
-            print("3. Delete Interfaces")
+            print("2. Create Interfaces")
+            print("3. Update Interfaces")
+            print("4. Delete Interfaces")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
                 return self.get_interfaces(interactive=True)
             elif operation == "2":
+                return self.create_interfaces()
+            elif operation == "3":
                 return self.update_interfaces()
             elif operation == "4":
                 return self.delete_interfaces()
@@ -61,7 +64,9 @@ class InterfaceManager:
         print("Failed to retrieve interfaces after several attempts.")
         return None
 
-
+    def create_interface(self):
+        pass 
+        
     def update_interfaces(self):
         payload = []
         get_interfaces_output = self.get_interfaces()
@@ -102,6 +107,6 @@ class InterfaceManager:
         else:
              run_pyez_tasks(self, xml_data, 'xml') 
 
-
-config = InterfaceManager()
-response = config.push_config()
+if __name__ == "__main__":
+    config = InterfaceManager()
+    response = config.push_config()
