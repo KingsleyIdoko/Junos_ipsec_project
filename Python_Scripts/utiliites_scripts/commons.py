@@ -42,15 +42,20 @@ def get_valid_ipv4_address(prompt="Enter an IPv4 address: "):
             print("Invalid input. Please enter a valid IPv4 address.")
 
 def get_vlan_name_by_id(vlans):
-    vlan_id = get_valid_integer("Enter vlan to assign: (Default vlan.0): ")
+    vlan_id = str(get_valid_integer("Enter vlan to assign: (Default vlan.0): ")) 
+    vlan_exist = False
+    vlan_name = None
     for vlan in vlans['vlan']:
-        if vlan['vlan-id'] == vlan_id:
+        if vlan['vlan-id'] == vlan_id:  
             vlan_exist = True
-            return vlan['name'], vlan_exist
-        else:
-            print(f"VLAN {vlan_id} does not exist:")
-            vlan_exist = False
-            return vlan_id, vlan_exist
+            vlan_name = vlan['name']
+            break  
+    if vlan_exist:
+        return vlan_name, vlan_exist
+    else:
+        print(f"VLAN {vlan_id} does not exist.")
+        return vlan_id, vlan_exist
+
 
 
 

@@ -1,6 +1,7 @@
 from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
+import time
 import os
 from utiliites_scripts.vlans import gen_vlan_config
 from utiliites_scripts.commit import run_pyez_tasks
@@ -58,53 +59,80 @@ class VlansManager:
         return None
 
 
-    def create_vlan(self, vlan_id=None, vlan_name=None):
+    def create_vlan(self, vlan_id=None, vlan_name=None, commit_directly = False):
         print("Creating VLAN.......\n")
-        while True:
-            existing_vlans, *_ = self.get_vlans()  
-            vlan_ids = [vlan['vlan-id'] for vlan in existing_vlans['vlan']]  
-            if not vlan_id:
-                vlan_id = get_valid_integer("Please enter a valid VLAN num (1-4094): ")
-            if str(vlan_id) in vlan_ids:  
-                print(f"VLAN {vlan_id} already exists. Try again.")
-                continue  
-            else:
-                if not vlan_name:
-                    vlan_name = get_valid_string("Enter VLAN name: ")
-                payload = gen_vlan_config(vlan_id, vlan_name)
-                print(f"VLAN {vlan_id} created successfully.")
-                return payload
+        retry_limit = 3
+        attempts = 0
+        while attempts < retry_limit:
+            try:
+                existing_vlans, *_ = self.get_vlans()
+                vlan_ids = [vlan['vlan-id'] for vlan in existing_vlans['vlan']]
+                break  
+            except ValueError as e:
+                print(f"An error occurred: {e}. Checking connectivity to device...")
+                time.sleep(10)
+                attempts += 1
+        if attempts == retry_limit:
+            print("Failed to connect to the device after several attempts.")
+            return None
+        if not vlan_id:
+            vlan_id = get_valid_integer("Please enter a valid VLAN num (1-4094): ")
+        if str(vlan_id) in vlan_ids:
+            print(f"VLAN {vlan_id} already exists. Try again.")
+            return None  
+        if not vlan_name:
+            vlan_name = get_valid_string("Enter VLAN name: ")
+        payload = gen_vlan_config(vlan_id, vlan_name)
+        print(f"VLAN {vlan_id} created successfully.")
+        print(payload)
+        if not commit_directly:
+            return payload
+        else:
+            run_pyez_tasks(self, payload, 'xml')
+
 
     def update_vlan(self):
         print("Updating VLAN.............\n")
+        attempts = 0
+        max_attempts = 5
         while True:
-            existing_vlans, *_ = self.get_vlans()
-            if existing_vlans is None:
-                print("No VLANs found. Exiting...")
+            if attempts >= max_attempts:
+                print("Maximum attempts reached. Exiting...")
                 break
-            vlan_update_id = str(get_valid_integer("Enter VLAN-ID to update: "))
-            new_vlan_name = get_valid_string("Enter new VLAN name: ")
-            found_vlan = False
-            payload = []
-            for vlan in existing_vlans['vlan']:
-                if vlan['vlan-id'] == vlan_update_id:
-                    vlan['name'] = new_vlan_name
-                    payload.append(self.delete_vlan(choice=vlan_update_id, check_used=False))
-                    response = gen_vlan_config(vlan['vlan-id'], vlan['name'])
-                    found_vlan = True
-                    print(f"VLAN {vlan_update_id} updated successfully.")
-                    payload.append(response)
-                    return payload
-            if not found_vlan:
-                print("VLAN does not exist on the device.")
-                choice = get_valid_string("Do you want to create a new VLAN (yes/no)? ").lower()
-                if choice == "yes":
-                    print(f"Creating {new_vlan_name} with VLAN-ID {vlan_update_id}.")
-                    payload = gen_vlan_config(vlan_update_id, new_vlan_name)  
-                    return payload
-                else:
-                    print("No VLAN created or updated. Exiting...")
-                    break 
+            try:
+                existing_vlans, *_ = self.get_vlans()
+                if existing_vlans is None:
+                    print("No VLANs found. Exiting...")
+                    break
+                vlan_update_id = str(get_valid_integer("Enter VLAN-ID to update: "))
+                new_vlan_name = get_valid_string("Enter new VLAN name: ")
+                found_vlan = False
+                payload = []
+                for vlan in existing_vlans['vlan']:
+                    if vlan['vlan-id'] == vlan_update_id:
+                        vlan['name'] = new_vlan_name
+                        payload.append(self.delete_vlan(choice=vlan_update_id, check_used=False))
+                        response = gen_vlan_config(vlan['vlan-id'], vlan['name'])
+                        found_vlan = True
+                        print(f"VLAN {vlan_update_id} updated successfully.")
+                        payload.append(response)
+                        return payload  
+                if not found_vlan:
+                    print("VLAN does not exist on the device.")
+                    choice = get_valid_string("Do you want to create a new VLAN (yes/no)? ").lower()
+                    if choice == "yes":
+                        print(f"Creating {new_vlan_name} with VLAN-ID {vlan_update_id}.")
+                        payload = gen_vlan_config(vlan_update_id, new_vlan_name)
+                        return payload
+                    else:
+                        print("No VLAN created or updated. Exiting...")
+                        break
+            except ValueError as e:
+                print("Checking connectivity to the device")
+                print(f"Error occurred: {e}")
+                time.sleep(5)
+                attempts += 1  
+                continue  
 
 
     def delete_vlan(self, choice=None, check_used=True):
@@ -114,11 +142,9 @@ class VlansManager:
         while True:
             if not choice:
                 choice = get_valid_integer("Enter VLAN-ID to delete: ")
-            
             if check_used and str(choice) in used_vlans:
                 print(f"VLAN {choice} is in use. First, remove it from the interface {int_name}.")
                 break  
-
             matched_vlan_name = match_vlan_id(str(choice), existing_vlans)
             if matched_vlan_name:
                 payload = gen_delete_vlan_config(matched_vlan_name)

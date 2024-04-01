@@ -197,30 +197,46 @@ def set_int_params(interface_name, ip_address_name=None, filtered_interface=None
             choice = float(input("Enter choice 2 or 2.5 or 3:  "))
             if choice == 2:
                 while True:
-                    rm_l3_config = filtered_interface['unit']['family'].get('inet')
-                    if rm_l3_config:
-                        print("Layer 3 configuration exist on the interface removing it")
-                        inet_family = f"""<inet operation="delete"/>"""
-                        data.append(inet_family)
+                    try: 
+                        rm_l3_config = filtered_interface['unit']['family'].get('inet')
+                        if rm_l3_config:
+                            print("Layer 3 configuration exist on the interface removing it")
+                            inet_family = f"""<inet operation="delete"/>"""
+                            data.append(inet_family)
+                    except:
+                        print("No existing Layer 2 configurations") 
                     port_type = str(input("Specify 0 as access, 1 as trunk: "))
                     if port_type in ["0", "1"]:
                         eth_switch_config = []
                         port_mode = "access" if port_type == "0" else "trunk"
                         vlan_members, *_ = vlan_manager.get_vlans()
-                        print("Do you want to assign or allow vlans on the port: ")
-                        assign_vlan  = get_valid_string("Enter yes/no: ")
+                        assign_vlan  = get_valid_string("Assign vlan? Enter yes/no: ")
                         if assign_vlan == "yes":
                             if vlan_members:
                                 while True:
-                                    vlan_name = get_vlan_name_by_id(vlan_members)
-                                    if vlan_name:
-                                        vlan_name = f"""<vlan><members>{vlan_name}</members></vlan>"""
+                                    updated_vlan_members, *_ = vlan_manager.get_vlans()
+                                    vlan_name, exist_vlan = get_vlan_name_by_id(updated_vlan_members)
+                                    if exist_vlan:
+                                        vlan_name = f"""<vlan>
+                                                <members>{vlan_name}</members>
+                                            </vlan>"""
+                                        eth_switch_config.append(vlan_name)
                                         break
+                                    else:
+                                        vlan_id = vlan_name
+                                        print(f"Creating Vlan {vlan_id}")
+                                        vlan_name = get_valid_string("Enter vlan name: ")
+                                        payload = vlan_manager.create_vlan(vlan_id, vlan_name, commit_directly=True)
+                                        print(f"Vlan {vlan_id} successfully created, Please select it again")
                         else:
                             return None
-                        port_type =  f"""<interface-mode>{port_mode}</interface-mode>"""
+                        port_type =  f"""
+                                            <interface-mode>{port_mode}</interface-mode>
+                                      """
                         eth_switch_config.append(port_type)
+                        final_eth_config = "\n".join(eth_switch_config)
                         eth_switch = f"""<ethernet-switching>
+                                            {final_eth_config}
                                         </ethernet-switching>"""
                         data.append(eth_switch)
                         break
@@ -229,11 +245,14 @@ def set_int_params(interface_name, ip_address_name=None, filtered_interface=None
             elif choice == 3:
                 data = []
                 while True:
-                    rm_l2_config = filtered_interface['unit']['family'].get('ethernet-switching')
-                    if rm_l2_config:
-                        print("Layer 2 configuration exist on the interface removing it")
-                        eth_switch = f"""<ethernet-switching operation="delete"/>"""
-                        data.append(eth_switch)
+                    try:
+                        rm_l2_config = filtered_interface['unit']['family'].get('ethernet-switching')
+                        if rm_l2_config:
+                            print("Layer 2 configuration exist on the interface removing it")
+                            eth_switch = f"""<ethernet-switching operation="delete"/>"""
+                            data.append(eth_switch)
+                    except:
+                        print("No existing Layer 2 configurations")
                     subnet = get_valid_ipv4_address("Enter the IP address (e.g. 192.168.1.1/24): ")
                     if subnet == ip_address_name:
                         print(f"IP Address already exist on the interface ({interface_name})")
@@ -272,6 +291,7 @@ def set_int_params(interface_name, ip_address_name=None, filtered_interface=None
                                     </family>       
                                 </unit>
                             </interface>"""
+            payload
             return payload
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
