@@ -86,7 +86,7 @@ class InterfaceManager:
             filtered_interface = select_interface(interfaces)
             if not filtered_interface: 
                 return None
-            int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 'LACP', 'MAC', 'MTU', 'Speed']
+            int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 'LACP', 'Add|Remove Vlan','MAC', 'MTU', 'Speed']
             config_output = config_interface(int_params, filtered_interface, lacp_chasis)
             if isinstance(config_output, list):  
                 payload.extend(config_output)
