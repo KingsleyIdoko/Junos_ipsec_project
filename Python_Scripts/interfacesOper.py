@@ -5,8 +5,9 @@ from rich import print
 import os
 from xml.dom import minidom
 from lxml import etree
-from utiliites_scripts.interfaces import select_interface,config_interface
+from utiliites_scripts.interfaces import select_interface,config_interface, enable_interface_config
 from utiliites_scripts.commit import run_pyez_tasks
+from utiliites_scripts.commons import is_valid_interfaces, get_valid_integer
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -64,8 +65,14 @@ class InterfaceManager:
         print("Failed to retrieve interfaces after several attempts.")
         return None
 
-    def create_interface(self):
-        pass 
+    def create_interfaces(self, commit_directly=False):
+        interface_name  = is_valid_interfaces()
+        sub_interface = get_valid_integer("Enter unit number (unit x)")
+        payload  = enable_interface_config(interface_name, sub_interface)
+        if commit_directly:
+            run_pyez_tasks(self, payload, 'xml')
+        return payload
+
         
     def update_interfaces(self):
         payload = []
@@ -97,15 +104,27 @@ class InterfaceManager:
         pass
 
     def push_config(self):
-        xml_data = self.interface_operations()
-        if not xml_data:
-            return None
-        elif isinstance(xml_data, list):
-            for xml in xml_data:
-                run_pyez_tasks(self, xml, 'xml') 
-                return None
-        else:
-             run_pyez_tasks(self, xml_data, 'xml') 
+        xml_data = None  
+        try:
+            xml_data = self.interface_operations()
+            if not xml_data:
+                print("No configuration data to push.")
+                return
+
+            if isinstance(xml_data, list):
+                for xml in xml_data:
+                    run_pyez_tasks(self, xml, 'xml')
+            else:
+                run_pyez_tasks(self, xml_data, 'xml')
+
+        except ValueError as e:
+            print(e)
+            print("An error occurred, review your config changes.")
+            if xml_data:
+                print("Failed configuration data:", xml_data)
+            else:
+                print("Configuration data was not generated due to an error.")
+
 
 if __name__ == "__main__":
     config = InterfaceManager()

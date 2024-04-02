@@ -8,7 +8,7 @@ def get_valid_string(prompt="Enter a valid name: "):
         if re.match(pattern, input_string):
             words = input_string.split()
             if len(words) <= 5:
-                return input_string  # Valid string, return it
+                return input_string  
             else:
                 print("The string contains more than 5 words. Please try again.")
         else:
@@ -55,6 +55,21 @@ def get_vlan_name_by_id(vlans):
     else:
         print(f"VLAN {vlan_id} does not exist.")
         return vlan_id, vlan_exist
+    
+
+def is_valid_interfaces():
+    pattern = r"^(ge|xe|et)-[0-9]/[0-9]/(?:[0-5]?[0-9]|60)$"
+    while True:
+        interface_name = input("Enter the interface name (or 'exit' to stop): ")
+        if interface_name.lower() == 'exit':  # Provide a way to exit the loop
+            print("Exiting...")
+            return None
+        if bool(re.match(pattern, interface_name)):
+            print(f"{interface_name} is a valid interface name.")
+            return interface_name  # Return the valid interface name
+        else:
+            print(f"{interface_name} is not a valid interface name. Please try again.")
+
 
 
 

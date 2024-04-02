@@ -383,3 +383,17 @@ def check_interface_disabled(interface_config):
         return False
 
 
+def enable_interface_config(interface_name, unit):
+    payload = f"""
+                <configuration>
+                    <interfaces>
+                        <interface operation="create">
+                            <name>{interface_name}</name>
+                            <unit>
+                                <name>{unit}</name>
+                            </unit>
+                    </interface>
+                </interfaces>
+                </configuration>"""
+    return payload
+
