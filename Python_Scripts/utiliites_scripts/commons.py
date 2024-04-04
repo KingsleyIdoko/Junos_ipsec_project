@@ -41,20 +41,34 @@ def get_valid_ipv4_address(prompt="Enter an IPv4 address: "):
         except ValueError:
             print("Invalid input. Please enter a valid IPv4 address.")
 
-def get_vlan_name_by_id(vlans):
-    vlan_id = str(get_valid_integer("Enter vlan to assign: (Default vlan.0): ")) 
-    vlan_exist = False
-    vlan_name = None
-    for vlan in vlans['vlan']:
-        if vlan['vlan-id'] == vlan_id:  
-            vlan_exist = True
-            vlan_name = vlan['name']
-            break  
-    if vlan_exist:
-        return vlan_name, vlan_exist
+def get_vlan_names_by_ids(received_vlans):
+    input_str = input("Enter VLANs to assign (comma-separated, e.g. 10,20,40): ")
+    vlan_ids = [vlan_id.strip() for vlan_id in input_str.split(',')]
+    
+    existing_vlan_names = []
+    non_existing_vlan_ids = []
+
+    for vlan_id in vlan_ids:
+        found = False
+        for vlan in received_vlans['vlan']:
+            if vlan['vlan-id'] == vlan_id:
+                existing_vlan_names.append(vlan['name'])
+                found = True
+                break
+        if not found:
+            non_existing_vlan_ids.append(vlan_id)
+    
+    if existing_vlan_names:
+        print(f"Existing VLAN Names: {existing_vlan_names}")
     else:
-        print(f"VLAN {vlan_id} does not exist.")
-        return vlan_id, vlan_exist
+        print("No matching VLANs found.")
+
+    if non_existing_vlan_ids:
+        print(f"Non-existing VLAN IDs: {non_existing_vlan_ids}")
+    else:
+        print("All entered VLAN IDs exist.")
+    
+    return existing_vlan_names, non_existing_vlan_ids
     
 
 def is_valid_interfaces():

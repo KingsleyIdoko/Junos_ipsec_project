@@ -4,7 +4,7 @@ from vlansOper import VlansManager
 from utiliites_scripts.commons import (get_valid_ipv4_address, 
                                        get_valid_integer, 
                                        get_valid_string,
-                                       get_vlan_name_by_id)
+                                       get_vlan_names_by_ids)
                                        
 vlan_manager = VlansManager(config_file="config.yml")
 def is_valid_mac_address(mac):
@@ -199,7 +199,7 @@ def set_int_params(interface_name, ip_address_name=None, filtered_interface=None
                 data = configure_layer2(data=data,filtered_interface=filtered_interface)
             elif choice == 3: 
                 data =  configure_layer3(data=data, filtered_interface=filtered_interface, 
-                                        ip_address_name=ip_address_name)
+                                        ip_address_name=ip_address_name, interface_name=interface_name)
             elif choice == 2.5:
                 return configure_layer25(data=data)
             else:
@@ -207,6 +207,7 @@ def set_int_params(interface_name, ip_address_name=None, filtered_interface=None
                 continue
             if isinstance(data, list):
                 data = "\n".join(data)
+            print(data)
             payload = f"""<interface>
                                 <name>{interface_name}</name>
                                 <unit>
@@ -342,19 +343,23 @@ def configure_layer2(data, filtered_interface):
                 if vlan_members:
                     while True:
                         updated_vlan_members, *_ = vlan_manager.get_vlans()
-                        vlan_name, exist_vlan = get_vlan_name_by_id(updated_vlan_members)
-                        if exist_vlan:
-                            vlan_name = f"""<vlan>
+                        existing_vlan_names, non_existing_vlan_ids = get_vlan_names_by_ids(updated_vlan_members)
+                        if non_existing_vlan_ids:
+                            for vlan_id in non_existing_vlan_ids:
+                                print(f"Creating Vlan {vlan_id}")
+                                vlan_name = f"vlan_" + vlan_id
+                                vlan_manager.create_vlan(vlan_id, vlan_name, commit_directly=True)
+                                print(f"VLAN {vlan_id} successfully created.")
+                                continue
+                        if existing_vlan_names:
+                            for vlan_name in existing_vlan_names:
+                                gen_vlan_name = f"""
+                                <vlan>
                                     <members>{vlan_name}</members>
                                 </vlan>"""
-                            eth_switch_config.append(vlan_name)
-                            break
-                        else:
-                            vlan_id = vlan_name
-                            print(f"Creating Vlan {vlan_id}")
-                            vlan_name = get_valid_string("Enter vlan name: ")
-                            payload = vlan_manager.create_vlan(vlan_id, vlan_name, commit_directly=True)
-                            print(f"Vlan {vlan_id} successfully created, Please select it again")
+                                eth_switch_config.append(gen_vlan_name)
+                                break
+                        break
             else:
                 return None
             port_type =  f"""
@@ -366,11 +371,11 @@ def configure_layer2(data, filtered_interface):
                                 {final_eth_config}
                             </ethernet-switching>"""
             data.append(eth_switch)
-            break
+            return data
         else:
             print("Invalid choice selected, try again.")
 
-def configure_layer3(data, filtered_interface, ip_address_name):
+def configure_layer3(data, filtered_interface, ip_address_name, interface_name):
     data = []
     while True:
         try:
@@ -386,7 +391,8 @@ def configure_layer3(data, filtered_interface, ip_address_name):
             print(f"IP Address already exist on the interface ({interface_name})")
         elif is_valid_ipv4_address(subnet):
             if ip_address_name:
-                inet =      f"""<inet>
+                inet =      f"""
+                            <inet>
                                 <address insert="after"  key="[ name='{ip_address_name}' ]" operation="create">
                                         <name>{subnet}</name>
                                     </address>
@@ -399,10 +405,10 @@ def configure_layer3(data, filtered_interface, ip_address_name):
                                     </address>
                             </inet>"""  
                 data.append(inet) 
-            break
+            return data
         else:
             print("IP address specified is not valid.")
 
 def configure_layer25():
     data  = f"""<iso operation="create">
-                </iso>"""
+                </iso>""" 
