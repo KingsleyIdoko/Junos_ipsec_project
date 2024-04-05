@@ -5,7 +5,7 @@ from rich import print
 import os
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_proposal, 
-                                         gen_ikeproposal_xml)
+                                         gen_ikeproposal_xml, delete_ike_proposal)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkeProposalManager:
@@ -73,19 +73,22 @@ class IkeProposalManager:
         return payload
 
     def update_proposal(self):
-        ike_configs, ike_proposal_names = self.get_proposals(get_raw_data=True)
-        if ike_configs:
-            updated_proposal = extract_and_update_proposal(ike_configs)
-            payload = gen_ikeproposal_xml(updated_proposal, ike_proposal_names)
-            return payload
-        else:
-            print("No existing IKE Proposal exist on the device")
+        try:
+            ike_configs, ike_proposal_names = self.get_proposals(get_raw_data=True)
+            if ike_configs:
+                updated_proposal = extract_and_update_proposal(ike_configs)
+                payload = gen_ikeproposal_xml(updated_proposal, ike_proposal_names)
+                return payload
+            else:
+                print("No existing IKE Proposal exist on the device")
+        except ValueError as e:
+            print(f"An error has occured, {e}")
 
     
     def delete_proposal(self):
-        # old_proposals = self.get_proposals(get_raw_data=True)
-        # print(old_proposals)
-        pass
+        *_, ike_proposal_names = self.get_proposals(get_raw_data=True)
+        payload = delete_ike_proposal(ike_proposal_names)
+        return payload
 
     def push_config(self):
         xml_data = self.ike_operations()

@@ -14,6 +14,15 @@ def get_valid_string(prompt="Enter a valid name: "):
         else:
             print("Invalid input. Please ensure the string contains only alphanumeric characters, underscores, asterisks, and spaces.")
 
+def get_valid_choice(prompt, choices):
+    while True:
+        for i, choice in enumerate(choices, start=1):
+            print(f"{i}. {choice}")
+        selection = input(f"{prompt} (1-{len(choices)}): ")
+        if selection.isdigit() and 1 <= int(selection) <= len(choices):
+            return int(selection) - 1  
+        else:
+            print("Invalid choice, please try again.")
 
 def get_valid_integer(prompt="Enter a number: "):
     while True:
