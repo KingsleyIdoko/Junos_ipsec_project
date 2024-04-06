@@ -5,13 +5,16 @@ auth_meth = ['dsa-signatures', 'ecdsa-signatures-256', 'ecdsa-signatures-384', '
 auth_algo = ['md5', 'sha-256', 'sha-384', 'sha1']
 
 
-def extract_and_update_proposal(ike_config):
+def extract_and_update_proposal(ike_config,used_proposals):
     proposals = ike_config.get('proposal', [])
     proposals = [proposals] if isinstance(proposals, dict) else proposals
     proposal_names = [proposal['name'] for proposal in proposals]
     selected_index = get_valid_choice("Select a proposal to update", proposal_names)
     selected_proposal = proposals[selected_index]
     print("Selected Proposal:", selected_proposal['name'])
+    if selected_proposal['name'] in used_proposals:
+         print(f"Proposals {selected_proposal['name']} is currently in used by IKE Policy")
+         return None
     proposal_keys = list(selected_proposal.keys())
     key_index = get_valid_choice("Select a key to update", proposal_keys)
     selected_key = proposal_keys[key_index]

@@ -22,7 +22,7 @@ class IkeProposalManager:
             print("4. Delete Ike Proposal")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                response = self.get_proposals(interactive=True)
+                response = self.get_ike_proposals(interactive=True)
             elif operation == "2":
                 response = self.create_proposal()
                 return response
@@ -36,7 +36,7 @@ class IkeProposalManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_proposals(self, interactive=False, get_raw_data=False, retries=3):
+    def get_ike_proposals(self, interactive=False, get_raw_data=False, retries=3):
         attempt = 0
         while attempt < retries:
             try:
@@ -66,17 +66,21 @@ class IkeProposalManager:
 
     
     def create_proposal(self):
-        old_proposals = self.get_proposals()
+        old_proposals = self.get_ike_proposals()
         if not old_proposals:
             print("No existing IKE Proposal found on the device")
         payload = gen_ikeprop_config(old_proposals)
         return payload
 
     def update_proposal(self):
+        from securityikepolicy import IkePolicyManager
+        policy_manager = IkePolicyManager()
+        
         try:
-            ike_configs, ike_proposal_names = self.get_proposals(get_raw_data=True)
+            ike_configs, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
-                updated_proposal = extract_and_update_proposal(ike_configs)
+                used_proposals =  policy_manager.get_ike_policy(get_proposals=False)
+                updated_proposal = extract_and_update_proposal(ike_configs,used_proposals)
                 payload = gen_ikeproposal_xml(updated_proposal, ike_proposal_names)
                 return payload
             else:
@@ -86,7 +90,10 @@ class IkeProposalManager:
 
     
     def delete_proposal(self):
-        *_, ike_proposal_names = self.get_proposals(get_raw_data=True)
+        from securityikepolicy import IkePolicyManager
+        policy_manager = IkePolicyManager()
+        used_proposals =  policy_manager.get_ike_policy()
+        *_, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
         payload = delete_ike_proposal(ike_proposal_names)
         return payload
 
@@ -101,6 +108,6 @@ class IkeProposalManager:
             return None
         else:
              run_pyez_tasks(self, xml_data, 'xml') 
-
-config = IkeProposalManager()
-response = config.push_config()
+if __name__ == "__main__":
+    config = IkeProposalManager()
+    response = config.push_config()

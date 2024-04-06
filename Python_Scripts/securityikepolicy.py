@@ -4,7 +4,10 @@ from nornir import InitNornir
 from rich import print
 import os
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ikepolicy import gen_ikepolicy_config
+from utiliites_scripts.ikepolicy import gen_ikepolicy_config, extract_proposals
+from securityikeproOper import IkeProposalManager
+ike_proposal =  IkeProposalManager()
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkePolicyManager:
@@ -35,40 +38,45 @@ class IkePolicyManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3):
+    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, get_proposals=False):
         attempt = 0
+        ike_policy_names = []
+        get_used_proposals = None  
         while attempt < retries:
             try:
                 response = self.nr.run(task=pyez_get_config, database=self.database)
                 if response:
                     for _, result in response.items():
-                        ike_config = result.result['configuration']['security'].get('ike')
+                        ike_config = result.result['configuration']['security'].get('ike', {})
                         if ike_config:
-                            ike_policy = ike_config.get('policy',[])
+                            ike_policy = ike_config.get('policy', [])
                             ike_policy = [ike_policy] if isinstance(ike_policy, dict) else ike_policy
                             ike_policy_names = [policy['name'] for policy in ike_policy if 'name' in policy]
-                            if not isinstance(ike_policy_names, list):  
-                                ike_policy_names = [ike_policy_names]
+                            if get_proposals:
+                                get_used_proposals = extract_proposals(ike_policy)
                         else:
-                            print("No Security ike implementation exist on the device")
+                            print("No IKE configuration found on the device.")
                             break
-                    if interactive:
+                    if interactive and ike_policy_names:
                         print(ike_policy_names)
-                    if get_raw_data:
-                        return ike_config, ike_policy_names if ike_config else None
-                    return ike_policy_names if ike_policy_names else None
+                    if get_proposals and get_used_proposals:
+                        return get_used_proposals
+                    if get_raw_data and ike_config:
+                        return ike_config, ike_policy_names
+                    return ike_policy_names or None
             except Exception as e:
-                print(f"An error has occurred: {e}. Checking connectivity to the device, trying again...")
+                print(f"An error has occurred: {e}. Trying again...")
             attempt += 1
-        print("Failed to retrieve proposals after several attempts.")
+        print("Failed to retrieve IKE policies after several attempts.")
         return None
 
     
     def create_ike_policy(self):
-        old_ike_policy = self.get_proposals()
+        old_ike_policy = self.get_ike_policy()
+        ike_proposal_names = ike_proposal.get_ike_proposals()
         if not old_ike_policy:
             print("No existing IKE Proposal found on the device")
-        payload = gen_ikepolicy_config(old_ike_policy)
+        payload = gen_ikepolicy_config(old_ike_policy, ike_proposal_names)
         return payload
 
     # def update_ike_policy(self):
@@ -101,5 +109,6 @@ class IkePolicyManager:
         else:
              run_pyez_tasks(self, xml_data, 'xml') 
 
-config = IkePolicyManager()
-response = config.push_config()
+if __name__ == "__main__":
+    config = IkePolicyManager()
+    response = config.push_config()

@@ -1,37 +1,34 @@
-def gen_ikepolicy_config(old_ike_names):
-    if old_ike_names:
-        payload = f"""
-        <configuration>
-                <security>
-                    <ike>
-                        <policy>
-                            <name>ikepolicy1</name>
-                            <description operation="delete"/>
-                            <description operation="create">ikepolic2</description>
-                            <proposals insert="after"  key="[ name='IKEPROPOSAL_2' ]" operation="create">IKEPROPOSAL_3</proposals>
-                            <proposals insert="after"  key="[ name='IKEPROPOSAL_3' ]" operation="create">IKE_PROPOSAL_3</proposals>
-                            <pre-shared-key>
-                                <ascii-text operation="delete"/>
-                                <ascii-text operation="create">$9$NIbwgiHmTF/s2mTzF/9evMXdb</ascii-text>
-                            </pre-shared-key>
-                        </policy>
-                    </ike>
-                </security>
-        </configuration>""".strip()
+from utiliites_scripts.commons import get_valid_choice, get_valid_integer, get_valid_string
+
+def gen_ikepolicy_config(old_ike_policy, ike_proposal_names):
+    ike_policy_name = get_valid_string("Enter new IKE policy name: ")
+    description = get_valid_string("Enter IKE Policy description: ")
+    passwd = get_valid_string("Enter pre-shared-key (passwd): ")
+    if old_ike_policy:
+        last_policy_name = old_ike_policy[-1] 
+        insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]"'
     else:
-        payload =f""" 
-            <configuration>
-                <security>
-                    <ike>
-                        <policy operation="create">
-                            <name>ikepolicy1</name>
-                            <mode>main</mode>
-                            <description>ikepolicy1</description>
-                            <proposals>IKEPROPOSAL_2</proposals>
-                            <pre-shared-key>
-                                <ascii-text>$9$pYP/OIhevLVwgSrwgoJHkp0B1IhrlKMLxhcwY</ascii-text>
-                            </pre-shared-key>
-                        </policy>
-                    </ike>
-                </security>
-            </configuration>""".strip()
+        insert_attribute = ""
+        print("No existing IKE policies found. Creating the first policy.")
+    ike_proposal_name = get_valid_choice("Select an IKE Proposal: ", ike_proposal_names)
+    payload = f"""
+    <configuration>
+        <security>
+            <ike>
+                <policy {insert_attribute} operation="create">
+                    <name>{ike_policy_name}</name>
+                    <description>{description}</description>
+                    <proposals>{ike_proposal_name}</proposals>
+                    <pre-shared-key>
+                        <ascii-text>{passwd}</ascii-text>
+                    </pre-shared-key>
+                </policy>
+            </ike>
+        </security>
+    </configuration>""".strip()
+    return payload
+
+
+def extract_proposals(ike_policy):
+    ike_policy = [ike_policy] if isinstance(ike_policy, dict) else ike_policy
+    return [policy['proposals'] for policy in ike_policy if 'proposals' in policy]

@@ -24,6 +24,17 @@ def get_valid_choice(prompt, choices):
         else:
             print("Invalid choice, please try again.")
 
+
+def get_valid_selection(prompt, choices):
+    while True:
+        for i, choice in enumerate(choices, start=1):
+            print(f"{i}. {choice}")
+        selection = input(f"{prompt} (1-{len(choices)}): ")
+        if selection.isdigit() and 1 <= int(selection) <= len(choices):
+            return choices[int(selection) - 1] 
+        else:
+            print("Invalid choice, please try again.")
+
 def get_valid_integer(prompt="Enter a number: "):
     while True:
         try:
