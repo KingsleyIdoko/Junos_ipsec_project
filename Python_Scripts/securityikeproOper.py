@@ -75,37 +75,48 @@ class IkeProposalManager:
     def update_proposal(self):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
-        
         try:
             ike_configs, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
-                used_proposals =  policy_manager.get_ike_policy(get_proposals=False)
-                updated_proposal = extract_and_update_proposal(ike_configs,used_proposals)
-                payload = gen_ikeproposal_xml(updated_proposal, ike_proposal_names)
+                used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+                try:
+                    new_updated_proposal, del_old_proposal = extract_and_update_proposal(ike_configs,
+                                                                                     used_proposals)
+                except:
+                    return None
+                if del_old_proposal in used_proposals:
+                    print(f"Proposal {del_old_proposal} is in used by IKE Policy")
+                    return None
+                self.delete_proposal(ike_prop_name=del_old_proposal, 
+                                     direct_del=True, commit=True)
+                payload = gen_ikeproposal_xml(new_updated_proposal, ike_proposal_names)
                 return payload
             else:
                 print("No existing IKE Proposal exist on the device")
         except ValueError as e:
             print(f"An error has occured, {e}")
 
-    
-    def delete_proposal(self):
+    def delete_proposal(self, direct_del=False, ike_prop_name=None, commit=False):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
-        used_proposals =  policy_manager.get_ike_policy()
-        *_, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
-        payload = delete_ike_proposal(ike_proposal_names)
+        used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+        if not direct_del:
+            used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+            if not ike_prop_name:
+                ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
+        payload = delete_ike_proposal(ike_prop_name, used_proposals, direct_del)
+        if commit and payload != None:
+            return run_pyez_tasks(self, payload, 'xml')
         return payload
 
     def push_config(self):
         xml_data = self.ike_operations()
-        print(xml_data)
         if not xml_data:
             return 
         elif isinstance(xml_data, list):
             for xml in xml_data:
                 run_pyez_tasks(self, xml, 'xml') 
-            return None
+            return
         else:
              run_pyez_tasks(self, xml_data, 'xml') 
 if __name__ == "__main__":

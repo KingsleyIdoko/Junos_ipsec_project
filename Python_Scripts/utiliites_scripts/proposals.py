@@ -11,6 +11,7 @@ def extract_and_update_proposal(ike_config,used_proposals):
     proposal_names = [proposal['name'] for proposal in proposals]
     selected_index = get_valid_choice("Select a proposal to update", proposal_names)
     selected_proposal = proposals[selected_index]
+    del_old_proposal = selected_proposal['name']
     print("Selected Proposal:", selected_proposal['name'])
     if selected_proposal['name'] in used_proposals:
          print(f"Proposals {selected_proposal['name']} is currently in used by IKE Policy")
@@ -19,9 +20,9 @@ def extract_and_update_proposal(ike_config,used_proposals):
     key_index = get_valid_choice("Select a key to update", proposal_keys)
     selected_key = proposal_keys[key_index]
     new_value = get_valid_string(f"Enter new value for {selected_key}: ")
-    selected_proposal[selected_key] = new_value
+    new_selected_proposal  = selected_proposal[selected_key] = new_value
     print("Updated Proposal:", selected_proposal['name'], "->", selected_key, "=", new_value)
-    return selected_proposal
+    return new_selected_proposal, del_old_proposal
 
 
 def gen_ikeproposal_xml(updated_proposal, old_proposal):
@@ -51,32 +52,44 @@ def gen_ikeproposal_xml(updated_proposal, old_proposal):
     print("Generated IKE Proposal Configuration:")
     return ike_proposal_xml
 
-
-def delete_ike_proposal(ike_proposal_names):
+def delete_ike_proposal(ike_proposal_names, used_proposals=None, direct_delete=False):
     if not ike_proposal_names:
         print("No proposals to delete.")
         return None
-    choice_index = get_valid_choice("Enter proposal number to delete", ike_proposal_names)
-    proposal_name_to_delete = ike_proposal_names[choice_index]
+    proposal_names_to_delete = []
+    if not direct_delete:
+        choice_index = get_valid_choice("Enter proposal number to delete", ike_proposal_names)
+        proposal_name_to_delete = ike_proposal_names[choice_index]
+        if used_proposals and proposal_name_to_delete in used_proposals:
+            print(f"{proposal_name_to_delete} is in use in IKE Policy and cannot be deleted.")
+            return None
+        proposal_names_to_delete.append(proposal_name_to_delete)
+    else:
+        if isinstance(ike_proposal_names, str):
+            proposal_names_to_delete.append(ike_proposal_names)
+        else:
+            proposal_names_to_delete.extend(ike_proposal_names)
+    proposals_payload = "".join(
+        f"""
+                <proposal operation="delete">
+                    <name>{name}</name>
+                </proposal>""" for name in proposal_names_to_delete
+    )
     payload = f"""
     <configuration>
         <security>
-            <ike>
-                <proposal operation="delete">
-                    <name>{proposal_name_to_delete}</name>
-                </proposal>
+            <ike>{proposals_payload}
             </ike>
         </security>
     </configuration>""".strip()
-    
-    print(f"Proposal to delete: {proposal_name_to_delete}")
+    print(f"Proposals to delete: {', '.join(proposal_names_to_delete)}")
+    print(payload)
     return payload
 
-
-def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group, auth_meth=auth_meth,auth_algo=auth_algo):
+def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group, 
+                       auth_meth=auth_meth,auth_algo=auth_algo):
     if old_proposal_names:
         print(f"{len(old_proposal_names)} proposals already exist on the device.")
-    
     while True:
         ikeproposal_name = get_valid_string("Enter Ike Proposal Name: ")
         if ikeproposal_name in old_proposal_names:
@@ -114,5 +127,6 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group, au
             </security>
         </configuration>""".strip()
     print("Generated IKE Proposal Configuration:")
-    print(ike_proposal_xml)
     return ike_proposal_xml
+
+
