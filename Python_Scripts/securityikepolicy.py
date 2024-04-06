@@ -4,6 +4,7 @@ from nornir import InitNornir
 from rich import print
 import os
 from utiliites_scripts.commit import run_pyez_tasks
+from utiliites_scripts.ikepolicy import gen_ikepolicy_config
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkePolicyManager:
@@ -65,9 +66,9 @@ class IkePolicyManager:
     
     def create_ike_policy(self):
         old_ike_policy = self.get_proposals()
-        if not old_proposals:
+        if not old_ike_policy:
             print("No existing IKE Proposal found on the device")
-        payload = gen_ikeprop_config(old_proposals)
+        payload = gen_ikepolicy_config(old_ike_policy)
         return payload
 
     # def update_ike_policy(self):
