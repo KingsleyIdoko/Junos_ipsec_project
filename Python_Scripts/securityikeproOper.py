@@ -83,6 +83,7 @@ class IkeProposalManager:
                     new_updated_proposal, del_old_proposal = extract_and_update_proposal(ike_configs,
                                                                                      used_proposals)
                 except:
+                    
                     return None
                 if del_old_proposal in used_proposals:
                     print(f"Proposal {del_old_proposal} is in used by IKE Policy")

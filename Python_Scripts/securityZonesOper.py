@@ -94,6 +94,7 @@ class SecurityZoneManager:
         if not xml_data:
             return None
         run_pyez_tasks(self, xml_data, 'xml') 
+        
 if __name__ == "__main__":
     config = SecurityZoneManager()
     response = config.push_config()
