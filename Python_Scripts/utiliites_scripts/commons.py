@@ -104,6 +104,16 @@ def is_valid_interfaces():
         else:
             print(f"{interface_name} is not a valid interface name. Please try again.")
 
+def get_ike_lifetime():
+    ike_lifetime = input("Enter IKE Security Association lifetime (180..86400 seconds or press Enter for default 86400): ")
+    if ike_lifetime.isdigit():
+        ike_lifetime = int(ike_lifetime)
+        ike_lifetime = max(180, min(ike_lifetime, 86400))
+    else:
+        ike_lifetime = 86400  
+    return ike_lifetime
+
+
 
 
 

@@ -1,28 +1,29 @@
-from utiliites_scripts.commons import get_valid_string, get_valid_integer, get_valid_choice
+from utiliites_scripts.commons import get_valid_string, get_ike_lifetime, get_valid_choice, get_valid_selection
 encrypt = ['3des-cbc', 'aes-128-cbc', 'aes-128-gcm', 'aes-192-cbc', 'aes-256-cbc', 'aes-256-gcm', 'des-cbc']
 dh_group = ['group1', 'group14', 'group19', 'group2', 'group20', 'group24', 'group5']
 auth_meth = ['dsa-signatures', 'ecdsa-signatures-256', 'ecdsa-signatures-384', 'pre-shared-keys', 'rsa-signatures']
 auth_algo = ['md5', 'sha-256', 'sha-384', 'sha1']
 
 
-def extract_and_update_proposal(ike_config,used_proposals):
+def extract_and_update_proposal(ike_config, used_proposals):
     proposals = ike_config.get('proposal', [])
     proposals = [proposals] if isinstance(proposals, dict) else proposals
     proposal_names = [proposal['name'] for proposal in proposals]
     selected_index = get_valid_choice("Select a proposal to update", proposal_names)
     selected_proposal = proposals[selected_index]
-    del_old_proposal = selected_proposal['name']
+    old_name = selected_proposal['name']  
     print("Selected Proposal:", selected_proposal['name'])
     if selected_proposal['name'] in used_proposals:
-         print(f"Proposals {selected_proposal['name']} is currently in used by IKE Policy")
-         return None
+        print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
+        return None, None      
     proposal_keys = list(selected_proposal.keys())
     key_index = get_valid_choice("Select a key to update", proposal_keys)
     selected_key = proposal_keys[key_index]
     new_value = get_valid_string(f"Enter new value for {selected_key}: ")
-    new_selected_proposal  = selected_proposal[selected_key] = new_value
+    selected_proposal[selected_key] = new_value  
     print("Updated Proposal:", selected_proposal['name'], "->", selected_key, "=", new_value)
-    return new_selected_proposal, del_old_proposal
+    return selected_proposal, old_name  
+
 
 
 def gen_ikeproposal_xml(updated_proposal, old_proposal):
@@ -34,6 +35,7 @@ def gen_ikeproposal_xml(updated_proposal, old_proposal):
         ike_opening_tag = '<ike operation="create">'
         proposal_attributes = ""
     ike_proposal_xml = f"""
+    
         <configuration>
             <security>
                 {ike_opening_tag}
@@ -97,12 +99,11 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group,
             continue
         break
     ikeproposal_desc = get_valid_string("Enter Ike Proposal Description: ")
-    encrypt_algorithm = get_valid_choice("Select Encryption Algorithm: ", encrypt)
-    dhgroup = get_valid_choice("Select DH Group: ", dh_group)
-    auth_method = get_valid_choice("Select Authentication Method: ", auth_meth)
-    auth_algorithm = get_valid_choice("Select Authentication Algorithms: ", auth_algo)
-    ike_lifetime = get_valid_integer("Enter Ike Security Association lifetime (180..86400 seconds): ")
-    ike_lifetime = max(180, min(ike_lifetime, 86400))
+    encrypt_algorithm = get_valid_selection("Select Encryption Algorithm: ", encrypt)
+    dhgroup = get_valid_selection("Select DH Group: ", dh_group)
+    auth_method = get_valid_selection("Select Authentication Method: ", auth_meth)
+    auth_algorithm = get_valid_selection("Select Authentication Algorithms: ", auth_algo)
+    ike_lifetime = get_ike_lifetime()
     if old_proposal_names:
             last_old_proposal = old_proposal_names[-1]  
             ike_opening_tag = "<ike>"

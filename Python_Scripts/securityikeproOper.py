@@ -24,14 +24,11 @@ class IkeProposalManager:
             if operation == "1":
                 response = self.get_ike_proposals(interactive=True)
             elif operation == "2":
-                response = self.create_proposal()
-                return response
+                return self.create_proposal()
             elif operation == "3":
-                response = self.update_proposal()
-                return response
+                return self.update_proposal()
             elif operation == "4":
-                response =  self.delete_proposal()
-                return response
+                return  self.delete_proposal()
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
@@ -54,7 +51,8 @@ class IkeProposalManager:
                             print("No Security ike implementation exist on the device")
                             break
                     if interactive:
-                        print(ike_proposal_names)
+                        print(proposals)
+                        return
                     if get_raw_data:
                         return ike_config, ike_proposal_names if ike_config else None
                     return ike_proposal_names if ike_proposal_names else None
@@ -70,32 +68,37 @@ class IkeProposalManager:
         if not old_proposals:
             print("No existing IKE Proposal found on the device")
         payload = gen_ikeprop_config(old_proposals)
+        print(payload)
         return payload
 
     def update_proposal(self):
+        payload = []
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
+        
         try:
             ike_configs, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
                 used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
                 try:
-                    new_updated_proposal, del_old_proposal = extract_and_update_proposal(ike_configs,
-                                                                                     used_proposals)
-                except:
+                    new_updated_proposal, del_old_proposal = extract_and_update_proposal(ike_configs, used_proposals)
                     
+                    if del_old_proposal in used_proposals:
+                        print(f"Proposal {del_old_proposal} is in use by IKE Policy and cannot be updated.")
+                        return None
+                    new_payload = gen_ikeproposal_xml(new_updated_proposal, ike_proposal_names)
+                    payload.append(new_payload)
+                    del_payload = self.delete_proposal(ike_prop_name=del_old_proposal, direct_del=True)
+                    payload.append(del_payload)
+                    
+                    return payload
+                except Exception as e:  
+                    print(f"An error occurred while updating the proposal: {e}")
                     return None
-                if del_old_proposal in used_proposals:
-                    print(f"Proposal {del_old_proposal} is in used by IKE Policy")
-                    return None
-                self.delete_proposal(ike_prop_name=del_old_proposal, 
-                                     direct_del=True, commit=True)
-                payload = gen_ikeproposal_xml(new_updated_proposal, ike_proposal_names)
-                return payload
             else:
-                print("No existing IKE Proposal exist on the device")
+                print("No existing IKE Proposals exist on the device.")
         except ValueError as e:
-            print(f"An error has occured, {e}")
+            print(f"An error has occurred: {e}")
 
     def delete_proposal(self, direct_del=False, ike_prop_name=None, commit=False):
         from securityikepolicy import IkePolicyManager
