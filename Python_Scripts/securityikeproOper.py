@@ -89,6 +89,9 @@ class IkeProposalManager:
                     print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
                     del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)
                     payload.append(del_payload)
+                else:
+                    del_payload = self.delete_proposal(key_values=updated_proposal, direct_del=True, ike_prop_name=old_name, commit=False)
+                    payload.append(del_payload)
                 new_payload = gen_ikeproposal_xml(updated_proposal, old_name, insert_after)
                 print(new_payload)
                 payload.append(new_payload)
@@ -101,9 +104,13 @@ class IkeProposalManager:
             print("No existing IKE Proposals found on the device.")
 
 
-    def delete_proposal(self, direct_del=False, ike_prop_name=None, commit=False):
+    def delete_proposal(self, **kwargs):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
+        direct_del = kwargs.get('direct_del', False)
+        ike_prop_name = kwargs.get('ike_prop_name', None)
+        commit = kwargs.get('commit', False)
+        key_values = kwargs.get('key_values', None)
         try:
             used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
         except:
@@ -113,10 +120,11 @@ class IkeProposalManager:
                 used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
             if not ike_prop_name:
                 ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
-        payload = delete_ike_proposal(ike_prop_name, used_proposals, direct_del)
-        if commit and payload != None:
-            return run_pyez_tasks(self, payload, 'xml')
+        payload = delete_ike_proposal(ike_prop_name, used_proposals, direct_del, key_values)  
+        if commit and payload is not None:
+            return run_pyez_tasks(self, payload, 'xml', **kwargs) 
         return payload
+
 
     def push_config(self):
         xml_data = self.ike_operations()

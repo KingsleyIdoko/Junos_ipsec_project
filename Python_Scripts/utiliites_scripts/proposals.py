@@ -13,15 +13,13 @@ def extract_and_update_proposal(ike_config, used_proposals):
     selected_proposal = proposals[selected_index]
     if selected_index == len(proposals) - 1 and len(proposals) > 1:
         insert_after = proposals[selected_index - 1]['name']
-        old_name = selected_proposal['name']
     else:
         insert_after = None
-        old_name = selected_proposal['name']
+    old_name = selected_proposal['name']
     print("Selected Proposal:", selected_proposal['name'])
-    if used_proposals:
-        if selected_proposal['name'] in used_proposals:
-            print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
-            return None, None, None, None
+    if used_proposals and selected_proposal['name'] in used_proposals:
+        print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
+        return None, None, None, None, None
     proposal_keys = ['name', 'description', 'authentication-method', 'dh-group', 'authentication-algorithm', 'encryption-algorithm', 'lifetime-seconds']
     key_index = get_valid_choice("Select a key to update", proposal_keys)
     selected_key = proposal_keys[key_index]
@@ -37,10 +35,9 @@ def extract_and_update_proposal(ike_config, used_proposals):
         new_value = get_valid_string(f"Enter new value for {selected_key}: ")
     old_value = selected_proposal.get(selected_key)
     selected_proposal[selected_key] = new_value
-    change_description = f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'"
-    return selected_proposal, insert_after, old_name, change_description
-
-
+    update_key_value = {selected_key: new_value}
+    print(f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'")
+    return selected_proposal, insert_after, old_name, new_value, update_key_value
 
 def gen_ikeproposal_xml(updated_proposal, old_name=None, insert_after=None):
     proposal_updates = []
@@ -83,7 +80,11 @@ def gen_ikeproposal_xml(updated_proposal, old_name=None, insert_after=None):
     return ike_proposal_xml
 
 
-def delete_ike_proposal(ike_proposal_names, used_proposals=None, direct_delete=False):
+def delete_ike_proposal(**kwargs):
+    ike_proposal_names = kwargs.get('ike_proposal_names', None)
+    used_proposals = kwargs.get('used_proposals', None)
+    direct_delete = kwargs.get('used_proposals', False)
+    update_proposals =  kwargs.get('used_proposals', None)
     if not ike_proposal_names:
         print("No proposals to delete.")
         return None
