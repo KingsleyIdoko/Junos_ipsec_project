@@ -86,6 +86,7 @@ class IkeProposalManager:
                     print("Update aborted: Proposal is currently in use or another issue occurred.")
                     return None
                 payload = []
+                print(old_name != updated_proposal['name'])
                 if old_name and old_name != updated_proposal['name']:
                     print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
                     del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)

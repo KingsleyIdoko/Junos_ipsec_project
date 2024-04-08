@@ -43,13 +43,15 @@ def gen_ikeproposal_xml(**kwargs):
     updated_proposal = kwargs.get('updated_proposal', None)
     old_name = kwargs.get('old_name',None)
     insert_after =  kwargs.get('insert_after',None)
+    changed_key = kwargs.get('changed_key',None)
+    print(changed_key)
     proposal_updates = []
     ike_opening_tag = "<ike>"
     if old_name is None or old_name == updated_proposal['name']:
-        for key, value in updated_proposal.items():
-            if key != 'name':
-                proposal_updates.append(f'<{key} operation="delete"/>')
-                proposal_updates.append(f'<{key} operation="create">{value}</{key}>')
+        key, value = get_first_key_value(changed_key)
+        proposal_updates.append(f'<{key} operation="delete"/>')
+        proposal_updates.append(f"""         
+                            <{key} operation="create">{value}</{key}>""")
         proposal_updates_str = "\n".join(proposal_updates)
         ike_proposal_xml = f"""
             <configuration>
@@ -165,3 +167,13 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group,
     return ike_proposal_xml
 
 
+
+def get_first_key_value(data):
+    if not data or not isinstance(data, list):
+        return "Data is empty or not a list", None
+    if isinstance(data[0], dict) and data[0]:
+        first_dict = data[0]
+        key, value = next(iter(first_dict.items()))
+        return key, value
+    else:
+        return "First item is not a dictionary or is empty", None
