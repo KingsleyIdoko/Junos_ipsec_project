@@ -11,48 +11,77 @@ def extract_and_update_proposal(ike_config, used_proposals):
     proposal_names = [proposal['name'] for proposal in proposals]
     selected_index = get_valid_choice("Select a proposal to update", proposal_names)
     selected_proposal = proposals[selected_index]
-    old_name = selected_proposal['name']  
+    if selected_index == len(proposals) - 1 and len(proposals) > 1:
+        insert_after = proposals[selected_index - 1]['name']
+        old_name = selected_proposal['name']
+    else:
+        insert_after = None
+        old_name = selected_proposal['name']
     print("Selected Proposal:", selected_proposal['name'])
-    if selected_proposal['name'] in used_proposals:
-        print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
-        return None, None      
-    proposal_keys = list(selected_proposal.keys())
+    if used_proposals:
+        if selected_proposal['name'] in used_proposals:
+            print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
+            return None, None, None, None
+    proposal_keys = ['name', 'description', 'authentication-method', 'dh-group', 'authentication-algorithm', 'encryption-algorithm', 'lifetime-seconds']
     key_index = get_valid_choice("Select a key to update", proposal_keys)
     selected_key = proposal_keys[key_index]
-    new_value = get_valid_string(f"Enter new value for {selected_key}: ")
-    selected_proposal[selected_key] = new_value  
-    print("Updated Proposal:", selected_proposal['name'], "->", selected_key, "=", new_value)
-    return selected_proposal, old_name  
-
-
-
-def gen_ikeproposal_xml(updated_proposal, old_proposal):
-    if old_proposal:
-                last_old_proposal = old_proposal[-1]  
-                ike_opening_tag = "<ike>"
-                proposal_attributes = f'insert="after" key="[ name=\'{last_old_proposal}\' ]" operation="create"'
+    choice_mappings = {
+        'encryption-algorithm': encrypt,
+        'dh-group': dh_group,
+        'authentication-method': auth_meth,
+        'authentication-algorithm': auth_algo
+    }
+    if selected_key in choice_mappings:
+        new_value = get_valid_selection(f"Enter new value for {selected_key}", choice_mappings[selected_key])
     else:
-        ike_opening_tag = '<ike operation="create">'
-        proposal_attributes = ""
-    ike_proposal_xml = f"""
-    
-        <configuration>
-            <security>
-                {ike_opening_tag}
-                    <proposal {proposal_attributes}>
-                        <name>{updated_proposal['name']}</name>
-                        <description>{updated_proposal['description']}</description>
-                        <authentication-method>{updated_proposal['authentication-method']}</authentication-method>
-                        <dh-group>{updated_proposal['dh-group']}</dh-group>
-                        <authentication-algorithm>{updated_proposal['authentication-algorithm']}</authentication-algorithm>
-                        <encryption-algorithm>{updated_proposal['encryption-algorithm']}</encryption-algorithm>
-                        <lifetime-seconds>{updated_proposal['lifetime-seconds']}</lifetime-seconds>
-                    </proposal>
-                </ike>
-            </security>
-        </configuration>""".strip()
+        new_value = get_valid_string(f"Enter new value for {selected_key}: ")
+    old_value = selected_proposal.get(selected_key)
+    selected_proposal[selected_key] = new_value
+    change_description = f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'"
+    return selected_proposal, insert_after, old_name, change_description
+
+
+
+def gen_ikeproposal_xml(updated_proposal, old_name=None, insert_after=None):
+    proposal_updates = []
+    ike_opening_tag = "<ike>"
+    if old_name is None or old_name == updated_proposal['name']:
+        for key, value in updated_proposal.items():
+            if key != 'name':
+                proposal_updates.append(f'<{key} operation="delete"/>')
+                proposal_updates.append(f'<{key} operation="create">{value}</{key}>')
+        proposal_updates_str = "\n".join(proposal_updates)
+        ike_proposal_xml = f"""
+            <configuration>
+                <security>
+                    {ike_opening_tag}
+                        <proposal>
+                            <name>{updated_proposal['name']}</name>
+                            {proposal_updates_str}
+                        </proposal>
+                    </ike>
+                </security>
+            </configuration>""".strip()
+    else:
+        ike_proposal_xml = f"""
+            <configuration>
+                <security>
+                    {ike_opening_tag}
+                        <proposal insert="after" key="[ name='{insert_after}' ]" operation="create">
+                            <name>{updated_proposal['name']}</name>
+                            <description>{updated_proposal.get('description', '')}</description>
+                            <authentication-method>{updated_proposal.get('authentication-method', '')}</authentication-method>
+                            <dh-group>{updated_proposal.get('dh-group', '')}</dh-group>
+                            <authentication-algorithm>{updated_proposal.get('authentication-algorithm', '')}</authentication-algorithm>
+                            <encryption-algorithm>{updated_proposal.get('encryption-algorithm', '')}</encryption-algorithm>
+                            <lifetime-seconds>{updated_proposal.get('lifetime-seconds', '')}</lifetime-seconds>
+                        </proposal>
+                    </ike>
+                </security>
+            </configuration>""".strip()
     print("Generated IKE Proposal Configuration:")
     return ike_proposal_xml
+
 
 def delete_ike_proposal(ike_proposal_names, used_proposals=None, direct_delete=False):
     if not ike_proposal_names:
@@ -69,8 +98,10 @@ def delete_ike_proposal(ike_proposal_names, used_proposals=None, direct_delete=F
     else:
         if isinstance(ike_proposal_names, str):
             proposal_names_to_delete.append(ike_proposal_names)
+            print("working")
         else:
             proposal_names_to_delete.extend(ike_proposal_names)
+            print("not working")
     proposals_payload = "".join(
         f"""
                 <proposal operation="delete">
@@ -94,9 +125,10 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group,
         print(f"{len(old_proposal_names)} proposals already exist on the device.")
     while True:
         ikeproposal_name = get_valid_string("Enter Ike Proposal Name: ")
-        if ikeproposal_name in old_proposal_names:
-            print("Ike Proposal already exists, please enter a different name.")
-            continue
+        if old_proposal_names:
+            if ikeproposal_name in old_proposal_names:
+                print("Ike Proposal already exists, please enter a different name.")
+                continue
         break
     ikeproposal_desc = get_valid_string("Enter Ike Proposal Description: ")
     encrypt_algorithm = get_valid_selection("Select Encryption Algorithm: ", encrypt)

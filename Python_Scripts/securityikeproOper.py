@@ -1,5 +1,5 @@
 
-from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, pyez_diff
+from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
 import os
@@ -22,7 +22,7 @@ class IkeProposalManager:
             print("4. Delete Ike Proposal")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                response = self.get_ike_proposals(interactive=True)
+                return self.get_ike_proposals(interactive=True)
             elif operation == "2":
                 return self.create_proposal()
             elif operation == "3":
@@ -38,74 +38,79 @@ class IkeProposalManager:
         while attempt < retries:
             try:
                 response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response:
-                    for _, result in response.items():
-                        ike_config = result.result['configuration']['security'].get('ike')
-                        if ike_config:
-                            proposals = ike_config.get('proposal',[])
-                            proposals = [proposals] if isinstance(proposals, dict) else proposals
-                            ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
-                            if not isinstance(ike_proposal_names, list):  
-                                ike_proposal_names = [ike_proposal_names]
-                        else:
-                            print("No Security ike implementation exist on the device")
-                            break
-                    if interactive:
-                        print(proposals)
-                        return
-                    if get_raw_data:
-                        return ike_config, ike_proposal_names if ike_config else None
-                    return ike_proposal_names if ike_proposal_names else None
+                if response.failed:  # Check if the task failed
+                    print("Failed to connect to the device, trying again...")
+                    attempt += 1
+                    continue
+                for _, result in response.items():
+                    ike_config = result.result['configuration']['security'].get('ike', {})
+                    proposals = ike_config.get('proposal', [])
+                    proposals = [proposals] if isinstance(proposals, dict) else proposals
+                    ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
+                if not proposals:  
+                    print("No IKE configurations exist on the device.")
+                    return None
+                if interactive:
+                    print(ike_proposal_names)
+                    return
+                if get_raw_data:
+                    return ike_config, ike_proposal_names
+                return ike_proposal_names
             except Exception as e:
                 print(f"An error has occurred: {e}. Checking connectivity to the device, trying again...")
-            attempt += 1
-        print("Failed to retrieve proposals after several attempts.")
+                attempt += 1
+                continue  
+        print("Failed to retrieve proposals after several attempts due to connectivity issues.")
         return None
 
-    
     def create_proposal(self):
         old_proposals = self.get_ike_proposals()
         if not old_proposals:
             print("No existing IKE Proposal found on the device")
         payload = gen_ikeprop_config(old_proposals)
-        print(payload)
         return payload
-
+    
     def update_proposal(self):
-        payload = []
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
-        
         try:
-            ike_configs, ike_proposal_names = self.get_ike_proposals(get_raw_data=True)
+            ike_configs, _ = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
-                used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
                 try:
-                    new_updated_proposal, del_old_proposal = extract_and_update_proposal(ike_configs, used_proposals)
-                    
-                    if del_old_proposal in used_proposals:
-                        print(f"Proposal {del_old_proposal} is in use by IKE Policy and cannot be updated.")
-                        return None
-                    new_payload = gen_ikeproposal_xml(new_updated_proposal, ike_proposal_names)
-                    payload.append(new_payload)
-                    del_payload = self.delete_proposal(ike_prop_name=del_old_proposal, direct_del=True)
-                    payload.append(del_payload)
-                    
-                    return payload
-                except Exception as e:  
-                    print(f"An error occurred while updating the proposal: {e}")
+                    used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+                except:
+                    used_proposals = None
+                updated_proposal, insert_after, old_name, change_description = extract_and_update_proposal(ike_configs, used_proposals)
+                if updated_proposal is None:
+                    print("Update aborted: Proposal is currently in use or another issue occurred.")
                     return None
+                payload = []
+                if old_name and old_name != updated_proposal['name']:
+                    print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
+                    del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)
+                    payload.append(del_payload)
+                new_payload = gen_ikeproposal_xml(updated_proposal, old_name, insert_after)
+                print(new_payload)
+                payload.append(new_payload)
+                print(f"Update successful: {change_description}")
+                return payload
             else:
-                print("No existing IKE Proposals exist on the device.")
-        except ValueError as e:
-            print(f"An error has occurred: {e}")
+                return None
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            print("No existing IKE Proposals found on the device.")
+
 
     def delete_proposal(self, direct_del=False, ike_prop_name=None, commit=False):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
-        used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
-        if not direct_del:
+        try:
             used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+        except:
+            used_proposals = None
+        if not direct_del:
+            if used_proposals:
+                used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
             if not ike_prop_name:
                 ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
         payload = delete_ike_proposal(ike_prop_name, used_proposals, direct_del)
