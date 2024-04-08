@@ -51,7 +51,7 @@ class IkeProposalManager:
                     print("No IKE configurations exist on the device.")
                     return None
                 if interactive:
-                    print(ike_proposal_names)
+                    print(proposals)
                     return
                 if get_raw_data:
                     return ike_config, ike_proposal_names
@@ -80,7 +80,8 @@ class IkeProposalManager:
                     used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
                 except:
                     used_proposals = None
-                updated_proposal, insert_after, old_name, change_description = extract_and_update_proposal(ike_configs, used_proposals)
+                updated_proposal, insert_after, old_name, desc, changed_key  = extract_and_update_proposal(ike_configs, 
+                                                                                                           used_proposals)
                 if updated_proposal is None:
                     print("Update aborted: Proposal is currently in use or another issue occurred.")
                     return None
@@ -89,13 +90,11 @@ class IkeProposalManager:
                     print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
                     del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)
                     payload.append(del_payload)
-                else:
-                    del_payload = self.delete_proposal(key_values=updated_proposal, direct_del=True, ike_prop_name=old_name, commit=False)
-                    payload.append(del_payload)
-                new_payload = gen_ikeproposal_xml(updated_proposal, old_name, insert_after)
+                new_payload = gen_ikeproposal_xml(updated_proposal=updated_proposal,old_name=old_name, 
+                                                  insert_after=insert_after, changed_key=changed_key)
                 print(new_payload)
                 payload.append(new_payload)
-                print(f"Update successful: {change_description}")
+                print(f"Update successful: {desc}")
                 return payload
             else:
                 return None
@@ -120,7 +119,9 @@ class IkeProposalManager:
                 used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
             if not ike_prop_name:
                 ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
-        payload = delete_ike_proposal(ike_prop_name, used_proposals, direct_del, key_values)  
+        print(direct_del, ike_prop_name, commit, key_values)
+        payload = delete_ike_proposal(ike_proposal_names=ike_prop_name,used_proposals=used_proposals, 
+                                    direct_delete=direct_del,key_values=key_values)
         if commit and payload is not None:
             return run_pyez_tasks(self, payload, 'xml', **kwargs) 
         return payload

@@ -35,11 +35,14 @@ def extract_and_update_proposal(ike_config, used_proposals):
         new_value = get_valid_string(f"Enter new value for {selected_key}: ")
     old_value = selected_proposal.get(selected_key)
     selected_proposal[selected_key] = new_value
-    update_key_value = {selected_key: new_value}
-    print(f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'")
-    return selected_proposal, insert_after, old_name, new_value, update_key_value
+    changed_key = [{selected_key:new_value}, {selected_key:old_value}]
+    description = f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'"
+    return selected_proposal, insert_after, old_name, description, changed_key
 
-def gen_ikeproposal_xml(updated_proposal, old_name=None, insert_after=None):
+def gen_ikeproposal_xml(**kwargs):
+    updated_proposal = kwargs.get('updated_proposal', None)
+    old_name = kwargs.get('old_name',None)
+    insert_after =  kwargs.get('insert_after',None)
     proposal_updates = []
     ike_opening_tag = "<ike>"
     if old_name is None or old_name == updated_proposal['name']:
@@ -80,11 +83,12 @@ def gen_ikeproposal_xml(updated_proposal, old_name=None, insert_after=None):
     return ike_proposal_xml
 
 
+
 def delete_ike_proposal(**kwargs):
     ike_proposal_names = kwargs.get('ike_proposal_names', None)
     used_proposals = kwargs.get('used_proposals', None)
-    direct_delete = kwargs.get('used_proposals', False)
-    update_proposals =  kwargs.get('used_proposals', None)
+    direct_delete = kwargs.get('direct_delete', False)
+    key_values =  kwargs.get('key_values', None)    
     if not ike_proposal_names:
         print("No proposals to delete.")
         return None
@@ -99,10 +103,8 @@ def delete_ike_proposal(**kwargs):
     else:
         if isinstance(ike_proposal_names, str):
             proposal_names_to_delete.append(ike_proposal_names)
-            print("working")
         else:
             proposal_names_to_delete.extend(ike_proposal_names)
-            print("not working")
     proposals_payload = "".join(
         f"""
                 <proposal operation="delete">
@@ -117,7 +119,6 @@ def delete_ike_proposal(**kwargs):
         </security>
     </configuration>""".strip()
     print(f"Proposals to delete: {', '.join(proposal_names_to_delete)}")
-    print(payload)
     return payload
 
 def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group, 
