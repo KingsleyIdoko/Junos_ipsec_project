@@ -6,6 +6,7 @@ auth_algo = ['md5', 'sha-256', 'sha-384', 'sha1']
 
 
 def extract_and_update_proposal(ike_config, used_proposals):
+    changed_key = []
     proposals = ike_config.get('proposal', [])
     proposals = [proposals] if isinstance(proposals, dict) else proposals
     proposal_names = [proposal['name'] for proposal in proposals]
@@ -19,40 +20,43 @@ def extract_and_update_proposal(ike_config, used_proposals):
     print("Selected Proposal:", selected_proposal['name'])
     if used_proposals and selected_proposal['name'] in used_proposals:
         print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
-        return None, None, None, None, None
-    proposal_keys = ['name', 'description', 'authentication-method', 'dh-group', 'authentication-algorithm', 'encryption-algorithm', 'lifetime-seconds']
-    key_index = get_valid_choice("Select a key to update", proposal_keys)
-    selected_key = proposal_keys[key_index]
-    choice_mappings = {
-        'encryption-algorithm': encrypt,
-        'dh-group': dh_group,
-        'authentication-method': auth_meth,
-        'authentication-algorithm': auth_algo
-    }
-    if selected_key in choice_mappings:
-        new_value = get_valid_selection(f"Enter new value for {selected_key}", choice_mappings[selected_key])
-    else:
-        new_value = get_valid_string(f"Enter new value for {selected_key}: ")
-    old_value = selected_proposal.get(selected_key)
-    selected_proposal[selected_key] = new_value
-    changed_key = [{selected_key:new_value}, {selected_key:old_value}]
-    description = f"Updated Proposal: {selected_proposal['name']}, changed '{selected_key}' from '{old_value}' to '{new_value}'"
+        return None, None, None, None, None, None
+    proposal_keys = [f"{key}: {selected_proposal[key]}" for key in selected_proposal.keys()]
+    while True:
+        key_index = get_valid_choice("Select a key to update (shown with value)", proposal_keys)
+        selected_key_with_value = proposal_keys[key_index]
+        selected_key = selected_key_with_value.split(": ")[0]  
+        choice_mappings = {
+            'encryption-algorithm': encrypt,
+            'dh-group': dh_group,
+            'authentication-method': auth_meth,
+            'authentication-algorithm': auth_algo
+        }
+        if selected_key in choice_mappings:
+            new_value = get_valid_selection(f"Enter new value for {selected_key}", choice_mappings[selected_key])
+        else:
+            new_value = get_valid_string(f"Enter new value for {selected_key}: ")
+        old_value = selected_proposal.get(selected_key, 'N/A')
+        selected_proposal[selected_key] = new_value
+        changed_key.append({selected_key: new_value})
+        if selected_key == 'name':
+            old_name = old_value
+        choice = get_valid_string("Do you want to update another parameter in the IKE Proposal, yes/no: ")
+        if choice.lower() != "yes":
+            break
+    description = f"Updated Proposal: {selected_proposal.get('name', 'N/A')}, changes applied."
     return selected_proposal, insert_after, old_name, description, changed_key
+
+
 
 def gen_ikeproposal_xml(**kwargs):
     updated_proposal = kwargs.get('updated_proposal', None)
     old_name = kwargs.get('old_name',None)
     insert_after =  kwargs.get('insert_after',None)
     changed_key = kwargs.get('changed_key',None)
-    print(changed_key)
-    proposal_updates = []
     ike_opening_tag = "<ike>"
     if old_name is None or old_name == updated_proposal['name']:
-        key, value = get_first_key_value(changed_key)
-        proposal_updates.append(f'<{key} operation="delete"/>')
-        proposal_updates.append(f"""         
-                            <{key} operation="create">{value}</{key}>""")
-        proposal_updates_str = "\n".join(proposal_updates)
+        proposal_updates_str = sub_xml_config(changed_key)
         ike_proposal_xml = f"""
             <configuration>
                 <security>
@@ -167,13 +171,18 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt,dh_group=dh_group,
     return ike_proposal_xml
 
 
+def sub_xml_config(data):
+    proposal_updates = []
+    for item in data:
+        if not item or not isinstance(item, dict):
+            continue  
+        key, value = next(iter(item.items()), (None, None))
+        if key is None or value is None:
+            continue  
+        proposal_updates.append(f'<{key} operation="delete"/>')
+        proposal_updates.append(f"""         
+                            <{key} operation="create">{value}</{key}>""")
+    proposal_updates_str = "\n".join(proposal_updates)
+    return proposal_updates_str.strip()
 
-def get_first_key_value(data):
-    if not data or not isinstance(data, list):
-        return "Data is empty or not a list", None
-    if isinstance(data[0], dict) and data[0]:
-        first_dict = data[0]
-        key, value = next(iter(first_dict.items()))
-        return key, value
-    else:
-        return "First item is not a dictionary or is empty", None
+
