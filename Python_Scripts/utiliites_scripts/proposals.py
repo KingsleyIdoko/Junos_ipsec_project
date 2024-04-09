@@ -48,12 +48,11 @@ def extract_and_update_proposal(ike_config, used_proposals):
     return selected_proposal, insert_after, old_name, description, changed_key
 
 
-
 def gen_ikeproposal_xml(**kwargs):
     updated_proposal = kwargs.get('updated_proposal', None)
-    old_name = kwargs.get('old_name',None)
-    insert_after =  kwargs.get('insert_after',None)
-    changed_key = kwargs.get('changed_key',None)
+    old_name = kwargs.get('old_name', None)
+    insert_after = kwargs.get('insert_after', None)
+    changed_key = kwargs.get('changed_key', None)
     ike_opening_tag = "<ike>"
     if old_name is None or old_name == updated_proposal['name']:
         proposal_updates_str = sub_xml_config(changed_key)
@@ -69,11 +68,12 @@ def gen_ikeproposal_xml(**kwargs):
                 </security>
             </configuration>""".strip()
     else:
+        insert_str = f'insert="after" key="[ name=\'{insert_after}\' ]"' if insert_after else ""
         ike_proposal_xml = f"""
             <configuration>
                 <security>
                     {ike_opening_tag}
-                        <proposal insert="after" key="[ name='{insert_after}' ]" operation="create">
+                        <proposal {insert_str} operation="create">
                             <name>{updated_proposal['name']}</name>
                             <description>{updated_proposal.get('description', '')}</description>
                             <authentication-method>{updated_proposal.get('authentication-method', '')}</authentication-method>
@@ -85,8 +85,10 @@ def gen_ikeproposal_xml(**kwargs):
                     </ike>
                 </security>
             </configuration>""".strip()
+
     print("Generated IKE Proposal Configuration:")
     return ike_proposal_xml
+
 
 
 

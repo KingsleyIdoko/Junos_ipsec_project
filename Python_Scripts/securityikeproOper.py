@@ -2,7 +2,7 @@
 from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
-import os
+import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_proposal, 
                                          gen_ikeproposal_xml, delete_ike_proposal)
@@ -64,11 +64,17 @@ class IkeProposalManager:
         return None
 
     def create_proposal(self):
-        old_proposals = self.get_ike_proposals()
-        if not old_proposals:
-            print("No existing IKE Proposal found on the device")
-        payload = gen_ikeprop_config(old_proposals)
-        return payload
+        try:
+            old_proposals = self.get_ike_proposals()
+            if not old_proposals:
+                print("No existing IKE Proposal found on the device")
+                old_proposals = []  
+            payload = gen_ikeprop_config(old_proposals)
+            return payload
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
     
     def update_proposal(self):
         from securityikepolicy import IkePolicyManager
@@ -86,7 +92,6 @@ class IkeProposalManager:
                     print("Update aborted: Proposal is currently in use or another issue occurred.")
                     return None
                 payload = []
-                print(old_name != updated_proposal['name'])
                 if old_name and old_name != updated_proposal['name']:
                     print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
                     del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)
@@ -128,16 +133,29 @@ class IkeProposalManager:
         return payload
 
 
+
+
     def push_config(self):
-        xml_data = self.ike_operations()
-        if not xml_data:
-            return 
-        elif isinstance(xml_data, list):
-            for xml in xml_data:
-                run_pyez_tasks(self, xml, 'xml') 
-            return
-        else:
-             run_pyez_tasks(self, xml_data, 'xml') 
+        try:
+            xml_data = self.ike_operations()
+            if not xml_data:
+                logging.info("No XML data to push.")
+                return
+            if isinstance(xml_data, list):
+                for xml in xml_data:
+                    try:
+                        run_pyez_tasks(self, xml, 'xml')
+                    except Exception as e:
+                        logging.error(f"Failed to push configuration for {xml}: {e}")
+            else:
+                try:
+                    run_pyez_tasks(self, xml_data, 'xml')
+                except Exception as e:
+                    logging.error(f"Failed to push configuration: {e}")
+        except Exception as e:
+            logging.error(f"Error in push_config: {e}")
+
+
 if __name__ == "__main__":
     config = IkeProposalManager()
     response = config.push_config()
