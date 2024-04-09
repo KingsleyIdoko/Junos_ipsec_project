@@ -5,7 +5,7 @@ from rich import print
 import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_proposal, 
-                                         gen_ikeproposal_xml, delete_ike_proposal)
+                                         update_ikeproposal_xml, delete_ike_proposal)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkeProposalManager:
@@ -96,7 +96,7 @@ class IkeProposalManager:
                     print(f"Name change detected: Deleting '{old_name}' and creating '{updated_proposal['name']}' with updated attributes.")
                     del_payload = self.delete_proposal(direct_del=True, ike_prop_name=old_name, commit=False)
                     payload.append(del_payload)
-                new_payload = gen_ikeproposal_xml(updated_proposal=updated_proposal,old_name=old_name, 
+                new_payload = update_ikeproposal_xml(updated_proposal=updated_proposal,old_name=old_name, 
                                                   insert_after=insert_after, changed_key=changed_key)
                 print(new_payload)
                 payload.append(new_payload)

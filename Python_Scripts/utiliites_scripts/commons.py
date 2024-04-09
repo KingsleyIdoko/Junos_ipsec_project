@@ -1,18 +1,27 @@
 import re
 import ipaddress
 
-def get_valid_string(prompt="Enter a valid name: "):
+def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10):
     pattern = r'^[a-zA-Z0-9_* ]+$'
     while True:
         input_string = input(prompt)
         if re.match(pattern, input_string):
             words = input_string.split()
-            if len(words) <= 5:
+            if len(words) <= max_words:
                 return input_string  
             else:
-                print("The string contains more than 5 words. Please try again.")
+                print(f"The string contains more than {max_words} words. Please try again.")
         else:
-            print("Invalid input. Please ensure the string contains only alphanumeric characters, underscores, asterisks, and spaces.")
+            print("Invalid input. Enter valid Characters")
+
+def get_valid_name(prompt="Enter a valid name: "):
+    pattern = r'^[a-zA-Z_*][a-zA-Z0-9_*-]*$'
+    while True:
+        name = input(prompt)
+        if re.match(pattern, name):
+            return name
+        else:
+            print("Invalid name. Ensure it's one word, doesn't start with a number, and contains only A-Z, a-z, 0-9, underscores (_), hyphens (-), or asterisks (*).")
 
 def get_valid_choice(prompt, choices):
     while True:
