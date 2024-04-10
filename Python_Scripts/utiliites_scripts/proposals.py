@@ -142,7 +142,7 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt, dh_group=dh_group,
         break
     ikeproposal_desc = get_valid_string("Enter Ike Proposal Description: ", max_words=10)
     encrypt_algorithm = get_valid_selection("Select Encryption Algorithm: ", encrypt)
-    is_gcm = 'gcm' in encrypt_algorithm
+    is_gcm = encrypt_algorithm in ["aes-128-gcm", "aes-256-gcm"]
     dhgroup = get_valid_selection("Select DH Group: ", dh_group)
     auth_method = get_valid_selection("Select Authentication Method: ", auth_meth)
     if not is_gcm:
@@ -160,6 +160,8 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt, dh_group=dh_group,
     ]
     if auth_method:
         xml_components.append(f"<authentication-method>{auth_method}</authentication-method>")
+    if auth_algorithm:
+        xml_components.append(f"<authentication-algorithm>{auth_algorithm}</authentication-algorithm>")
     xml_components.extend([
         f"<dh-group>{dhgroup}</dh-group>",
         f"<encryption-algorithm>{encrypt_algorithm}</encryption-algorithm>",
@@ -175,6 +177,7 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt, dh_group=dh_group,
                 </ike>
             </security>
         </configuration>""".strip()
+
     print("Generated IKE Proposal Configuration:")
     return ike_proposal_xml
 
@@ -199,9 +202,10 @@ def sub_xml_config(data):
 def create_xml_elements_from_dict(proposal):
     elements = []
     for key, value in proposal.items():
-        if value:  
+        if value and key != "name": 
             elements.append(f"""
                             <{key}>{value}</{key}>""")
     return "\n".join(elements)
+
 
 

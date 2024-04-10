@@ -90,8 +90,6 @@ class IkePolicyManager:
     #             print("No existing IKE Proposal exist on the device")
     #     except ValueError as e:
     #         print(f"An error has occured, {e}")
-
-    
     # def delete_ike_policy(self):
     #     *_, ike_proposal_names = self.get_proposals(get_raw_data=True)
     #     payload = delete_ike_proposal(ike_proposal_names)

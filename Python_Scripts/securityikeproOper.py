@@ -125,14 +125,11 @@ class IkeProposalManager:
                 used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
             if not ike_prop_name:
                 ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
-        print(direct_del, ike_prop_name, commit, key_values)
         payload = delete_ike_proposal(ike_proposal_names=ike_prop_name,used_proposals=used_proposals, 
                                     direct_delete=direct_del,key_values=key_values)
         if commit and payload is not None:
             return run_pyez_tasks(self, payload, 'xml', **kwargs) 
         return payload
-
-
 
 
     def push_config(self):
