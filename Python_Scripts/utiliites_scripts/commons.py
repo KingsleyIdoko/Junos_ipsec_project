@@ -122,7 +122,15 @@ def get_ike_lifetime():
         ike_lifetime = 86400  
     return ike_lifetime
 
-
+def get_valid_passwd(prompt="Enter valid passwd"):
+    while True:
+        password = input(prompt)
+        pattern = r'^[a-zA-Z0-9#$"]+$'
+        if re.match(pattern, password):
+            print("Password is valid.")
+            return password  
+        else:
+            print("Password is invalid. It contains characters outside a-zA-Z0-9#$\".")
 
 
 

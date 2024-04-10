@@ -44,14 +44,19 @@ class IkeProposalManager:
                     continue
                 for _, result in response.items():
                     ike_config = result.result['configuration']['security'].get('ike', {})
-                    proposals = ike_config.get('proposal', [])
+                    proposals = ike_config.get('proposal', None)
                     proposals = [proposals] if isinstance(proposals, dict) else proposals
                     ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
                 if not proposals:  
                     print("No IKE configurations exist on the device.")
                     return None
                 if interactive:
-                    print(proposals)
+                    if interactive: print("No IKE Policy exists on the device" if proposals in ([], None) else proposals)
+
+                    # if proposals == [] or proposals is None:
+                    #     print("No IKE Policy exists on the device")
+                    # else:
+                    #     print(proposals)
                     return
                 if get_raw_data:
                     return ike_config, ike_proposal_names
@@ -107,7 +112,6 @@ class IkeProposalManager:
         except Exception as e:
             print(f"An error occurred: {e}")
             print("No existing IKE Proposals found on the device.")
-
 
     def delete_proposal(self, **kwargs):
         from securityikepolicy import IkePolicyManager

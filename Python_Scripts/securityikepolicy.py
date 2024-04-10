@@ -1,12 +1,12 @@
 
-from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, pyez_diff
+from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
-import os
+import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ikepolicy import gen_ikepolicy_config, extract_proposals
+from utiliites_scripts.ikepolicy import gen_ikepolicy_config, update_ike_policy
 from securityikeproOper import IkeProposalManager
-ike_proposal =  IkeProposalManager()
+
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -14,23 +14,24 @@ class IkePolicyManager:
     database = 'committed'
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
+        self.ike_proposal =  IkeProposalManager()
 
     def ike_operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. Get Ike Policy")
-            print("2. Create Ike Policy")
-            print("3. Update Ike Policy")
-            print("4. Delete Ike Policy")
+            print("1. get ike policy")
+            print("2. create ike policy")
+            print("3. update ike policy")
+            print("4. delete ike policy")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                response = self.get_ike_policy(interactive=True)
+                return self.get_ike_policy(interactive=True)
             elif operation == "2":
                 response = self.create_ike_policy()
                 return response
             elif operation == "3":
                 response = self.update_ike_policy()
-                return response
+                print(response)
             elif operation == "4":
                 response =  self.delete_ike_policy()
                 return response
@@ -48,22 +49,20 @@ class IkePolicyManager:
                 if response:
                     for _, result in response.items():
                         ike_config = result.result['configuration']['security'].get('ike', {})
+                        proposals = ike_config.get('proposal', [])
+                        ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
                         if ike_config:
-                            ike_policy = ike_config.get('policy', [])
-                            ike_policy = [ike_policy] if isinstance(ike_policy, dict) else ike_policy
+                            raw_ike_policy = ike_config.get('policy', [])
+                            ike_policy = [raw_ike_policy] if isinstance(raw_ike_policy, dict) else raw_ike_policy
                             ike_policy_names = [policy['name'] for policy in ike_policy if 'name' in policy]
-                            if get_proposals:
-                                get_used_proposals = extract_proposals(ike_policy)
                         else:
                             print("No IKE configuration found on the device.")
                             break
-                    if interactive and ike_policy_names:
-                        print(ike_policy_names)
-                    if get_proposals and get_used_proposals:
-                        return get_used_proposals
-                    if get_raw_data and ike_config:
-                        return ike_config, ike_policy_names
-                    return ike_policy_names or None
+                    if interactive:
+                        print("No existing IKE Policy on the device" if raw_ike_policy in ([], None) else raw_ike_policy)
+                        return None
+                    if get_raw_data and raw_ike_policy:
+                        return raw_ike_policy, ike_proposal_names or None
             except Exception as e:
                 print(f"An error has occurred: {e}. Trying again...")
             attempt += 1
@@ -73,39 +72,44 @@ class IkePolicyManager:
     
     def create_ike_policy(self):
         old_ike_policy = self.get_ike_policy()
-        ike_proposal_names = ike_proposal.get_ike_proposals()
-        if not old_ike_policy:
+        ike_proposal = self.ike_proposal.get_ike_proposals()
+        if not ike_proposal:
             print("No existing IKE Proposal found on the device")
-        payload = gen_ikepolicy_config(old_ike_policy, ike_proposal_names)
+            return None
+        payload = gen_ikepolicy_config(old_ike_policy=old_ike_policy, ike_proposal=ike_proposal)
+        print(payload)
         return payload
 
-    # def update_ike_policy(self):
-    #     try:
-    #         ike_configs, ike_proposal_names = self.get_proposals(get_raw_data=True)
-    #         if ike_configs:
-    #             updated_proposal = extract_and_update_proposal(ike_configs)
-    #             payload = gen_ikeproposal_xml(updated_proposal, ike_proposal_names)
-    #             return payload
-    #         else:
-    #             print("No existing IKE Proposal exist on the device")
-    #     except ValueError as e:
-    #         print(f"An error has occured, {e}")
+    def update_ike_policy(self):
+        try:
+            ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
+            return update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
+        except ValueError as e:
+            print(f"An error has occured, {e}")
     # def delete_ike_policy(self):
     #     *_, ike_proposal_names = self.get_proposals(get_raw_data=True)
     #     payload = delete_ike_proposal(ike_proposal_names)
     #     return payload
 
     def push_config(self):
-        xml_data = self.ike_operations()
-        print(xml_data)
-        if not xml_data:
-            return 
-        elif isinstance(xml_data, list):
-            for xml in xml_data:
-                run_pyez_tasks(self, xml, 'xml') 
-            return None
-        else:
-             run_pyez_tasks(self, xml_data, 'xml') 
+        try:
+            xml_data = self.ike_operations()
+            if not xml_data:
+                logging.info("No XML data to push.")
+                return
+            if isinstance(xml_data, list):
+                for xml in xml_data:
+                    try:
+                        run_pyez_tasks(self, xml, 'xml')
+                    except Exception as e:
+                        logging.error(f"Failed to push configuration for {xml}: {e}")
+            else:
+                try:
+                    run_pyez_tasks(self, xml_data, 'xml')
+                except Exception as e:
+                    logging.error(f"Failed to push configuration: {e}")
+        except Exception as e:
+            logging.error(f"Error in push_config: {e}")
 
 if __name__ == "__main__":
     config = IkePolicyManager()
