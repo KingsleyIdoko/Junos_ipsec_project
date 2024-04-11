@@ -4,7 +4,8 @@ from nornir import InitNornir
 from rich import print
 import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ikepolicy import gen_ikepolicy_config, update_ike_policy
+from utiliites_scripts.ikepolicy import (gen_ikepolicy_config, update_ike_policy,
+                                         delete_ike_policy)
 from securityikeproOper import IkeProposalManager
 
 
@@ -39,7 +40,7 @@ class IkePolicyManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, get_proposals=False):
+    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, get_policy_name=False):
         attempt = 0
         ike_policy_names = []
         get_used_proposals = None  
@@ -61,6 +62,8 @@ class IkePolicyManager:
                     if interactive:
                         print("No existing IKE Policy on the device" if raw_ike_policy in ([], None) else raw_ike_policy)
                         return None
+                    if get_policy_name:
+                        return ike_policy_names
                     if get_raw_data and raw_ike_policy:
                         return raw_ike_policy, ike_proposal_names or None
             except Exception as e:
@@ -83,13 +86,17 @@ class IkePolicyManager:
     def update_ike_policy(self):
         try:
             ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
-            return update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
+            payload, del_policy = update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
+            print(payload)
+            print(del_policy)
         except ValueError as e:
             print(f"An error has occured, {e}")
-    # def delete_ike_policy(self):
-    #     *_, ike_proposal_names = self.get_proposals(get_raw_data=True)
-    #     payload = delete_ike_proposal(ike_proposal_names)
-    #     return payload
+        
+    def delete_ike_policy(self):
+        policy_name = self.get_ike_policy(get_policy_name=True)
+        used_policy = None
+        payload = delete_ike_policy(policy_name=policy_name,used_policy=used_policy)
+        return payload
 
     def push_config(self):
         try:

@@ -61,6 +61,7 @@ def select_policy_to_update(ike_policies):
 
 def update_ike_policy(**kwargs):
     ike_policies = kwargs.get('ike_configs')
+    proposals = kwargs.get('proposal_names')
     selected_policy = select_policy_to_update(ike_policies)
     if not selected_policy:
         print("No policy selected or invalid selection. Exiting update process.")
@@ -75,10 +76,81 @@ def update_ike_policy(**kwargs):
     attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
     selected_attribute_description = get_valid_selection("Select an attribute to update", attribute_keys)
     selected_key = selected_attribute_description.split(':')[0]
-    new_value = input(f"Enter the new value for {selected_key}: ")
     if selected_key == 'pre-shared-key':
         selected_policy[selected_key] = {'ascii-text': new_value}
-    else:
+    elif selected_key == 'proposals':
+        selected_policy[selected_key] = get_valid_selection("Select proposal to update: ", proposals)
+    elif selected_key == 'mode':
+        mode_choice = ["main","aggressive"] 
+        selected_policy[selected_key] = get_valid_selection("Select proposal to update: ", mode_choice)
+    elif selected_key == "name":
+        old_policy_name = selected_key['name']
+        new_value = get_valid_name(f"Enter the new value for {selected_key}: ")   
         selected_policy[selected_key] = new_value
-    
+    elif selected_key == "description":
+        new_value = get_valid_string(f"Enter the new value for {selected_key}: ")   
+        selected_policy[selected_key] = new_value       
+    if selected_key != 'name':
+        payload = f"""
+        <configuration junos:commit-seconds="1712734023" junos:commit-localtime="2024-04-10 07:27:03 UTC" junos:commit-user="root">
+                <security>
+                    <ike>
+                        <policy>
+                            <name>{new_value}</name>
+                            <mode>{policy_attributes['mode']}</mode>
+                            <proposals>{policy_attributes['proposals']}</proposals>
+                            <pre-shared-key>
+                                <ascii-text>{policy_attributes['pre-shared-key']['ascii-text']}</ascii-text>
+                            </pre-shared-key>
+                        </policy>
+                    </ike>
+                </security>
+        </configuration>""".strip()
+    else:
+        payload = f"""
+        <configuration>
+                <security>
+                    <ike>
+                      <policy>
+                        <name>{selected_policy['name']}</name>
+                        <mode>{selected_policy['mode']}</mode>
+                        <proposals>{selected_policy['proposals']}</proposals>
+                        <pre-shared-key>
+                            <ascii-text>{selected_policy['pre-shared-key']['ascii-text']}</ascii-text>
+                        </pre-shared-key>
+                    </policy>
+                    </ike>
+                </security>
+        </configuration>""".strip()
+    return payload, old_policy_name if old_policy_name else payload, None
 
+
+def delete_ike_policy(**kwargs):
+    try:
+        policy_names = kwargs.get("policy_name")
+        if not policy_names:
+            raise ValueError("No policy names provided for deletion.")
+        used_policy = kwargs.get("used_policy", [])
+        if isinstance(used_policy, list):
+            used_policy = [used_policy]
+        del_policy_name = get_valid_selection("Select Policy to delete: ", policy_names)
+        if not del_policy_name:
+            raise ValueError("Invalid selection or no selection made.")
+        if used_policy != None:
+            if del_policy_name in used_policy:
+                message = f"{del_policy_name} is referenced in an IKE Gateway and cannot be deleted."
+                raise ReferenceError(message)
+        payload = f"""
+            <configuration>
+                    <security>
+                        <ike>
+                            <policy operation="delete">
+                                <name>{del_policy_name}</name>
+                            </policy>
+                        </ike>
+                    </security>
+            </configuration>""".strip()
+        return payload
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    return None
