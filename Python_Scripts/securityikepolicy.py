@@ -5,7 +5,7 @@ from rich import print
 import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.ikepolicy import (gen_ikepolicy_config, update_ike_policy,
-                                         delete_ike_policy)
+                                         del_ike_policy)
 from securityikeproOper import IkeProposalManager
 
 
@@ -74,7 +74,7 @@ class IkePolicyManager:
 
     
     def create_ike_policy(self):
-        old_ike_policy = self.get_ike_policy()
+        old_ike_policy = self.get_ike_policy(get_policy_name=True)
         ike_proposal = self.ike_proposal.get_ike_proposals()
         if not ike_proposal:
             print("No existing IKE Proposal found on the device")
@@ -87,15 +87,15 @@ class IkePolicyManager:
         try:
             ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
             payload, del_policy = update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
-            print(payload)
-            print(del_policy)
+            if del_policy:
+                self.delete_ike_policy(commit=True)
         except ValueError as e:
             print(f"An error has occured, {e}")
         
     def delete_ike_policy(self):
         policy_name = self.get_ike_policy(get_policy_name=True)
         used_policy = None
-        payload = delete_ike_policy(policy_name=policy_name,used_policy=used_policy)
+        payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
         return payload
 
     def push_config(self):

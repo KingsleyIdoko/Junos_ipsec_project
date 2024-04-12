@@ -5,6 +5,10 @@ from utiliites_scripts.commons import (get_valid_name, get_valid_string, get_val
 def gen_ikepolicy_config(**kwargs):
     old_ike_policy = kwargs.get('old_ike_policy',None)
     ike_proposal_names = kwargs.get('ike_proposal',None)
+    if old_ike_policy:
+        print(f"There are {len(old_ike_policy)} existing IKE Policy on the device")
+        for i, choice in enumerate(old_ike_policy, start=1):
+            print(f"{i}. {choice}")
     ike_policy_name = get_valid_name("Enter new IKE policy name: ")
     description = get_valid_string("Enter IKE Policy description: ", max_words=10)
     mode = prompt_for_ike_policy_mode()
@@ -65,67 +69,51 @@ def update_ike_policy(**kwargs):
     selected_policy = select_policy_to_update(ike_policies)
     if not selected_policy:
         print("No policy selected or invalid selection. Exiting update process.")
-        return
+        return None, None
     policy_attributes = {
         'name': selected_policy.get('name'),
         'mode': selected_policy.get('mode'),
         'description': selected_policy.get('description'),
         'proposals': selected_policy.get('proposals'),
-        'pre-shared-key': selected_policy.get('pre-shared-key', {}).get('ascii-text')
+        'pre-shared-key': selected_policy.get('pre-shared-key', {}).get('ascii-text', '')  
     }
     attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
-    selected_attribute_description = get_valid_selection("Select an attribute to update", attribute_keys)
-    selected_key = selected_attribute_description.split(':')[0]
+    selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
+    selected_key = selected_attribute.split(':')[0].strip()
+    old_policy_name = selected_policy['name']
     if selected_key == 'pre-shared-key':
+        new_value = get_valid_passwd("Please enter new password: ")
         selected_policy[selected_key] = {'ascii-text': new_value}
     elif selected_key == 'proposals':
-        selected_policy[selected_key] = get_valid_selection("Select proposal to update: ", proposals)
+        selected_policy[selected_key] = get_valid_selection("Select a new proposal: ", proposals)
     elif selected_key == 'mode':
-        mode_choice = ["main","aggressive"] 
-        selected_policy[selected_key] = get_valid_selection("Select proposal to update: ", mode_choice)
-    elif selected_key == "name":
-        old_policy_name = selected_key['name']
-        new_value = get_valid_name(f"Enter the new value for {selected_key}: ")   
-        selected_policy[selected_key] = new_value
-    elif selected_key == "description":
-        new_value = get_valid_string(f"Enter the new value for {selected_key}: ")   
-        selected_policy[selected_key] = new_value       
-    if selected_key != 'name':
-        payload = f"""
-        <configuration junos:commit-seconds="1712734023" junos:commit-localtime="2024-04-10 07:27:03 UTC" junos:commit-user="root">
-                <security>
-                    <ike>
-                        <policy>
-                            <name>{new_value}</name>
-                            <mode>{policy_attributes['mode']}</mode>
-                            <proposals>{policy_attributes['proposals']}</proposals>
-                            <pre-shared-key>
-                                <ascii-text>{policy_attributes['pre-shared-key']['ascii-text']}</ascii-text>
-                            </pre-shared-key>
-                        </policy>
-                    </ike>
-                </security>
-        </configuration>""".strip()
+        selected_policy[selected_key] = get_valid_selection("Select a new mode: ", ["main", "aggressive"])
+    elif selected_key == 'description':
+        selected_policy[selected_key] = get_valid_string("Enter new description: ")
     else:
-        payload = f"""
-        <configuration>
-                <security>
-                    <ike>
-                      <policy>
-                        <name>{selected_policy['name']}</name>
-                        <mode>{selected_policy['mode']}</mode>
-                        <proposals>{selected_policy['proposals']}</proposals>
-                        <pre-shared-key>
-                            <ascii-text>{selected_policy['pre-shared-key']['ascii-text']}</ascii-text>
-                        </pre-shared-key>
-                    </policy>
-                    </ike>
-                </security>
-        </configuration>""".strip()
-    return payload, old_policy_name if old_policy_name else payload, None
+        new_value = get_valid_name(f"Enter the new value for {selected_key}: ")  
+        selected_policy[selected_key] = new_value
+    payload = f"""
+    <configuration>
+        <security>
+            <ike>
+                <policy>
+                    <name>{selected_policy['name']}</name>
+                    <mode>{selected_policy['mode']}</mode>
+                    <description>{selected_policy['description']}</description>
+                    <proposals>{selected_policy['proposals']}</proposals>
+                    <pre-shared-key>
+                        <ascii-text>{selected_policy['pre-shared-key']['ascii-text']}</ascii-text>
+                    </pre-shared-key>
+                </policy>
+            </ike>
+        </security>
+    </configuration>""".strip()
+    return payload, old_policy_name if old_policy_name != selected_policy['name'] else payload, None
 
 
-def delete_ike_policy(**kwargs):
+
+def del_ike_policy(**kwargs):
     try:
         policy_names = kwargs.get("policy_name")
         if not policy_names:
