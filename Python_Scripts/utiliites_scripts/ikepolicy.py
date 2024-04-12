@@ -67,32 +67,39 @@ def update_ike_policy(**kwargs):
     ike_policies = kwargs.get('ike_configs')
     proposals = kwargs.get('proposal_names')
     selected_policy = select_policy_to_update(ike_policies)
+    old_policy_name = selected_policy['name']
     if not selected_policy:
         print("No policy selected or invalid selection. Exiting update process.")
         return None, None
-    policy_attributes = {
-        'name': selected_policy.get('name'),
-        'mode': selected_policy.get('mode'),
-        'description': selected_policy.get('description'),
-        'proposals': selected_policy.get('proposals'),
-        'pre-shared-key': selected_policy.get('pre-shared-key', {}).get('ascii-text', '')  
-    }
-    attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
-    selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
-    selected_key = selected_attribute.split(':')[0].strip()
-    old_policy_name = selected_policy['name']
-    if selected_key == 'pre-shared-key':
-        new_value = get_valid_passwd("Please enter new password: ")
-        selected_policy[selected_key] = {'ascii-text': new_value}
-    elif selected_key == 'proposals':
-        selected_policy[selected_key] = get_valid_selection("Select a new proposal: ", proposals)
-    elif selected_key == 'mode':
-        selected_policy[selected_key] = get_valid_selection("Select a new mode: ", ["main", "aggressive"])
-    elif selected_key == 'description':
-        selected_policy[selected_key] = get_valid_string("Enter new description: ")
-    else:
-        new_value = get_valid_name(f"Enter the new value for {selected_key}: ")  
-        selected_policy[selected_key] = new_value
+    
+    continue_update = True
+    while continue_update:
+        policy_attributes = {
+            'name': selected_policy.get('name'),
+            'mode': selected_policy.get('mode'),
+            'description': selected_policy.get('description'),
+            'proposals': selected_policy.get('proposals'),
+            'pre-shared-key': selected_policy.get('pre-shared-key', {}).get('ascii-text', '')
+        }
+        attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
+        selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
+        selected_key = selected_attribute.split(':')[0].strip()
+        if selected_key == 'pre-shared-key':
+            new_value = get_valid_passwd("Please enter new password: ")
+            selected_policy[selected_key] = {'ascii-text': new_value}
+        elif selected_key == 'proposals':
+            selected_policy[selected_key] = get_valid_selection("Select a new proposal: ", proposals)
+        elif selected_key == 'mode':
+            selected_policy[selected_key] = get_valid_selection("Select a new mode: ", ["main", "aggressive"])
+        elif selected_key == 'description':
+            selected_policy[selected_key] = get_valid_string("Enter new description: ")
+        else:
+            new_value = get_valid_name(f"Enter the new value for {selected_key}: ")  
+            selected_policy[selected_key] = new_value
+        
+        another_change = input("Would you like to make another change? (yes/no): ").strip().lower()
+        if another_change != 'yes':
+            continue_update = False
     payload = f"""
     <configuration>
         <security>
@@ -109,8 +116,7 @@ def update_ike_policy(**kwargs):
             </ike>
         </security>
     </configuration>""".strip()
-    return payload, old_policy_name if old_policy_name != selected_policy['name'] else payload, None
-
+    return (payload, old_policy_name) if old_policy_name != selected_policy['name'] else (payload, None)
 
 
 def del_ike_policy(**kwargs):
@@ -121,7 +127,10 @@ def del_ike_policy(**kwargs):
         used_policy = kwargs.get("used_policy", [])
         if isinstance(used_policy, list):
             used_policy = [used_policy]
-        del_policy_name = get_valid_selection("Select Policy to delete: ", policy_names)
+        if not isinstance(policy_names, list):
+            del_policy_name = policy_names
+        else:
+            del_policy_name = get_valid_selection("Select Policy to delete: ", policy_names)
         if not del_policy_name:
             raise ValueError("Invalid selection or no selection made.")
         if used_policy != None:

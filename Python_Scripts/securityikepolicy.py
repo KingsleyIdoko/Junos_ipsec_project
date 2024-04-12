@@ -31,8 +31,7 @@ class IkePolicyManager:
                 response = self.create_ike_policy()
                 return response
             elif operation == "3":
-                response = self.update_ike_policy()
-                print(response)
+                return self.update_ike_policy()
             elif operation == "4":
                 response =  self.delete_ike_policy()
                 return response
@@ -80,23 +79,30 @@ class IkePolicyManager:
             print("No existing IKE Proposal found on the device")
             return None
         payload = gen_ikepolicy_config(old_ike_policy=old_ike_policy, ike_proposal=ike_proposal)
-        print(payload)
         return payload
 
     def update_ike_policy(self):
         try:
             ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
             payload, del_policy = update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
+            print(del_policy)
             if del_policy:
-                self.delete_ike_policy(commit=True)
+                self.delete_ike_policy(commit=True, policy_name=del_policy)
+            return payload
         except ValueError as e:
             print(f"An error has occured, {e}")
         
-    def delete_ike_policy(self):
-        policy_name = self.get_ike_policy(get_policy_name=True)
-        used_policy = None
-        payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
-        return payload
+    def delete_ike_policy(self, commit=False, policy_name=None):
+        if not commit:
+            policy_name = self.get_ike_policy(get_policy_name=True)
+            used_policy = None
+            payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
+            return payload
+        else:
+            policy_name=policy_name
+            used_policy = None
+            payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
+            run_pyez_tasks(self, payload, 'xml')
 
     def push_config(self):
         try:
