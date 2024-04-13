@@ -36,13 +36,13 @@ def gen_ikepolicy_config(**kwargs):
             </ike>
         </security>
     </configuration>""".strip()
-    print(payload)
     return payload
 
 
 def prompt_for_ike_policy_mode():
     while True:
-        mode = get_valid_name("Select IKE Policy mode: ")
+        sel_mode = ["main", "aggressive"]
+        mode = get_valid_selection("Select IKE Policy mode: ", sel_mode)
         if mode.lower() in ["main", "aggressive"]:
             return mode
         print("Invalid mode selected. Please choose either 'main' or 'aggressive'.")
