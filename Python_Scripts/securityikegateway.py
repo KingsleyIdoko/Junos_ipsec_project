@@ -8,7 +8,7 @@ from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_
                                          update_ikeproposal_xml, delete_ike_proposal)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class IkeProposalManager:
+class IkeGatewayManager:
     database = 'committed'
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
@@ -16,24 +16,24 @@ class IkeProposalManager:
     def ike_operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. Get Ike Proposals")
-            print("2. Create Ike Proposal")
-            print("3. Update Ike Proposal")
-            print("4. Delete Ike Proposal")
+            print("1. Get Ike Gateways")
+            print("2. Create Ike gateway")
+            print("3. Update Ike gateway")
+            print("4. Delete Ike gateway")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                return self.get_ike_proposals(interactive=True)
+                return self.get_ike_gateway(interactive=True)
             elif operation == "2":
-                return self.create_proposal()
+                return self.create_gateway()
             elif operation == "3":
-                return self.update_proposal()
+                return self.update_gateway()
             elif operation == "4":
-                return  self.delete_proposal()
+                return  self.delete_gateway()
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_proposals(self, interactive=False, get_raw_data=False, retries=3):
+    def get_ike_gateways(self, interactive=False, get_raw_data=False, retries=3):
         attempt = 0
         while attempt < retries:
             try:
@@ -44,19 +44,14 @@ class IkeProposalManager:
                     continue
                 for _, result in response.items():
                     ike_config = result.result['configuration']['security'].get('ike', {})
-                    proposals = ike_config.get('proposal', None)
+                    proposals = ike_config.get('proposal', [])
                     proposals = [proposals] if isinstance(proposals, dict) else proposals
                     ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
                 if not proposals:  
                     print("No IKE configurations exist on the device.")
                     return None
                 if interactive:
-                    if interactive: print("No IKE Policy exists on the device" if proposals in ([], None) else proposals)
-
-                    # if proposals == [] or proposals is None:
-                    #     print("No IKE Policy exists on the device")
-                    # else:
-                    #     print(proposals)
+                    print(proposals)
                     return
                 if get_raw_data:
                     return ike_config, ike_proposal_names
@@ -68,7 +63,7 @@ class IkeProposalManager:
         print("Failed to retrieve proposals after several attempts due to connectivity issues.")
         return None
 
-    def create_proposal(self):
+    def create_ike_gateway(self):
         try:
             old_proposals = self.get_ike_proposals()
             if not old_proposals:
@@ -81,7 +76,7 @@ class IkeProposalManager:
             return None
 
     
-    def update_proposal(self):
+    def update_ike_gateway(self):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
         try:
@@ -113,7 +108,7 @@ class IkeProposalManager:
             print(f"An error occurred: {e}")
             print("No existing IKE Proposals found on the device.")
 
-    def delete_proposal(self, **kwargs):
+    def delete_ike_gateway(self, **kwargs):
         from securityikepolicy import IkePolicyManager
         policy_manager = IkePolicyManager()
         direct_del = kwargs.get('direct_del', False)
@@ -158,5 +153,5 @@ class IkeProposalManager:
 
 
 if __name__ == "__main__":
-    config = IkeProposalManager()
+    config = IkeGatewayManager()
     response = config.push_config()
