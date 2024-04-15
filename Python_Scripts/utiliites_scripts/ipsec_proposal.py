@@ -1,48 +1,52 @@
-from utiliites_scripts.commons import (get_valid_name, get_valid_string, get_valid_integer,
-                                    get_valid_selection, get_valid_passwd)
+from utiliites_scripts.commons import (get_valid_name, get_valid_string, get_ike_lifetime,
+                                        get_valid_selection, get_valid_passwd)
+select_enc_algo = ['3des-cbc', 'aes-128-cbc', 'aes-128-gcm', 'aes-192-cbc', 'aes-192-gcm','aes-256-cbc', 'aes-256-gcm', 'des-cbc']
+select_auth_algo = ['hmac-md5-96', 'hmac-sha-256-128', 'hmac-sha1-96']
+ipsec_encaps  = ["esp", "ah"]
 
 def gen_ipsec_proposal_config(**kwargs):
-    old_ipsec_proposal = kwargs.get('old_ipsec_proposal',None)
-    ipsec_proposal_names = kwargs.get('ipsec_proposal',None)
+    old_ipsec_proposal = kwargs.get('old_ipsec_proposal', None)
     if old_ipsec_proposal:
         print(f"There are {len(old_ipsec_proposal)} existing IPsec Policy on the device")
         for i, choice in enumerate(old_ipsec_proposal, start=1):
             print(f"{i}. {choice}")
     ipsec_policy_name = get_valid_name("Enter new IPsec Proposal name: ")
     description = get_valid_string("Enter IPsec proposal description: ", max_words=10)
-    protocol = ipsec_proposal_protocol()
+    protocol = ipsec_selection(prompt="Select IPsec Encapsulation Protocol: ", sel=ipsec_encaps)
+    encryption_algorithm = ipsec_selection(prompt="Select IPsec Encryption Algorithm: ", sel=select_enc_algo)
+    auth_algorithm = ''
+    if "gcm" not in encryption_algorithm:
+        auth_algorithm = ipsec_selection(prompt="Select IPsec Auth Algorithm: ", sel=select_auth_algo)
+    ipsec_lifetime = get_ike_lifetime()
     if old_ipsec_proposal:
-        last_ipsec_name = old_ipsec_proposal[-1] 
+        last_ipsec_name = old_ipsec_proposal[-1]
         insert_attribute = f'insert="after" key="[ name=\'{last_ipsec_name}\' ]"'
     else:
         insert_attribute = ""
         print("No existing IPSEC policies found. Creating the first policy.")
-    ipsec_proposal_name = get_valid_selection("Select an IPSEC Proposal: ", ipsec_proposal_names)
     payload = f"""
-    <configuration>
-            <security>
-                <ipsec {insert_attribute} operation="create">
-                    <proposal>
-                        <name>{ipsec_policy_name}</name>
-                        <description>{}</description>
-                        <protocol>{}</protocol>
-                        <authentication-algorithm>{}</authentication-algorithm>
-                        <encryption-algorithm>{}</encryption-algorithm>
-                        <lifetime-kilobytes>{}</lifetime-kilobytes>
-                    </proposal>
-                </ipsec>
-            </security>
+        <configuration>
+        <security>
+            <ipsec {insert_attribute} operation="create">
+                <proposal>
+                    <name>{ipsec_policy_name}</name>
+                    <description>{description}</description>
+                    <protocol>{protocol}</protocol>
+                    <encryption-algorithm>{encryption_algorithm}</encryption-algorithm>
+                    {'<authentication-algorithm>' + auth_algorithm + '</authentication-algorithm>' if auth_algorithm else ''}
+                    <lifetime-kilobytes>{ipsec_lifetime}</lifetime-kilobytes>
+                </proposal>
+            </ipsec>
+        </security>
     </configuration>""".strip()
     return payload
 
-
-def ipsec_proposal_protocol():
+def ipsec_selection(prompt, sel):
     while True:
-        sel_mode = ["esp", "ah"]
-        mode = get_valid_selection("Select IPsec Proposal Protocol: ", sel_mode)
-        if mode.lower() in ["esp", "ah"]:
-            return mode
-        print("Invalid mode selected. Please choose either 'esp' or 'ah'.")
+        selection = get_valid_selection(prompt, sel)
+        if selection.lower() in [s.lower() for s in sel]:
+            return selection
+        print("Invalid selection. Please try again.")
 
 
 def extract_proposals(ike_policy):
@@ -98,19 +102,18 @@ def update_ike_policy(**kwargs):
             continue_update = False
     payload = f"""
     <configuration>
-        <security>
-            <ike>
-                <policy>
-                    <name>{selected_policy['name']}</name>
-                    <mode>{selected_policy['mode']}</mode>
-                    <description>{selected_policy['description']}</description>
-                    <proposals>{selected_policy['proposals']}</proposals>
-                    <pre-shared-key>
-                        <ascii-text>{selected_policy['pre-shared-key']['ascii-text']}</ascii-text>
-                    </pre-shared-key>
-                </policy>
-            </ike>
-        </security>
+            <security>
+                <ipsec operation="create">
+                    <proposal>
+                        <name>ipsec_proposal_1</name>
+                        <description>This is Ipsec Proposal 1</description>
+                        <protocol>esp</protocol>
+                        <authentication-algorithm>hmac-sha-256-128</authentication-algorithm>
+                        <encryption-algorithm>aes-128-gcm</encryption-algorithm>
+                        <lifetime-kilobytes>86400</lifetime-kilobytes>
+                    </proposal>
+                </ipsec>
+            </security>
     </configuration>""".strip()
     return (payload, old_policy_name) if old_policy_name != selected_policy['name'] else (payload, None)
 

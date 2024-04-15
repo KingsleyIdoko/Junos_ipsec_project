@@ -68,6 +68,7 @@ class IPsecProposalManager:
             if not old_ipsec_proposal:
                 print("No existing IPSEC Proposal found on the device")
             payload = gen_ipsec_proposal_config(old_ipsec_proposal=old_ipsec_proposal)
+            print(payload)
             return payload
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -103,20 +104,20 @@ class IPsecProposalManager:
     def push_config(self):
         try:
             xml_data = self.ipsec_operations()
-            # if not xml_data:
-            #     logging.info("No XML data to push.")
-            #     return
-            # if isinstance(xml_data, list):
-            #     for xml in xml_data:
-            #         try:
-            #             run_pyez_tasks(self, xml, 'xml')
-            #         except Exception as e:
-            #             logging.error(f"Failed to push configuration for {xml}: {e}")
-            # else:
-            #     try:
-            #         run_pyez_tasks(self, xml_data, 'xml')
-            #     except Exception as e:
-            #         logging.error(f"Failed to push configuration: {e}")
+            if not xml_data:
+                logging.info("No XML data to push.")
+                return
+            if isinstance(xml_data, list):
+                for xml in xml_data:
+                    try:
+                        run_pyez_tasks(self, xml, 'xml')
+                    except Exception as e:
+                        logging.error(f"Failed to push configuration for {xml}: {e}")
+            else:
+                try:
+                    run_pyez_tasks(self, xml_data, 'xml')
+                except Exception as e:
+                    logging.error(f"Failed to push configuration: {e}")
         except Exception as e:
             logging.error(f"Error in push_config: {e}")
 
