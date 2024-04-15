@@ -41,9 +41,7 @@ def append_nat_data(result, hostname, remote_subnets, source_subnet):
 
 
 def Serialize_nat_data(nat_data):
-    # Initialize an empty list for the result
     result = []
-    # Get the name of the rule
     try:
         name = nat_data.get('name')
         dst = [nat_data['src-nat-rule-match'].get('destination-address')]

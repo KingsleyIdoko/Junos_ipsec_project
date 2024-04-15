@@ -40,7 +40,6 @@ class NatPolicyManager:
                 return self.delete_nat_rule()
             else:
                 print("Invalid choice. Please specify a valid operation.")
-                # Instead of recursively calling nat_operations, just continue the loop
                 continue
 
     def get_nat_data(self):

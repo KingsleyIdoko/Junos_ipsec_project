@@ -21,7 +21,7 @@ def get_valid_name(prompt="Enter a valid name: "):
         if re.match(pattern, name):
             return name
         else:
-            print("Invalid name. Ensure it's one word, doesn't start with a number, and contains only A-Z, a-z, 0-9, underscores (_), hyphens (-), or asterisks (*).")
+            print("Invalid name Entered. Try again")
 
 def get_valid_choice(prompt, choices):
     while True:
@@ -53,7 +53,6 @@ def get_valid_integer(prompt="Enter a number: "):
         except ValueError:
             print("Invalid input. Please enter a valid Number.")
 
-
 def get_valid_ipv4_address(prompt="Enter an IPv4 address: "):
     while True:
         try:
@@ -73,10 +72,8 @@ def get_valid_ipv4_address(prompt="Enter an IPv4 address: "):
 def get_vlan_names_by_ids(received_vlans):
     input_str = input("Enter VLANs to assign (comma-separated, e.g. 10,20,40): ")
     vlan_ids = [vlan_id.strip() for vlan_id in input_str.split(',')]
-    
     existing_vlan_names = []
     non_existing_vlan_ids = []
-
     for vlan_id in vlan_ids:
         found = False
         for vlan in received_vlans['vlan']:
@@ -86,17 +83,14 @@ def get_vlan_names_by_ids(received_vlans):
                 break
         if not found:
             non_existing_vlan_ids.append(vlan_id)
-    
     if existing_vlan_names:
         print(f"Existing VLAN Names: {existing_vlan_names}")
     else:
         print("No matching VLANs found.")
-
     if non_existing_vlan_ids:
         print(f"Non-existing VLAN IDs: {non_existing_vlan_ids}")
     else:
         print("All entered VLAN IDs exist.")
-    
     return existing_vlan_names, non_existing_vlan_ids
     
 
@@ -104,12 +98,12 @@ def is_valid_interfaces():
     pattern = r"^(ge|xe|et)-[0-9]/[0-9]/(?:[0-5]?[0-9]|60)$"
     while True:
         interface_name = input("Enter the interface name (or 'exit' to stop): ")
-        if interface_name.lower() == 'exit':  # Provide a way to exit the loop
+        if interface_name.lower() == 'exit':  
             print("Exiting...")
             return None
         if bool(re.match(pattern, interface_name)):
             print(f"{interface_name} is a valid interface name.")
-            return interface_name  # Return the valid interface name
+            return interface_name  
         else:
             print(f"{interface_name} is not a valid interface name. Please try again.")
 
@@ -119,7 +113,7 @@ def get_ike_lifetime():
         ike_lifetime = int(ike_lifetime)
         ike_lifetime = max(180, min(ike_lifetime, 86400))
     else:
-        ike_lifetime = 86400  
+        ike_lifetime = 86400
     return ike_lifetime
 
 def get_valid_passwd(prompt="Enter valid passwd"):

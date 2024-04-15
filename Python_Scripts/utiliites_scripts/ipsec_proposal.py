@@ -1,50 +1,48 @@
 from utiliites_scripts.commons import (get_valid_name, get_valid_string, get_valid_integer,
                                     get_valid_selection, get_valid_passwd)
 
-def gen_ikepolicy_config(**kwargs):
-    old_ike_policy = kwargs.get('old_ike_policy',None)
-    ike_proposal_names = kwargs.get('ike_proposal',None)
-    if old_ike_policy:
-        print(f"There are {len(old_ike_policy)} existing IKE Policy on the device")
-        for i, choice in enumerate(old_ike_policy, start=1):
+def gen_ipsec_proposal_config(**kwargs):
+    old_ipsec_proposal = kwargs.get('old_ipsec_proposal',None)
+    ipsec_proposal_names = kwargs.get('ipsec_proposal',None)
+    if old_ipsec_proposal:
+        print(f"There are {len(old_ipsec_proposal)} existing IPsec Policy on the device")
+        for i, choice in enumerate(old_ipsec_proposal, start=1):
             print(f"{i}. {choice}")
-    ike_policy_name = get_valid_name("Enter new IKE policy name: ")
-    description = get_valid_string("Enter IKE Policy description: ", max_words=10)
-    mode = prompt_for_ike_policy_mode()
-    passwd = get_valid_passwd("Enter Valid Password: ")
-    if old_ike_policy:
-        last_policy_name = old_ike_policy[-1] 
-        insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]"'
+    ipsec_policy_name = get_valid_name("Enter new IPsec Proposal name: ")
+    description = get_valid_string("Enter IPsec proposal description: ", max_words=10)
+    protocol = ipsec_proposal_protocol()
+    if old_ipsec_proposal:
+        last_ipsec_name = old_ipsec_proposal[-1] 
+        insert_attribute = f'insert="after" key="[ name=\'{last_ipsec_name}\' ]"'
     else:
         insert_attribute = ""
-        print("No existing IKE policies found. Creating the first policy.")
-    ike_proposal_name = get_valid_selection("Select an IKE Proposal: ", ike_proposal_names)
+        print("No existing IPSEC policies found. Creating the first policy.")
+    ipsec_proposal_name = get_valid_selection("Select an IPSEC Proposal: ", ipsec_proposal_names)
     payload = f"""
     <configuration>
-        <security>
-            <ike>
-                <policy {insert_attribute} operation="create">
-                    <name>{ike_policy_name}</name>
-                    <description>{description}</description>
-                    <mode>{mode}</mode>
-                    <proposals>{ike_proposal_name}</proposals>
-                    <pre-shared-key>
-                        <ascii-text>{passwd}</ascii-text>
-                    </pre-shared-key>
-                </policy>
-            </ike>
-        </security>
+            <security>
+                <ipsec {insert_attribute} operation="create">
+                    <proposal>
+                        <name>{ipsec_policy_name}</name>
+                        <description>{}</description>
+                        <protocol>{}</protocol>
+                        <authentication-algorithm>{}</authentication-algorithm>
+                        <encryption-algorithm>{}</encryption-algorithm>
+                        <lifetime-kilobytes>{}</lifetime-kilobytes>
+                    </proposal>
+                </ipsec>
+            </security>
     </configuration>""".strip()
     return payload
 
 
-def prompt_for_ike_policy_mode():
+def ipsec_proposal_protocol():
     while True:
-        sel_mode = ["main", "aggressive"]
-        mode = get_valid_selection("Select IKE Policy mode: ", sel_mode)
-        if mode.lower() in ["main", "aggressive"]:
+        sel_mode = ["esp", "ah"]
+        mode = get_valid_selection("Select IPsec Proposal Protocol: ", sel_mode)
+        if mode.lower() in ["esp", "ah"]:
             return mode
-        print("Invalid mode selected. Please choose either 'main' or 'aggressive'.")
+        print("Invalid mode selected. Please choose either 'esp' or 'ah'.")
 
 
 def extract_proposals(ike_policy):

@@ -6,7 +6,7 @@ import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.ikepolicy import (gen_ikepolicy_config, update_ike_policy,
                                          del_ike_policy)
-from securityikeproOper import IkeProposalManager
+from securityikeproposal import IkeProposalManager
 
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -71,7 +71,6 @@ class IkePolicyManager:
         print("Failed to retrieve IKE policies after several attempts.")
         return None
 
-    
     def create_ike_policy(self):
         old_ike_policy = self.get_ike_policy(get_policy_name=True)
         ike_proposal = self.ike_proposal.get_ike_proposals()
