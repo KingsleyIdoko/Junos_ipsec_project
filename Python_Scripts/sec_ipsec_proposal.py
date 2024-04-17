@@ -4,7 +4,8 @@ from nornir import InitNornir
 from rich import print
 import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ipsec_proposal import gen_ipsec_proposal_config
+from utiliites_scripts.ipsec_proposal import (gen_ipsec_proposal_config,update_ipsec_proposal,
+                                              del_ipsec_proposal)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IPsecProposalManager:
@@ -75,31 +76,30 @@ class IPsecProposalManager:
             return None
 
     def update_ipsec_proposal(self):
-        pass
-        # old_gateway_name = payload =  None
-        # try:
-        #     ike_gateways = self.get_ike_gateways(get_raw_data=True)
-        #     if ike_gateways:
-        #         payload, old_gateway_name = extract_gateways_params(ike_gateways=ike_gateways)
-        #     if old_gateway_name:
-        #         self.delete_ike_gateway(commit=True, gateway_name=old_gateway_name)
-        #     return payload
-        # except Exception as e:
-        #     print(f"An error occurred: {e}")
-        #     print("No existing IKE gateways found on the device.")
+        old_ipsec_proposal = payload =  None
+        try:
+            ipsec_proposal = self.get_ipsec_proposal(get_raw_data=True)
+            if ipsec_proposal:
+                payload, old_ipsec_name = update_ipsec_proposal(ipsec_proposal=ipsec_proposal)
+                print(payload)
+            if old_ipsec_name:
+                self.delete_ipsec_proposal(commit=True, ipsec_proposal_name=old_ipsec_name)
+            return payload
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            print("No existing IKE gateways found on the device.")
 
-    def delete_ipsec_proposal(self, commit=False, gateway_name=None):
-        pass
-        # if not commit:
-        #     gateway_name = self.get_ike_gateways()
-        #     used_gateway = None
-        #     payload = del_ike_gateway(gateway_name=gateway_name,used_gateway=used_gateway)
-        #     return payload
-        # else:
-        #     gateway_name=gateway_name
-        #     used_gateway = None
-        #     payload = del_ike_gateway(gateway_name=gateway_name,used_gateway=used_gateway)
-        #     run_pyez_tasks(self, payload, 'xml')
+    def delete_ipsec_proposal(self, commit=False, ipsec_proposal_name=None):
+        if not commit:
+            ipsec_proposal_name = self.get_ipsec_proposal()
+            used_ipsec_proposals = None
+            payload = del_ipsec_proposal(ipsec_proposal_name=ipsec_proposal_name,used_ipsec_proposals=used_ipsec_proposals)
+            return payload
+        else:
+            ipsec_proposal_name=ipsec_proposal_name
+            used_ipsec_proposals = None
+            payload = del_ipsec_proposal(ipsec_proposal_name=ipsec_proposal_name,used_ipsec_proposals=used_ipsec_proposals)
+            run_pyez_tasks(self, payload, 'xml')
 
     def push_config(self):
         try:

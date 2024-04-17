@@ -15,7 +15,7 @@ def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10)
             print("Invalid input. Enter valid Characters")
 
 def get_valid_name(prompt="Enter a valid name: "):
-    pattern = r'^[a-zA-Z_*][a-zA-Z0-9_*-]*$'
+    pattern = r'^[a-zA-Z_-*][a-zA-Z0-9_*-]*$'
     while True:
         name = input(prompt)
         if re.match(pattern, name):
@@ -129,3 +129,7 @@ def get_valid_passwd(prompt="Enter valid passwd"):
 
 
 
+def print_xml_hierarchy(element, indent=""):
+    print(f"{indent}{element.tag}: {element.text if element.text.strip() else ''} {element.attrib}")
+    for child in element:
+        print_xml_hierarchy(child, indent + "    ")
