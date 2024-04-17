@@ -27,13 +27,11 @@ class IpsecPolicyManager:
             if operation == "1":
                 return self.get_ipsec_policy(interactive=True)
             elif operation == "2":
-                response = self.create_ipsec_policy()
-                return response
+                return self.create_ipsec_policy()
             elif operation == "3":
                 return self.update_ipsec_policy()
             elif operation == "4":
-                response =  self.delete_ipsec_policy()
-                return response
+                return self.delete_ipsec_policy()
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
@@ -81,9 +79,9 @@ class IpsecPolicyManager:
         try:
             ipsec_configs, proposal_names = self.get_ipsec_policy(get_raw_data=True)
             payload, del_policy = update_ipsec_policy(ipsec_configs=ipsec_configs, proposal_names=proposal_names)
-            print(del_policy)
+            print(payload)
             if del_policy:
-                self.delete_ike_policy(commit=True, policy_name=del_policy)
+                self.delete_ipsec_policy(commit=True, policy_name=del_policy)
             return payload
         except ValueError as e:
             print(f"An error has occured, {e}")
