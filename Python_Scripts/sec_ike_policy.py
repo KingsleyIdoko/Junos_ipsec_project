@@ -6,7 +6,7 @@ import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.ikepolicy import (gen_ikepolicy_config, update_ike_policy,
                                          del_ike_policy)
-from securityikeproposal import IkeProposalManager
+from sec_ike_proposal import IkeProposalManager
 
 
 script_dir = os.path.dirname(os.path.realpath(__file__))

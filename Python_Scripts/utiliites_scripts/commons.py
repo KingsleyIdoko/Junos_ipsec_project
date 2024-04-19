@@ -107,14 +107,16 @@ def is_valid_interfaces():
         else:
             print(f"{interface_name} is not a valid interface name. Please try again.")
 
-def get_ike_lifetime():
-    ike_lifetime = input("Enter IKE Security Association lifetime (180..86400 seconds or press Enter for default 86400): ")
+def get_ike_lifetime(prompt="Enter IKE Security Association lifetime (180..86400 seconds or press Enter for default 86400): ",
+                    default=86400):
+    ike_lifetime = input(prompt)
     if ike_lifetime.isdigit():
         ike_lifetime = int(ike_lifetime)
-        ike_lifetime = max(180, min(ike_lifetime, 86400))
+        ike_lifetime = max(180, min(ike_lifetime, 86400))  
     else:
-        ike_lifetime = 86400
+        ike_lifetime = default  
     return ike_lifetime
+
 
 def get_valid_passwd(prompt="Enter valid passwd"):
     while True:
@@ -125,9 +127,6 @@ def get_valid_passwd(prompt="Enter valid passwd"):
             return password  
         else:
             print("Password is invalid. It contains characters outside a-zA-Z0-9#$\".")
-
-
-
 
 def print_xml_hierarchy(element, indent=""):
     print(f"{indent}{element.tag}: {element.text if element.text.strip() else ''} {element.attrib}")

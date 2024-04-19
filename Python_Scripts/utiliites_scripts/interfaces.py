@@ -1,6 +1,6 @@
 import re
 import ipaddress
-from vlansOper import VlansManager
+from sec_vlans import VlansManager
 from utiliites_scripts.commons import (get_valid_ipv4_address, 
                                        get_valid_integer, 
                                        get_valid_string,

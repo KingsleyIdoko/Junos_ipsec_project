@@ -79,7 +79,6 @@ class IpsecPolicyManager:
         try:
             ipsec_configs, proposal_names = self.get_ipsec_policy(get_raw_data=True)
             payload, del_policy = update_ipsec_policy(ipsec_configs=ipsec_configs, proposal_names=proposal_names)
-            print(payload)
             if del_policy:
                 self.delete_ipsec_policy(commit=True, policy_name=del_policy)
             return payload
