@@ -69,6 +69,17 @@ def get_valid_ipv4_address(prompt="Enter an IPv4 address: "):
         except ValueError:
             print("Invalid input. Please enter a valid IPv4 address.")
 
+def get_valid_network_address(prompt):
+    while True:
+        user_input = input(prompt)
+        try:
+            network = ipaddress.ip_network(user_input, strict=True)
+            if network.prefixlen <= 32:
+                return str(network)
+        except ValueError:
+            print("Invalid input. Please enter a valid IPv4 network address.")
+
+
 def get_vlan_names_by_ids(received_vlans):
     input_str = input("Enter VLANs to assign (comma-separated, e.g. 10,20,40): ")
     vlan_ids = [vlan_id.strip() for vlan_id in input_str.split(',')]
@@ -95,9 +106,9 @@ def get_vlan_names_by_ids(received_vlans):
     
 
 def is_valid_interfaces():
-    pattern = r"^(ge|xe|et)-[0-9]/[0-9]/(?:[0-5]?[0-9]|60)$"
+    pattern = r"^(?:(ge|xe|et)-[0-9]/[0-9]/(?:[0-5]?[0-9]|60)|st0)$"
     while True:
-        interface_name = input("Enter the interface name (or 'exit' to stop): ")
+        interface_name = input("Enter the interface name (ge|xe|et)-[0-9]/[0-9]/(?:[0-5]?[0-9]|60)|st0): ")
         if interface_name.lower() == 'exit':  
             print("Exiting...")
             return None
@@ -106,6 +117,7 @@ def is_valid_interfaces():
             return interface_name  
         else:
             print(f"{interface_name} is not a valid interface name. Please try again.")
+
 
 def get_ike_lifetime(prompt="Enter IKE Security Association lifetime (180..86400 seconds or press Enter for default 86400): ",
                     default=86400):

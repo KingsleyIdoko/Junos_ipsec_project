@@ -9,7 +9,7 @@ from utiliites_scripts.security_zones import (select_zone, update_zone,
                                      list_zone, extract_zone_names, delete_sec_zone)
 from utiliites_scripts.interfaces import get_interfaces
 from utiliites_scripts.commit import run_pyez_tasks
-from addressbookOper import AddressBookService
+from sec_addressbook import AddressBookService
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 

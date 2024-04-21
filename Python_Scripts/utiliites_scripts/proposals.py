@@ -134,8 +134,10 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt, dh_group=dh_group,
                        auth_meth=auth_meth, auth_algo=auth_algo):
     if old_proposal_names:
         print(f"{len(old_proposal_names)} proposals already exist on the device.")
+        for index, proposal in enumerate(old_proposal_names, start=1):
+            print(f"{index}. {proposal}")
     while True:
-        ikeproposal_name = get_valid_name("Enter Ike Proposal Name: ")
+        ikeproposal_name = get_valid_name("Enter New IKE Proposal Name: ")
         if ikeproposal_name in old_proposal_names:
             print("Ike Proposal already exists, please enter a different name.")
             continue

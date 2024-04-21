@@ -69,7 +69,6 @@ class IPsecProposalManager:
             if not old_ipsec_proposal:
                 print("No existing IPSEC Proposal found on the device")
             payload = gen_ipsec_proposal_config(old_ipsec_proposal=old_ipsec_proposal)
-            print(payload)
             return payload
         except Exception as e:
             print(f"An error occurred: {e}")

@@ -77,13 +77,13 @@ class IkeProposalManager:
 
     
     def update_proposal(self):
-        from securityikepolicy import IkePolicyManager
+        from sec_ike_policy import IkePolicyManager
         policy_manager = IkePolicyManager()
         try:
             ike_configs, _ = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
                 try:
-                    used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+                    used_proposals = list(set(policy_manager.get_ike_policy(get_proposal_names=True)))
                 except:
                     used_proposals = None
                 updated_proposal, insert_after, old_name, desc, changed_key  = extract_and_update_proposal(ike_configs, 
@@ -109,19 +109,17 @@ class IkeProposalManager:
             print("No existing IKE Proposals found on the device.")
 
     def delete_proposal(self, **kwargs):
-        from securityikepolicy import IkePolicyManager
+        from sec_ike_policy import IkePolicyManager
         policy_manager = IkePolicyManager()
         direct_del = kwargs.get('direct_del', False)
         ike_prop_name = kwargs.get('ike_prop_name', None)
         commit = kwargs.get('commit', False)
         key_values = kwargs.get('key_values', None)
         try:
-            used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
+            used_proposals = list(set(policy_manager.get_ike_policy(get_proposal_names=True)))
         except:
             used_proposals = None
         if not direct_del:
-            if used_proposals:
-                used_proposals = list(set(policy_manager.get_ike_policy(get_proposals=True)))
             if not ike_prop_name:
                 ike_prop_name = self.get_ike_proposals(get_raw_data=True)[-1]
         payload = delete_ike_proposal(ike_proposal_names=ike_prop_name,used_proposals=used_proposals, 

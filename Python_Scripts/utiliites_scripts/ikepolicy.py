@@ -8,13 +8,18 @@ def gen_ikepolicy_config(**kwargs):
         print(f"There are {len(old_ike_policy)} existing IKE Policy on the device")
         for i, choice in enumerate(old_ike_policy, start=1):
             print(f"{i}. {choice}")
-    ike_policy_name = get_valid_name("Enter new IKE policy name: ")
+    while True:
+        ike_policy_name = get_valid_name("Enter new IKE policy name: ")
+        if ike_policy_name in old_ike_policy:
+            print("Name already used, Try another name")
+        break
     description = get_valid_string("Enter IKE Policy description: ", max_words=10)
     mode = prompt_for_ike_policy_mode()
     passwd = get_valid_passwd("Enter Valid Password: ")
     if old_ike_policy:
-        last_policy_name = old_ike_policy[-1] 
-        insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]"'
+        if len(old_ike_policy) > 1:
+            last_policy_name = old_ike_policy[-1] if ike_policy_name != old_ike_policy[-1] else old_ike_policy[-2]
+            insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]"'
     else:
         insert_attribute = ""
         print("No existing IKE policies found. Creating the first policy.")
@@ -35,6 +40,7 @@ def gen_ikepolicy_config(**kwargs):
             </ike>
         </security>
     </configuration>""".strip()
+    print(payload)
     return payload
 
 
@@ -61,15 +67,18 @@ def select_policy_to_update(ike_policies):
     else:
         print("Invalid selection.")
         return None
-
+    
 def update_ike_policy(**kwargs):
     ike_policies = kwargs.get('ike_configs')
     proposals = kwargs.get('proposal_names')
+    used_policy = kwargs.get('used_policy', [])
+    if not isinstance(used_policy, list):
+        used_policy = [used_policy]
     selected_policy = select_policy_to_update(ike_policies)
-    old_policy_name = selected_policy['name']
     if not selected_policy:
         print("No policy selected or invalid selection. Exiting update process.")
         return None, None
+    old_policy_name = selected_policy['name']
     continue_update = True
     while continue_update:
         policy_attributes = {
@@ -82,6 +91,13 @@ def update_ike_policy(**kwargs):
         attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
         selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
         selected_key = selected_attribute.split(':')[0].strip()
+        if selected_key == 'name' and selected_policy[selected_key] in used_policy:
+            print(f"Policy name {selected_policy[selected_key]} is in use by an IKE gateway and cannot be updated.")
+            if input("Do you want to update other parameters? (yes/no): ").strip().lower() != 'yes':
+                print("Exiting update process.")
+                return None, None
+            else:
+                continue
         if selected_key == 'pre-shared-key':
             new_value = get_valid_passwd("Please enter new password: ")
             selected_policy[selected_key] = {'ascii-text': new_value}
@@ -92,12 +108,13 @@ def update_ike_policy(**kwargs):
         elif selected_key == 'description':
             selected_policy[selected_key] = get_valid_string("Enter new description: ")
         else:
-            new_value = get_valid_name(f"Enter the new value for {selected_key}: ")  
-            selected_policy[selected_key] = new_value
-        
+            selected_policy[selected_key] = get_valid_name(f"Enter the new value for {selected_key}: ")
         another_change = input("Would you like to make another change? (yes/no): ").strip().lower()
         if another_change != 'yes':
             continue_update = False
+    if 'description' not in selected_policy or not selected_policy['description']:
+        print("Policy description is missing, please update.")
+        selected_policy['description'] = get_valid_string("Enter new description: ")
     payload = f"""
     <configuration>
         <security>
@@ -113,7 +130,8 @@ def update_ike_policy(**kwargs):
                 </policy>
             </ike>
         </security>
-    </configuration>""".strip()
+    </configuration>"""
+    print(payload)
     return (payload, old_policy_name) if old_policy_name != selected_policy['name'] else (payload, None)
 
 
@@ -123,10 +141,10 @@ def del_ike_policy(**kwargs):
         if not policy_names:
             raise ValueError("No policy names provided for deletion.")
         used_policy = kwargs.get("used_policy", [])
-        if isinstance(used_policy, list):
+        if not isinstance(used_policy, list):
             used_policy = [used_policy]
         if not isinstance(policy_names, list):
-            del_policy_name = policy_names
+            del_policy_name = [policy_names]
         else:
             del_policy_name = get_valid_selection("Select Policy to delete: ", policy_names)
         if not del_policy_name:

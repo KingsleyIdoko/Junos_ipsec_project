@@ -39,7 +39,8 @@ class IkePolicyManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, get_policy_name=False):
+    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, 
+                       get_proposal_names=False, get_policy_name=False):
         attempt = 0
         ike_policy_names = []
         get_used_proposals = None  
@@ -55,12 +56,15 @@ class IkePolicyManager:
                             raw_ike_policy = ike_config.get('policy', [])
                             ike_policy = [raw_ike_policy] if isinstance(raw_ike_policy, dict) else raw_ike_policy
                             ike_policy_names = [policy['name'] for policy in ike_policy if 'name' in policy]
+                            used_ike_proposals = [policy['proposals'] for policy in ike_policy if 'proposals' in policy]
                         else:
                             print("No IKE configuration found on the device.")
                             break
                     if interactive:
                         print("No existing IKE Policy on the device" if raw_ike_policy in ([], None) else raw_ike_policy)
                         return None
+                    if get_proposal_names:
+                        return used_ike_proposals
                     if get_policy_name:
                         return ike_policy_names
                     if get_raw_data and raw_ike_policy:
@@ -81,25 +85,29 @@ class IkePolicyManager:
         return payload
 
     def update_ike_policy(self):
+        from sec_ike_gateway import IkeGatewayManager
+        gateway_manager = IkeGatewayManager()
         try:
             ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
-            payload, del_policy = update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names)
-            print(del_policy)
+            used_policy = gateway_manager.get_ike_gateways(used_policy=True)
+            payload, del_policy = update_ike_policy(ike_configs=ike_configs,proposal_names=proposal_names,
+                                                    used_policy=used_policy)
             if del_policy:
-                self.delete_ike_policy(commit=True, policy_name=del_policy)
+                self.delete_ike_policy(commit=True, policy_name=del_policy,used_policy=used_policy)
             return payload
         except ValueError as e:
             print(f"An error has occured, {e}")
         
     def delete_ike_policy(self, commit=False, policy_name=None):
+        from sec_ike_gateway import IkeGatewayManager
+        gateway_manager = IkeGatewayManager()
+        used_policy = gateway_manager.get_ike_gateways(used_policy=True)
         if not commit:
             policy_name = self.get_ike_policy(get_policy_name=True)
-            used_policy = None
             payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
             return payload
         else:
             policy_name=policy_name
-            used_policy = None
             payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
             run_pyez_tasks(self, payload, 'xml')
 
