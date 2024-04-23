@@ -16,9 +16,10 @@ def gen_ikegateway_config(**kwargs):
         if gateway_name not in old_gateways:
             break
         print("This gateway name is already in use. Please choose another name.")
-    interface_data = interface_manager.get_interfaces()
+    interface_data, _ = interface_manager.get_interfaces()
     choices = policy_manager.get_ike_policy(get_policy_name=True)
-    gateway_names =  get_valid_selection("Select IKE Policy", choices)
+    gateway_names =  get_valid_selection
+    ("Select IKE Policy", choices)
     selected_data = select_interface_with_ip(interface_data)
     if selected_data:
         external_interface = selected_data['external-interface']

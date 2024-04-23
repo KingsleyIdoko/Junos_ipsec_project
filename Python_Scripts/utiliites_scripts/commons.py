@@ -1,18 +1,21 @@
 import re
 import ipaddress
 
+import re
+
 def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10):
-    pattern = r'^[a-zA-Z0-9_* ]+$'
+    pattern = r'^[a-zA-Z0-9_\- ]+$'
     while True:
         input_string = input(prompt)
-        if re.match(pattern, input_string):
-            words = input_string.split()
+        words = input_string.split()
+        if re.match(pattern, input_string) and len(input_string) >= text_length:
             if len(words) <= max_words:
                 return input_string  
             else:
                 print(f"The string contains more than {max_words} words. Please try again.")
         else:
-            print("Invalid input. Enter valid Characters")
+            print(f"Invalid input. Enter valid characters and ensure the name is at least {text_length} characters long.")
+
 
 def get_valid_name(prompt="Enter a valid name: "):
     pattern = r'^[a-zA-Z_*][a-zA-Z0-9_*]*(-[0-9]+)?$'

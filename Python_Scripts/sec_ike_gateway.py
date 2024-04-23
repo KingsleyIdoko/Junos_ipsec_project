@@ -32,23 +32,28 @@ class IkeGatewayManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_gateways(self, interactive=False, get_raw_data=False,used_policy=False,retries=3):
+    def get_ike_gateways(self, interactive=False, get_raw_data=False, used_policy=False, retries=3):
         attempt = 0
         while attempt < retries:
             try:
                 response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response.failed:  
+                if response.failed:
                     print("Failed to connect to the device, trying again...")
                     attempt += 1
                     continue
+                all_gateways = []
+                all_policies = []
                 for _, result in response.items():
-                    ike_config = result.result['configuration']['security'].get('ike', {})
+                    ike_config = result.result.get('configuration', {}).get('security', {}).get('ike', {})
                     gateways = ike_config.get('gateway', [])
-                    gateways = [gateways] if isinstance(gateways, dict) else gateways
-                    used_policy = [gate['ike-policy'] for gate in gateways]
-                    ike_gateways = [gateways['name'] for gateways in gateways if 'name' in gateways]
+                    gateways = [gateways] if isinstance(gateways, dict) else gateways       
+                    for gate in gateways:
+                        if 'name' in gate:
+                            all_gateways.append(gate['name'])
+                        if 'ike-policy' in gate:
+                            all_policies.append(gate['ike-policy'])    
                 if not gateways:
-                    print("No IKE Gateway configurations exist on the device.")
+                    print("No IKE Gateway configurations found on the device.")
                     return None
                 if interactive:
                     print(gateways)
@@ -56,14 +61,14 @@ class IkeGatewayManager:
                 if get_raw_data:
                     return gateways
                 if used_policy:
-                    return used_policy
-                return ike_gateways
+                    return all_policies
+                return all_gateways
             except Exception as e:
                 print(f"An error has occurred: {e}. Checking connectivity to the device, trying again...")
                 attempt += 1
-                continue  
         print("Failed to retrieve gateways after several attempts due to connectivity issues.")
         return None
+
 
     def create_ike_gateway(self):
         try:

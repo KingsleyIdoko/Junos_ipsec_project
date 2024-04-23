@@ -8,6 +8,7 @@ from utiliites_scripts.ipsec_proposal import (gen_ipsec_proposal_config,update_i
                                               del_ipsec_proposal)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+
 class IPsecProposalManager:
     database = 'committed'
     def __init__(self, config_file="config.yml"):
@@ -75,12 +76,13 @@ class IPsecProposalManager:
             return None
 
     def update_ipsec_proposal(self):
-        old_ipsec_proposal = payload =  None
+        from sec_ipsec_policy import IpsecPolicyManager
+        policy_manager = IpsecPolicyManager()
+        used_ipsec_proposals = policy_manager.get_ipsec_policy(get_proposal_name=True)
         try:
             ipsec_proposal = self.get_ipsec_proposal(get_raw_data=True)
             if ipsec_proposal:
-                payload, old_ipsec_name = update_ipsec_proposal(ipsec_proposal=ipsec_proposal)
-                print(payload)
+                payload, old_ipsec_name = update_ipsec_proposal(ipsec_proposal=ipsec_proposal,used_ipsec_proposals=used_ipsec_proposals)
             if old_ipsec_name:
                 self.delete_ipsec_proposal(commit=True, ipsec_proposal_name=old_ipsec_name)
             return payload
@@ -89,14 +91,15 @@ class IPsecProposalManager:
             print("No existing IKE gateways found on the device.")
 
     def delete_ipsec_proposal(self, commit=False, ipsec_proposal_name=None):
+        from sec_ipsec_policy import IpsecPolicyManager
+        policy_manager = IpsecPolicyManager()
+        used_ipsec_proposals = policy_manager.get_ipsec_policy(get_proposal_name=True)
         if not commit:
             ipsec_proposal_name = self.get_ipsec_proposal()
-            used_ipsec_proposals = None
             payload = del_ipsec_proposal(ipsec_proposal_name=ipsec_proposal_name,used_ipsec_proposals=used_ipsec_proposals)
             return payload
         else:
             ipsec_proposal_name=ipsec_proposal_name
-            used_ipsec_proposals = None
             payload = del_ipsec_proposal(ipsec_proposal_name=ipsec_proposal_name,used_ipsec_proposals=used_ipsec_proposals)
             run_pyez_tasks(self, payload, 'xml')
 

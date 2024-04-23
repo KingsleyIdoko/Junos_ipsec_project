@@ -36,10 +36,8 @@ class IpsecPolicyManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ipsec_policy(self, interactive=False, get_raw_data=False, retries=3, get_policy_name=False):
+    def get_ipsec_policy(self, interactive=False, get_proposal_name=False, get_raw_data=False, retries=3, get_policy_name=False):
         attempt = 0
-        ike_policy_names = []
-        get_used_proposals = None  
         while attempt < retries:
             try:
                 response = self.nr.run(task=pyez_get_config, database=self.database)
@@ -50,6 +48,7 @@ class IpsecPolicyManager:
                             raw_ipsec_policy = ipsec_config.get('policy', [])
                             ipsec_policy = [raw_ipsec_policy] if isinstance(raw_ipsec_policy, dict) else raw_ipsec_policy
                             ipsec_policy_names = [policy['name'] for policy in ipsec_policy if 'name' in policy]
+                            used_proposals = [prop['proposals'] for prop in ipsec_policy]
                         else:
                             print("No IKE configuration found on the device.")
                             break
@@ -58,6 +57,8 @@ class IpsecPolicyManager:
                         return None
                     if get_policy_name:
                         return ipsec_policy_names
+                    if get_proposal_name:
+                        return used_proposals
                     if get_raw_data and raw_ipsec_policy:
                         return raw_ipsec_policy, ipsec_policy_names or None
             except Exception as e:
