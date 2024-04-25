@@ -72,7 +72,6 @@ class IpsecPolicyManager:
         ipsec_proposals  = proposal_manager.get_ipsec_proposal()
         if not old_ipsec_policy:
             print("No existing IKE Policy found on the device")
-            return None
         payload = gen_ipsecpolicy_config(old_ipsec_policy=old_ipsec_policy, ipsec_proposals=ipsec_proposals)
         return payload
 

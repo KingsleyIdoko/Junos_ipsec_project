@@ -58,7 +58,7 @@ class IPsecProposalManager:
                     return ipsec_proposal
                 return ipesec_ipsec_proposal
             except Exception as e:
-                print(f"An error has occurred: {e}. Checking connectivity to the device, trying again...")
+                print(f"Check connectivity to the device, trying again...")
                 attempt += 1
                 continue  
         print("Failed to retrieve gateways after several attempts due to connectivity issues.")

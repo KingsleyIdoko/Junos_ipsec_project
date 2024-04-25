@@ -149,6 +149,7 @@ def del_ike_gateway(**kwargs):
 
 def extract_gateways_params(**kwargs):
     ike_gateways = kwargs.get('ike_gateways', [])
+    used_gateways = kwargs.get('used_gateways', [])
     old_gateways = [gateway['name'] for gateway in ike_gateways if 'name' in gateway]
     ike_policies = policy_manager.get_ike_policy(get_policy_name=True)
     selected_gateway = select_gateways_to_update(ike_gateways)
