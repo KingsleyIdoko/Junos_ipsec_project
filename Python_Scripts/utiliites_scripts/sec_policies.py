@@ -1,3 +1,9 @@
+from utiliites_scripts.commons import get_valid_selection, get_valid_name
+from sec_addressbook import AddressBookManager
+from sec_zone import SecurityZoneManager
+zone_manager = SecurityZoneManager()
+address_manager = AddressBookManager()
+
 def create_policy(from_zone, to_zone, name, source, destination, vpn, pair):
                     policy = f"""<policy>
                         <from-zone-name>{from_zone}</from-zone-name>
@@ -21,33 +27,42 @@ def create_policy(from_zone, to_zone, name, source, destination, vpn, pair):
                     </policy>"""
                     return policy
 
+def gen_sec_policies_config(**kwargs):
+    raw_data = kwargs.get('raw_data')
+    if not raw_data:
+        print("No raw data provided. grabbing existing zones")
+        zone_names  = zone_manager.get_security_zone(get_zone_name=True)
+    policy_data = extract_policy_names(raw_data)
+    list_zones = list(policy_data.keys())
+    if not list_zones:
+        print("No zones available.")
+        return None
+    choice = get_valid_selection("Please select the security zone: ", list_zones)
+    if choice:
+        selected_policies = policy_data.get(choice, [])
+        print("This following polices already exist, Please create new policy")
+        for i, policy in enumerate(selected_policies, start=1):
+            print(f'{i}. {policy}') 
+        sec_policy_name = get_valid_name("Enter security policy name: ")
+        _, from_zone, to_zone = choice.split('_to_')
+        src_address = get_valid_selection("Select source address: " src_address)
+        dest_address = get_valid_selection("Select destination address: ", dst_address)
+        application = get_valid_selection("Select application to allow: ", applications)
+        action = get_valid_selection("Selection match action: ", ["permit","deny"])
+        ipsec_vpn = " "
+        pair_policy = ""
 
-def config_data(self, local_policy, local_subnet, tunnel_name, remote_policy, remote_subnet):
-    trust_untrust = create_policy(
-        from_zone="trust",
-        to_zone="untrust",
-        name=local_policy,
-        source=local_subnet,
-        destination=remote_subnet,
-        vpn=tunnel_name,
-        pair=remote_policy,
-    )
-    untrust_trust = create_policy(
-        from_zone="untrust",
-        to_zone="trust",
-        name=remote_policy,
-        source=remote_subnet,
-        destination=local_subnet,
-        vpn=tunnel_name,
-        pair=local_policy,
-    )
-    payload = f"""
-    <configuration>
-        <security>
-            <policies>
-                {trust_untrust}
-                {untrust_trust}
-            </policies>
-        </security>
-    </configuration>"""
-    return payload
+
+
+def extract_policy_names(data):
+    policies_by_zone = {}
+    if data:
+        for entry in data:
+            from_zone = entry['from-zone-name']
+            to_zone = entry['to-zone-name']
+            zone_key = f"zone_{from_zone}_to_{to_zone}"
+            policies_by_zone.setdefault(zone_key, [])
+            for policy in entry['policy']:  
+                policy_name = policy['name']
+                policies_by_zone[zone_key].append(policy_name)
+    return policies_by_zone if data else None

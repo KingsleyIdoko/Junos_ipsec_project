@@ -86,29 +86,29 @@ class IkeGatewayManager:
         from sec_ipsec_vpn import IpsecVpnManager
         vpn_manager = IpsecVpnManager()
         old_gateway_name = payload =  None
-        used_ike_gateways = vpn_manager.get_ipsec_vpn(used_gateways=True)
+        used_ike_gateways = vpn_manager.get_ipsec_vpn(get_used_gateways=True)
         try:
             ike_gateways = self.get_ike_gateways(get_raw_data=True)
             if ike_gateways:
                 payload, old_gateway_name = extract_gateways_params(ike_gateways=ike_gateways,used_ike_gateways=used_ike_gateways)
             if old_gateway_name:
-                self.delete_ike_gateway(commit=True, gateway_name=old_gateway_name,used_ike_gateways=used_ike_gateways)
+                self.delete_ike_gateway(commit=True, gateway_name=old_gateway_name,get_used_gateways=used_ike_gateways)
             return payload
         except Exception as e:
-            print(f"An error occurred: {e}")
             print("No existing IKE gateways found on the device.")
 
-    def delete_ike_gateway(self, commit=False, gateway_name=None):
+    def delete_ike_gateway(self, commit=False, gateway_name=None,get_used_gateways=None):
         from sec_ipsec_vpn import IpsecVpnManager
         vpn_manager = IpsecVpnManager()
-        used_gateways = vpn_manager.get_ipsec_vpn(used_gateways=True)
-        if not commit:
+        if not get_used_gateways:
+            get_used_gateways = vpn_manager.get_ipsec_vpn(get_used_gateways=True)
+        if not gateway_name:
             gateway_name = self.get_ike_gateways()
-            payload = del_ike_gateway(gateway_name=gateway_name,used_gateways=used_gateways)
+        if not commit:
+            payload = del_ike_gateway(gateway_names=gateway_name,get_used_gateways=get_used_gateways)
             return payload
         else:
-            gateway_name=gateway_name
-            payload = del_ike_gateway(gateway_name=gateway_name,used_gateways=used_gateways)
+            payload = del_ike_gateway(gateway_names=gateway_name,get_used_gateways=get_used_gateways)
             run_pyez_tasks(self, payload, 'xml')
 
     def push_config(self):

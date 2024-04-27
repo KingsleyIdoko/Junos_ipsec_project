@@ -264,12 +264,8 @@ def zone_interface_names(data):
 
 
 def find_available_interfaces(all_interfaces, used_interfaces):
-    # Strip unit numbers from used_interfaces to compare only base names
     used_base_names = {iface.split('.')[0] for iface in used_interfaces}
-    
-    # Find interfaces in all_interfaces not used (considering base names only)
     available_interfaces = [iface for iface in all_interfaces if iface not in used_base_names]
-    
     return available_interfaces
 
 

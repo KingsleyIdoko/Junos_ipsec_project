@@ -4,8 +4,7 @@ from rich import print
 import os
 from xml.dom import minidom
 from lxml import etree
-from utiliites_scripts.security_zones import (select_zone, update_zone, 
-                                    zone_interface_names,find_available_interfaces,
+from utiliites_scripts.security_zones import (select_zone, update_zone,zone_interface_names,find_available_interfaces,
                                      list_zone, extract_zone_names, delete_sec_zone)
 from utiliites_scripts.interfaces import get_interfaces
 from utiliites_scripts.commit import run_pyez_tasks
@@ -28,8 +27,7 @@ class SecurityZoneManager:
             operation = input("Enter your choice (1-4): ")
 
             if operation == "1":
-                result = self.get_security_zone(interactive=True)
-                return result
+                return self.get_security_zone(interactive=True)
             elif operation == "2":
                 return self.create_security_zone()
             elif operation == "3":
@@ -40,41 +38,37 @@ class SecurityZoneManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_security_zone(self, interactive=False):
+    def get_security_zone(self, interactive=False,get_zone_name=False):
         try:
             response = self.nr.run(task=pyez_get_config, database=self.database)
             for zones in response:
-                result = response[zones].result['configuration']['security']['zones']['security-zone']
-                used_interfaces = zone_interface_names(result)
+                sec_zones = response[zones].result['configuration']['security']['zones']['security-zone']
+                zone_names = [zone_name['name'] for zone_name in sec_zones if sec_zones]
+                used_interfaces = zone_interface_names(sec_zones)
                 interfaces = response[zones].result['configuration']['interfaces']
                 All_intefaces = get_interfaces(interfaces)
                 Unsed_interfaces = find_available_interfaces(All_intefaces, used_interfaces)
-                try:
-                    hostname = response[zones].result['configuration']['system']['host-name']
-                except: 
-                    hostname = response[zones].result['configuration']['groups'][0]['system']['host-name']
             if interactive:
-                print_action = input("Do you want the result to be printed out? (yes/no): ").lower()
-                if print_action == 'yes':
-                    print(result)
-                else:
-                    return None
-            else:
-                return result, hostname, Unsed_interfaces
+                print(sec_zones)
+                return 
+            if get_zone_name:
+                return zone_names
+            return zones, Unsed_interfaces
         except Exception as e:
             print(f"An error has occurred: {e}")
             print(f"Pleaes check connectivity to the device")
             return None
         
     def create_security_zone(self):
-        zones, hostname, interface_list = self.get_security_zone()
+        zones,interface_list = self.get_security_zone()
+        print(interface_list)
         print("See existing zones below.......\n")
         zone_names = [zone['name'] for zone in zones]
         payload = select_zone(zone_names, interface_list)
         return payload
     
     def update_security_zone(self):
-        zones, *_, interface_list = self.get_security_zone()
+        zones, interface_list = self.get_security_zone()
         payload = update_zone(zones, interface_list)
         return payload
     

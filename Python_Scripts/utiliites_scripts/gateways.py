@@ -16,10 +16,9 @@ def gen_ikegateway_config(**kwargs):
         if gateway_name not in old_gateways:
             break
         print("This gateway name is already in use. Please choose another name.")
-    interface_data, _ = interface_manager.get_interfaces()
+    interface_data = interface_manager.get_interfaces()
     choices = policy_manager.get_ike_policy(get_policy_name=True)
-    gateway_names =  get_valid_selection
-    ("Select IKE Policy", choices)
+    gateway_names =  get_valid_selection("Select IKE Policy", choices)
     selected_data = select_interface_with_ip(interface_data)
     if selected_data:
         external_interface = selected_data['external-interface']
@@ -104,52 +103,54 @@ def select_interface_with_ip(interfaces):
         return None
 
 def select_gateways_to_update(ike_gateways):
-    print("Select a policy to update:")
-    for i, gateway in enumerate(ike_gateways, start=1):
-        print(f"{i}. {gateway['name']}")
-    selection = input("Enter the number of the gateway: ")
-    if selection.isdigit() and 1 <= int(selection) <= len(ike_gateways):
-        return ike_gateways[int(selection) - 1]
-    else:
-        print("Invalid selection.")
+    if not ike_gateways:
+        print("No IKE gateways available.")
         return None
-
-def del_ike_gateway(**kwargs):
-    try:
-        gateway_names = kwargs.get("gateway_name")
-        if not gateway_names:
-            raise ValueError("No gateway names provided for deletion.")
-        used_gateway = kwargs.get("used_gateway", [])
-        if isinstance(used_gateway, list):
-            used_gateway = [used_gateway]
-        if not isinstance(gateway_names, list):
-            del_gateway_name = gateway_names
+    while True:
+        print("Select a policy to update:")
+        for i, gateway in enumerate(ike_gateways, start=1):
+            print(f"{i}. {gateway['name']}")
+        selection = input("Enter the number of the gateway: ")
+        if selection.isdigit() and 1 <= int(selection) <= len(ike_gateways):
+            return ike_gateways[int(selection) - 1]
         else:
+            print("Invalid selection, please try again.")
+    
+def del_ike_gateway(**kwargs):
+    gateway_names = kwargs.get('gateway_names', [])
+    if not gateway_names:
+        raise ValueError("No gateway names provided for deletion.")
+    if not isinstance(gateway_names, list):
+        gateway_names = [gateway_names]
+    used_gateways = kwargs.get('get_used_gateways', [])
+    if not isinstance(used_gateways, list):
+        used_gateways = [used_gateways]
+    if len(gateway_names) > 1:
+        while True:
             del_gateway_name = get_valid_selection("Select Policy to delete: ", gateway_names)
-        if not del_gateway_name:
-            raise ValueError("Invalid selection or no selection made.")
-        if used_gateway != None:
-            if del_gateway_name in used_gateway:
-                message = f"{del_gateway_name} is referenced in an IKE Gateway and cannot be deleted."
-                raise ReferenceError(message)
-        payload = f"""
-            <configuration>
-                    <security>
-                        <ike>
-                            <gateway operation="delete">
-                                <name>{del_gateway_name}</name>
-                            </gateway>
-                        </ike>
-                    </security>
-            </configuration>""".strip()
-        return payload
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    return None
+            if del_gateway_name:
+                break
+            print("Invalid selection, please try again.")
+    else:
+        del_gateway_name = gateway_names[0]
+    if del_gateway_name in used_gateways:
+        message = f"{del_gateway_name} is referenced in an IKE Gateway and cannot be deleted."
+        raise ReferenceError(message)
+    payload = f"""
+    <configuration>
+        <security>
+            <ike>
+                <gateway operation='delete'>
+                    <name>{del_gateway_name}</name>
+                </gateway>
+            </ike>
+        </security>
+    </configuration>"""
+    return payload.strip()
 
 def extract_gateways_params(**kwargs):
     ike_gateways = kwargs.get('ike_gateways', [])
-    used_gateways = kwargs.get('used_gateways', [])
+    used_gateways = kwargs.get('used_ike_gateways', [])
     old_gateways = [gateway['name'] for gateway in ike_gateways if 'name' in gateway]
     ike_policies = policy_manager.get_ike_policy(get_policy_name=True)
     selected_gateway = select_gateways_to_update(ike_gateways)
@@ -178,7 +179,10 @@ def extract_gateways_params(**kwargs):
             print(f"Updated external interface to {selected_gateway['external-interface']}")
             print(f"Updated local address to {selected_gateway['local-address']}")
         else:
-            selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies)
+            if selected_gateway[selected_key] in used_gateways:
+                print(f"{selected_gateway[selected_key]} is in use by IPsec VPN, Cannot be modified")
+            else:
+                selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies, used_gateways)
         another_change = input("Would you like to make another change? (yes/no): ").strip().lower()
         continue_update = another_change == 'yes'
     insert_attribute = get_insert_attribute(old_gateway_name, old_gateways, selected_gateway)
@@ -186,7 +190,7 @@ def extract_gateways_params(**kwargs):
     print(payload)
     return (payload, old_gateway_name if old_gateway_name != selected_gateway['name'] else None)
 
-def handle_key_selection(key, policies):
+def handle_key_selection(key, policies, used_gateways):
     if key == 'ike-policy':
         return get_valid_selection("Select a new ike policy: ", policies)
     elif key == 'address':
