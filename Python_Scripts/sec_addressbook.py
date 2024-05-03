@@ -38,7 +38,7 @@ class AddressBookManager:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_address_book(self):
+    def get_address_book(self, get_addresses=False):
         response = self.nr.run(task=pyez_get_config, database=self.database)
         for nat in response:
             result = response[nat].result['configuration']
@@ -55,6 +55,8 @@ class AddressBookManager:
             print(f"Fetching address books or network objects from {hostname} device")
 
             addresses = result.get('security', {}).get('address-book')
+            if get_addresses:
+                return addresses
             if addresses:
                 return addresses, zone_names
             else:
