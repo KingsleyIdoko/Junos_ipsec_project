@@ -4,17 +4,15 @@ from rich import print
 import os
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.mss_config import input_integer, create_mss_config
+from sec_basemanager import BaseManager
 
 # Define the script directory
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class SecurityMssManager:
-    database = 'committed'
+class SecurityMssManager(BaseManager):
 
     def __init__(self, config_file="config.yml"):
-        # Initialize the Nornir object with the config file
-        self.nr = InitNornir(config_file=config_file)
-        self.mss_value = input_integer("Enter the ipsec vpn mss: ")
+        super().__init__(config_file=config_file)
 
     def get_mss(self):
         pass
@@ -28,11 +26,6 @@ class SecurityMssManager:
     def delete_mss(self):
         pass
 
-    def push_config(self):
-        xml_data = self.nat_operations()
-        if not xml_data:
-            return None
-        run_pyez_tasks(self, xml_data, 'xml')   
-
-config =  SecurityMssManager()   
-response = config.push_config()
+if __name__ == "__main__":
+    config =  SecurityMssManager()   
+    response = config.push_config()

@@ -1,20 +1,19 @@
 
 from nornir_pyez.plugins.tasks import pyez_get_config
-from nornir import InitNornir
 from rich import print
 import os
 from utiliites_scripts.interfaces import select_interface,config_interface, enable_interface_config
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.commons import is_valid_interfaces, get_valid_integer
-script_dir = os.path.dirname(os.path.realpath(__file__))
+from sec_basemanager import BaseManager
 
-class InterfaceManager:
-    database = 'committed'
+class InterfaceManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
-        self.int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 'LACP', 'Add|Remove Vlan','MAC', 'MTU', 'Speed']
+        super().__init__(config_file=config_file)
+        self.int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 
+                           'LACP', 'Add|Remove Vlan','MAC', 'MTU', 'Speed']
 
-    def interface_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Intefaces")
@@ -108,31 +107,8 @@ class InterfaceManager:
             print("Failed to retrieve interfaces.")
             return None
 
-
-
     def delete_interfaces(self):
         pass
-
-    def push_config(self):
-        xml_data = None  
-        try:
-            xml_data = self.interface_operations()
-            if not xml_data:
-                return
-            if isinstance(xml_data, list):
-                for xml in xml_data:
-                    run_pyez_tasks(self, xml, 'xml')
-            else:
-                run_pyez_tasks(self, xml_data, 'xml')
-
-        except ValueError as e:
-            print(e)
-            print("An error occurred, review your config changes.")
-            if xml_data:
-                print("Failed configuration data:", xml_data)
-            else:
-                print("Configuration data was not generated due to an error.")
-
 
 if __name__ == "__main__":
     config = InterfaceManager()

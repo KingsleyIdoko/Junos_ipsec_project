@@ -1,18 +1,18 @@
 
 from nornir_pyez.plugins.tasks import pyez_get_config
-from nornir import InitNornir
 from rich import print
-import os, logging
+import os
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.gateways import gen_ikegateway_config,extract_gateways_params, del_ike_gateway
 script_dir = os.path.dirname(os.path.realpath(__file__))
+from sec_basemanager import BaseManager
 
-class IkeGatewayManager:
+class IkeGatewayManager(BaseManager):
     database = 'committed'
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
+        super().__init__(config_file=config_file)
 
-    def ike_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Ike gateways")
@@ -110,27 +110,6 @@ class IkeGatewayManager:
         else:
             payload = del_ike_gateway(gateway_names=gateway_name,get_used_gateways=get_used_gateways)
             run_pyez_tasks(self, payload, 'xml')
-
-    def push_config(self):
-        try:
-            xml_data = self.ike_operations()
-            if not xml_data:
-                logging.info("No XML data to push.")
-                return
-            if isinstance(xml_data, list):
-                for xml in xml_data:
-                    try:
-                        run_pyez_tasks(self, xml, 'xml')
-                    except Exception as e:
-                        logging.error(f"Failed to push configuration for {xml}: {e}")
-            else:
-                try:
-                    run_pyez_tasks(self, xml_data, 'xml')
-                except Exception as e:
-                    logging.error(f"Failed to push configuration: {e}")
-        except Exception as e:
-            logging.error(f"Error in push_config: {e}")
-
 
 if __name__ == "__main__":
     config = IkeGatewayManager()

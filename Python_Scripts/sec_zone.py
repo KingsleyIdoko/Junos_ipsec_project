@@ -1,23 +1,20 @@
-from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, pyez_diff
+from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
 import os
-from xml.dom import minidom
-from lxml import etree
 from utiliites_scripts.security_zones import (select_zone, update_zone,zone_interface_names,find_available_interfaces,
                                      list_zone, extract_zone_names, delete_sec_zone)
 from utiliites_scripts.interfaces import get_interfaces
-from utiliites_scripts.commit import run_pyez_tasks
+from sec_basemanager import BaseManager
 from sec_addressbook import AddressBookService
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class SecurityZoneManager:
-    database = 'committed'
+class SecurityZoneManager(BaseManager):
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
 
-    def nat_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Security Zones")
@@ -82,13 +79,7 @@ class SecurityZoneManager:
            return payload
         else:
             print(f"{zone} is in use or associated with the network object below:")
-
-    def push_config(self):
-        xml_data = self.nat_operations()
-        if not xml_data:
-            return None
-        run_pyez_tasks(self, xml_data, 'xml') 
-        
+      
 if __name__ == "__main__":
     config = SecurityZoneManager()
     response = config.push_config()

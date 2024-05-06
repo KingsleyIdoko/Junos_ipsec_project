@@ -7,15 +7,14 @@ from utiliites_scripts.vlans import gen_vlan_config
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.commons import get_valid_string, get_valid_integer
 from utiliites_scripts.vlans import extract_vlan_members, gen_delete_vlan_config, match_vlan_id
-
+from sec_basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class VlansManager:
-    database = 'committed'
+class VlansManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
+        super().__init__(config_file=config_file)
 
-    def vlans_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Vlans")
@@ -26,7 +25,7 @@ class VlansManager:
                 operation = int(input("Enter your choice (1-4): "))
                 if 1 <= operation <= 4:
                     if operation == 1:
-                        response =  self.get_vlans(interactive=True)
+                        return self.get_vlans(interactive=True)
                     elif operation == 2:
                         return self.create_vlan()
                     elif operation == 3:
@@ -153,18 +152,6 @@ class VlansManager:
             else:
                 print("No VLAN found with that ID.")
                 break  
-                    
-
-    def push_config(self):
-        xml_data = self.vlans_operations()
-        if not xml_data:
-            return 
-        elif isinstance(xml_data, list):
-            for xml in xml_data:
-                run_pyez_tasks(self, xml, 'xml') 
-            return None
-        else:
-             run_pyez_tasks(self, xml_data, 'xml') 
 
 if __name__ == "__main__":
     config = VlansManager()

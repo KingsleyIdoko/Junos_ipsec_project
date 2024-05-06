@@ -1,39 +1,31 @@
-from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, pyez_diff
-from nornir import InitNornir
+from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
 import os
 from xml.dom import minidom
-from lxml import etree
 from utiliites_scripts.fetch_data import append_nat_data
 from utiliites_scripts.nat_exempt import nat_policy
-from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.selectprefix import select_prefix
+from sec_basemanager import BaseManager
 from utiliites_scripts.pool_data import (nat_pool_creation, check_nat_pull_duplicates,
-                                         is_valid_name, is_valid_ipv4_address,
-                                         delete_nat_pool, extract_pool_names)
+            is_valid_name, is_valid_ipv4_address,delete_nat_pool, extract_pool_names)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class NatPolicyManager:
-    database = 'committed'
+class NatPolicyManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
+        super().__init__(config_file=config_file)
 
-    def nat_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Create NAT pool")
             print("2. Delete NAT pool")
             print("3. Create NAT rule")
             print("4. Delete NAT rule")
-            
             operation = input("Enter your choice (1-4): ")
-            
             if operation == "1":
-                result = self.create_nat_pool()
-                return result
+                return self.create_nat_pool()
             elif operation == "2":
-                result = self.delete_nat_pool()
-                return result
+                return self.delete_nat_pool()
             elif operation == "3":
                 return self.create_nat_rule()
             elif operation == "4":
@@ -60,7 +52,6 @@ class NatPolicyManager:
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
-
 
     def create_nat_pool(self):
         print("Creating NAT Pool.......\n")
@@ -134,10 +125,6 @@ class NatPolicyManager:
     def generate_nat_rule(self, nat_type, pool_name=None):
         *_, nat_data = self.get_nat_data()
         global_nat_rule, source_zone, destination_zone, rule_name, remote_prefixes, source_prefixes = nat_data
-        # print("Select Global Nat name: ")
-        # 1. use existing rule-set Name:
-        # 2. create new Name:
-
         print(f"Creating source nat Rules............")
         print(f"Select Source prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
         source_subnets = select_prefix(source_prefixes)
@@ -145,7 +132,7 @@ class NatPolicyManager:
         while True:
                     print("Select Remote prefixes by entering the numbers separated by commas (e.g., 1,2). Enter '0' for None.............\n")
                     remote_subnets = select_prefix(remote_prefixes)
-                    if remote_subnets:  # Check if the selection is not empty
+                    if remote_subnets:  
                         break
                     else:
                         print("Error: At least one destination subnet must be selected. Selection cannot be 'None'. Please try again.")
@@ -155,12 +142,6 @@ class NatPolicyManager:
         print(formatted_xml)
         return formatted_xml
         
-    def push_config(self):
-        xml_data = self.nat_operations()
-        if not xml_data:
-            return None
-        run_pyez_tasks(self, xml_data, 'xml') 
-        
-        
-config = NatPolicyManager()
-result = config.create_nat_rule()
+if __name__ == "__main__":
+    config = NatPolicyManager()
+    result = config.push_config()

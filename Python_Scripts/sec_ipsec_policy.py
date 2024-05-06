@@ -4,19 +4,18 @@ from nornir import InitNornir
 from rich import print
 import os, logging
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ipsec_policy import (gen_ipsecpolicy_config, update_ipsec_policy,
-                                         del_ipsec_policy)
+from utiliites_scripts.ipsec_policy import (gen_ipsecpolicy_config, update_ipsec_policy,del_ipsec_policy)
 from sec_ipsec_proposal import IPsecProposalManager
+from sec_basemanager import BaseManager
 proposal_manager = IPsecProposalManager()
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class IpsecPolicyManager:
-    database = 'committed'
+class IpsecPolicyManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
+        super().__init__(config_file=config_file)
   
-    def ipsec_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. get Ipsec policy")
@@ -96,26 +95,6 @@ class IpsecPolicyManager:
             used_policy = None
             payload = del_ipsec_policy(policy_name=policy_name,used_policy=used_policy)
             run_pyez_tasks(self, payload, 'xml')
-
-    def push_config(self):
-        try:
-            xml_data = self.ipsec_operations()
-            if not xml_data:
-                logging.info("No XML data to push.")
-                return
-            if isinstance(xml_data, list):
-                for xml in xml_data:
-                    try:
-                        run_pyez_tasks(self, xml, 'xml')
-                    except Exception as e:
-                        logging.error(f"Failed to push configuration for {xml}: {e}")
-            else:
-                try:
-                    run_pyez_tasks(self, xml_data, 'xml')
-                except Exception as e:
-                    logging.error(f"Failed to push configuration: {e}")
-        except Exception as e:
-            logging.error(f"Error in push_config: {e}")
 
 if __name__ == "__main__":
     config = IpsecPolicyManager()

@@ -1,19 +1,18 @@
 
 from nornir_pyez.plugins.tasks import pyez_get_config
-from nornir import InitNornir
 from rich import print
-import os, logging
+import os
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_proposal, 
                                          update_ikeproposal_xml, delete_ike_proposal)
+from basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class IkeProposalManager:
-    database = 'committed'
+class IkeProposalManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
+        super().__init__(config_file=config_file)
 
-    def ike_operations(self):
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get Ike Proposals")
@@ -75,7 +74,6 @@ class IkeProposalManager:
             print(f"An error occurred: {e}")
             return None
 
-    
     def update_proposal(self):
         from sec_ike_policy import IkePolicyManager
         policy_manager = IkePolicyManager()
@@ -127,28 +125,6 @@ class IkeProposalManager:
         if commit and payload is not None:
             return run_pyez_tasks(self, payload, 'xml', **kwargs) 
         return payload
-
-
-    def push_config(self):
-        try:
-            xml_data = self.ike_operations()
-            if not xml_data:
-                logging.info("No XML data to push.")
-                return
-            if isinstance(xml_data, list):
-                for xml in xml_data:
-                    try:
-                        run_pyez_tasks(self, xml, 'xml')
-                    except Exception as e:
-                        logging.error(f"Failed to push configuration for {xml}: {e}")
-            else:
-                try:
-                    run_pyez_tasks(self, xml_data, 'xml')
-                except Exception as e:
-                    logging.error(f"Failed to push configuration: {e}")
-        except Exception as e:
-            logging.error(f"Error in push_config: {e}")
-
 
 if __name__ == "__main__":
     config = IkeProposalManager()

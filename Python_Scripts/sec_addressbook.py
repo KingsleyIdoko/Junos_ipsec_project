@@ -1,21 +1,18 @@
-from nornir_pyez.plugins.tasks import pyez_get_config,pyez_config, pyez_commit, pyez_diff
-from nornir import InitNornir
+from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
 import os
-from xml.dom import minidom
-from lxml import etree
 from utiliites_scripts.zones import ensure_list, get_zone_names
 from utiliites_scripts.pool_data import is_valid_ipv4_address, is_valid_name, select_zone
 from utiliites_scripts.address_book import address_book,map_subnets_to_zones,select_address_book
-from utiliites_scripts.commit import run_pyez_tasks
+from sec_basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-class AddressBookManager:
-    database = 'committed'
-    def __init__(self, config_file="config.yml"):
-        self.nr = InitNornir(config_file=config_file)
 
-    def nat_operations(self):
+class AddressBookManager(BaseManager):
+    def __init__(self, config_file="config.yml"):
+        super().__init__(config_file=config_file)
+
+    def operations(self):
         while True:
             print("\nSpecify Operation.....")
             print("1. Get address book")
@@ -25,8 +22,6 @@ class AddressBookManager:
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
                 result, zone_names = self.get_address_book()
-                print(result)
-                print(zone_names)
             elif operation == "2":
                 result = self.create_address_book()
                 return result
@@ -99,18 +94,6 @@ class AddressBookManager:
         
     def delete_address_book(self):
         print("Delete address book")
-    def push_config(self):
-        pass
-
-    def push_config(self, operation=None):  
-        if operation == "nat_operations":
-            xml_data = self.nat_operations()
-        else:
-            return None
-        if not xml_data:
-            return None
-        return run_pyez_tasks(self, xml_data, 'xml')
-    
 
 class AddressBookService:
     def __init__(self):
@@ -118,8 +101,8 @@ class AddressBookService:
 
     def use_get_address_book(self):
         result, zone_names = self.address_book_manager.get_address_book()
-        return result, zone_names
+        return result, 
 
 if __name__ == "__main__":
-    manager = AddressBookManager()
-    manager.push_config(operation="nat_operations")
+    config = AddressBookManager()
+    response = config.push_config()
