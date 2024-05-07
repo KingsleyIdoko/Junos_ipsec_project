@@ -5,7 +5,7 @@ from sec_ipsec_vpn import IpsecVpnManager
 zone_manager = SecurityZoneManager()
 address_manager = AddressBookManager()
 vpn_manager = IpsecVpnManager()
-import itertools, re, pprint
+import itertools, re
 
 app = ["any","junos-aol","junos-bgp","junos-biff","junos-bootpc","junos-bootps","junos-defaults","junos-dhcp-client","junos-dhcp-relay","junos-dhcp-server",    
   "junos-discard","junos-dns-tcp","junos-dns-udp","junos-echo","junos-finger","junos-ftp","junos-ftp-data"]
@@ -73,19 +73,11 @@ def extract_policy_names(raw_data):
     return policies_by_zone, zone_direction
 
 def check_exact_zone_match(zone_direction, from_zone, to_zone):
-    is_present = None
-    unmatched_zones = []
     for zone in zone_direction:
         if zone['from_zone'] == from_zone and zone['to_zone'] == to_zone:
-            is_present = True
-            break
-        else:
-            unmatched_zones.append(zone)
-    if not is_present:
-        return None, unmatched_zones
-    else:
-        return is_present, None
-   
+            return True, zone  
+    return False, None  
+
 
 def gen_sec_policies_config(**kwargs):
     raw_data = kwargs.get('raw_data', [])
@@ -96,6 +88,7 @@ def gen_sec_policies_config(**kwargs):
     zone_direction = []
     if raw_data:
         policy_data, zone_direction = extract_policy_names(raw_data)
+        old_policy_names = [policy for zone in policy_data.values() for policy in zone['policies']]
         list_zones = list(policy_data.keys())
         if len(list_zones) != expected_combinations:
             list_zones = list(set(list_zones).union(generate_zone_directions(zones)))
@@ -119,7 +112,7 @@ def gen_sec_policies_config(**kwargs):
     application = get_valid_selection("Select application to allow: ", app)
     action = get_valid_selection("Selection match action: ", ["permit", "deny"])
     tunnel_config = get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction)
-    policy_xml = build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, action, tunnel_config)
+    policy_xml = build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, action, tunnel_config, raw_data, old_policy_names, zone_direction)
     print(policy_xml)
     return policy_xml
 
@@ -145,16 +138,24 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
             reverse_policy = get_reverse_policy(policy_data, from_zone, to_zone)
             if reverse_policy:
                 reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)
-                pair_policy = f"<pair-policy operation='create'>{reverse_policy_choice}</pair-policy>"
+                pair_policy = f"""<pair-policy operation="create">{reverse_policy_choice}</pair-policy>"""
             else:
                 print("No reverse policy found. No pair policy will be created.")
-            selected_vpn = f"<tunnel><ipsec-vpn>{selected}</ipsec-vpn>{pair_policy}</tunnel>"
+            selected_vpn = f"""<tunnel>
+                                <ipsec-vpn>{selected}</ipsec-vpn>
+                                    {pair_policy}
+                            </tunnel>"""
         else:
             print("No VPN options available.")
     return selected_vpn
 
-def build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, action, tunnel_config):
+def build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, action, tunnel_config, raw_data, old_policy_names, zone_direction):
     attribute = sub_attribute = ""
+    if raw_data:
+        is_present, existing_zone = check_exact_zone_match(zone_direction, from_zone, to_zone)
+        if is_present:
+            if zone_dir != old_policy_names[-1]:
+                sub_attribute = f""" insert=\"after\"  key=\"[ name='{old_policy_names[-1]}' ]\" operation=\"create\" """
     return f"""
     <configuration>
         <security>

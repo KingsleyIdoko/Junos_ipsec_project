@@ -1,4 +1,4 @@
-from Python_Scripts.sec_basemanager import BaseManager
+from sec_basemanager import BaseManager
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
 from utiliites_scripts.sec_policies import gen_sec_policies_config, gen_update_config
@@ -46,7 +46,7 @@ class SecPolicyManager(BaseManager):
 
     def create_sec_policy(self):
         try:
-            raw_data = self.get_sec_policy()  
+            raw_data = self.get_sec_policy() 
             if not raw_data:
                 print("No Existing Security found.")
             payload = gen_sec_policies_config(raw_data=raw_data) 

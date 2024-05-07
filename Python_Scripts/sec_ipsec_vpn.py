@@ -13,8 +13,8 @@ gateway_manager = IkeGatewayManager()
 
 class IpsecVpnManager(BaseManager):
     def __init__(self, config_file="config.yml"):
-        self.nr = super().__init__(config_file=config_file)
-  
+        super().__init__(config_file=config_file)
+
     def operations(self):
         while True:
             print("\nSpecify Operation.....")

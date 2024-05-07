@@ -9,7 +9,6 @@ from sec_basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkePolicyManager(BaseManager):
-    database = 'committed'
     def __init__(self, config_file="config.yml"):
         super().__init__(config_file=config_file)
         self.ike_proposal =  IkeProposalManager()

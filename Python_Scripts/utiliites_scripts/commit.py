@@ -14,19 +14,20 @@ def run_pyez_tasks(self, payload, data_format):
         else:
             print("No Config Change: No Commit to Apply")
     if need_commit:
-        try:
-            message = int(input("Enter 1 to commit, 0 to rollback: "))
-        except ValueError:
-            print("Invalid input. Assuming rollback.")
-            message = 0
-        if message == 1:
-            committed = self.nr.run(task=pyez_commit)
-            for res in committed.values():
-                print(res.result)
-            return response, committed
-        else:
-            rolled_back = self.nr.run(task=pyez_rollback)
-            print("Configuration rollback initiated.")
-            return None
+        while True:
+            message = input("Enter 'yes' to commit, 'no' to abort: ").lower()
+            if message == 'yes':
+                committed = self.nr.run(task=pyez_commit)
+                for res in committed.values():
+                    print(res.result)
+                return response, committed
+            elif message == 'no':
+                rolled_back = self.nr.run(task=pyez_rollback)
+                print("Configuration abort initiated.")
+                return None
+            else:
+                print("Invalid command. Please enter 'yes' or 'no'.")
+                continue
     else:
         return response, None
+

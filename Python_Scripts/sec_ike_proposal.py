@@ -5,7 +5,7 @@ import os
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.proposals import (gen_ikeprop_config, extract_and_update_proposal, 
                                          update_ikeproposal_xml, delete_ike_proposal)
-from basemanager import BaseManager
+from sec_basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IkeProposalManager(BaseManager):
