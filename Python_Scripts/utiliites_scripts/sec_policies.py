@@ -88,7 +88,6 @@ def gen_sec_policies_config(**kwargs):
     zone_direction = []
     if raw_data:
         policy_data, zone_direction = extract_policy_names(raw_data)
-        old_policy_names = [policy for zone in policy_data.values() for policy in zone['policies']]
         list_zones = list(policy_data.keys())
         if len(list_zones) != expected_combinations:
             list_zones = list(set(list_zones).union(generate_zone_directions(zones)))
@@ -97,6 +96,7 @@ def gen_sec_policies_config(**kwargs):
         list_zones = generate_zone_directions(zones)
     zone_dir  = get_valid_selection("Please select the security zone direction: ", list_zones)
     from_zone, to_zone = zone_dir .split('_')[1], zone_dir .split('_')[-1]
+    old_policy_names = get_policy_names_by_zone(raw_data, from_zone, to_zone)
     print(f"Selected from_zone: {from_zone}, to_zone: {to_zone}")
     if policy_data:
         zone_dir = update_zone_dir(policy_data, zone_dir )
@@ -138,13 +138,13 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
             reverse_policy = get_reverse_policy(policy_data, from_zone, to_zone)
             if reverse_policy:
                 reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)
-                pair_policy = f"""<pair-policy operation="create">{reverse_policy_choice}</pair-policy>"""
+                pair_policy = f"""<pair-policy>{reverse_policy_choice}</pair-policy>"""
             else:
                 print("No reverse policy found. No pair policy will be created.")
             selected_vpn = f"""<tunnel>
-                                <ipsec-vpn>{selected}</ipsec-vpn>
+                                    <ipsec-vpn>{selected}</ipsec-vpn>
                                     {pair_policy}
-                            </tunnel>"""
+                               </tunnel>"""
         else:
             print("No VPN options available.")
     return selected_vpn
@@ -153,9 +153,12 @@ def build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_addres
     attribute = sub_attribute = ""
     if raw_data:
         is_present, existing_zone = check_exact_zone_match(zone_direction, from_zone, to_zone)
+        print(is_present)
         if is_present:
             if zone_dir != old_policy_names[-1]:
                 sub_attribute = f""" insert=\"after\"  key=\"[ name='{old_policy_names[-1]}' ]\" operation=\"create\" """
+        else:
+            attribute = f"""insert="after"  key=\"[ from-zone-name={from_zone} to-zone-name={to_zone} ]\" operation="create" """
     return f"""
     <configuration>
         <security>
@@ -282,3 +285,18 @@ def confirm_action(prompt):
             return user_input.lower() == 'yes'
         else:
             print("Please enter 'yes' or 'no'.")
+
+
+def get_policy_names_by_zone(raw_data, from_zone, to_zone):
+    policy_names = []
+    if not raw_data:  
+        return policy_names  
+    for entry in raw_data:
+        if entry['from-zone-name'] == from_zone and entry['to-zone-name'] == to_zone:
+            if isinstance(entry['policy'], list):
+                policy_names.extend(policy['name'] for policy in entry['policy'])
+            else:
+                policy_names.append(entry['policy']['name'])
+    return policy_names
+
+ 
