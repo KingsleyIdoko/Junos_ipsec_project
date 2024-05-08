@@ -204,58 +204,57 @@ def gen_update_config(raw_data):
     zone_dir = get_valid_selection("Please select traffic zone: ", list_zones)
     from_zone, to_zone = zone_dir.split('_')[1], zone_dir.split('_')[-1]
     old_policy_names = get_policy_names_by_zone(raw_data, from_zone, to_zone)
-    policy_data, zone_direction = extract_policy_names(raw_data)
-    selected_policies = selected_zone(policy_data, from_zone, to_zone)
-    list_policy_names = [policy['name'] for policy in selected_policies]
-    edit_policy_name = get_valid_selection("Please select a policy to view details: ", list_policy_names)
+    selected_policies = selected_zone(raw_data, from_zone, to_zone)
+    print(selected_policies)
+    edit_policy_name = get_valid_selection("Please select a policy to view details: ", selected_policies)
     selected_policy = next((policy for policy in selected_policies if policy['name'] == edit_policy_name), None)
     updated = display_and_select_policy_details(selected_policy, from_zone, to_zone)
-    if not updated:
-        return "No updates made."
-    pair_policy_xml = f"""<pair-policy>{updated['then']['tunnel']['pair-policy']}</pair-policy>""" if updated['then']['tunnel'].get('pair-policy') else ""
-    tunnel_config_xml = f"""<tunnel><ipsec-vpn>{updated['then']['tunnel']['ipsec-vpn']}</ipsec-vpn>{pair_policy_xml}</tunnel>"""
-    attribute = ""
-    sub_attribute = ""
-    is_present, existing_zone = check_exact_zone_match(zone_direction, from_zone, to_zone)
-    if is_present:
-        if zone_dir != old_policy_names[-1]:
-            sub_attribute = f"""insert="after" key="[name='{old_policy_names[-1]}']" operation="create" """
-    else:
-        attribute = f"""insert="after" key="[from-zone-name={from_zone} to-zone-name={to_zone}]" operation="create" """
-    return f"""
-    <configuration>
-        <security>
-            <policies>
-                <policy {attribute}>
-                    <from-zone-name>{from_zone}</from-zone-name>
-                    <to-zone-name>{to_zone}</to-zone-name>
-                    <policy {sub_attribute}>
-                        <name>{zone_dir}</name>
-                        <description>{updated['description']}</description>
-                        <match>
-                            <source-address>{updated['match']['source-address']}</source-address>
-                            <destination-address>{updated['match']['destination-address']}</destination-address>
-                            <application>{updated['match']['application']}</application>
-                        </match>
-                        <then>
-                            {tunnel_config_xml}
-                        </then>
-                    </policy>
-                </policy>
-            </policies>
-        </security>
-    </configuration>""".strip()
+    print(updated)
+    # if not updated:
+    #     return "No updates made."
+    # pair_policy_xml = f"""<pair-policy>{updated['then']['tunnel']['pair-policy']}</pair-policy>""" if updated['then']['tunnel'].get('pair-policy') else ""
+    # tunnel_config_xml = f"""<tunnel><ipsec-vpn>{updated['then']['tunnel']['ipsec-vpn']}</ipsec-vpn>{pair_policy_xml}</tunnel>"""
+    # attribute = ""
+    # sub_attribute = ""
+    # is_present, existing_zone = check_exact_zone_match(zone_direction, from_zone, to_zone)
+    # if is_present:
+    #     if zone_dir != old_policy_names[-1]:
+    #         sub_attribute = f"""insert="after" key="[name='{old_policy_names[-1]}']" operation="create" """
+    # else:
+    #     attribute = f"""insert="after" key="[from-zone-name={from_zone} to-zone-name={to_zone}]" operation="create" """
+    # return f"""
+    # <configuration>
+    #     <security>
+    #         <policies>
+    #             <policy {attribute}>
+    #                 <from-zone-name>{from_zone}</from-zone-name>
+    #                 <to-zone-name>{to_zone}</to-zone-name>
+    #                 <policy {sub_attribute}>
+    #                     <name>{zone_dir}</name>
+    #                     <description>{updated['description']}</description>
+    #                     <match>
+    #                         <source-address>{updated['match']['source-address']}</source-address>
+    #                         <destination-address>{updated['match']['destination-address']}</destination-address>
+    #                         <application>{updated['match']['application']}</application>
+    #                     </match>
+    #                     <then>
+    #                         {tunnel_config_xml}
+    #                     </then>
+    #                 </policy>
+    #             </policy>
+    #         </policies>
+    #     </security>
+    # </configuration>""".strip()
 
 def selected_zone(raw_data, from_zone, to_zone):
-    selected_policies = []  
+    selected_policies = []
     for entry in raw_data:
         if entry['from-zone-name'] == from_zone and entry['to-zone-name'] == to_zone:
-            if isinstance(entry['policy'], list):
-                selected_policies = entry['policy']
-            else:
-                selected_policies = [entry['policy']]
-            break 
+            selected_policies = entry['policy']
+            break  # Exit the loop once the matching entry is found
     return selected_policies
+
+
 
 def display_and_select_policy_details(selected_policy, from_zone, to_zone, policy_data):
     policy = selected_policy
