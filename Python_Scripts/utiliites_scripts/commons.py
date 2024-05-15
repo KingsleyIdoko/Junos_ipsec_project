@@ -16,6 +16,14 @@ def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10)
         else:
             print(f"Invalid input. Enter valid characters and ensure the name is at least {text_length} characters long.")
 
+def validate_yes_no(prompt):
+    pattern = r"^(yes|y|no|n)$"
+    while True:
+        input_str = input(prompt).strip()  
+        if re.match(pattern, input_str, re.IGNORECASE):
+            return input_str.lower().startswith('y') 
+        else:
+            print("Invalid input. Please enter 'yes' or 'no' (y/n).")
 
 def get_valid_name(prompt="Enter a valid name: "):
     pattern = r'^[a-zA-Z_*][a-zA-Z0-9_*]*(-[0-9]+)?$'
