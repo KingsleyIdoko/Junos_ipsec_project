@@ -377,3 +377,51 @@ def gen_delete_config(raw_data, old_policy_name=None):
     </configuration>""".strip()
     return payload
 
+def re_order_policy(raw_data):
+    zones = zone_manager.get_security_zone(get_zone_name=True)
+    list_zones = generate_zone_directions(zones)
+    zone_dir = get_valid_selection("Please select traffic zone: ", list_zones)
+    from_zone, to_zone = zone_dir.split('_')[1], zone_dir.split('_')[-1]
+    policy_names = get_policy_names_by_zone(raw_data, from_zone, to_zone)
+    if len(policy_names) <= 1:
+        print("Only one policy exists and cannot be re-ordered.")
+        return None
+    selected_name = get_valid_selection("Select Policy you want to re-order: ", policy_names)
+    policy_names.remove(selected_name)
+    position = get_valid_selection("Move selected  security policy: ", ["before", "after"])
+    if position == "before" and policy_names:
+        new_position_policy = get_valid_selection("Select selected security Policy to position before: ", policy_names)
+        if policy_names.index(new_position_policy) == 0:
+            key = "insert=\"first\""
+        else:
+            key = f"insert=\"before\" key=\"[ name='{new_position_policy}' ]\""
+    elif position == "after" and policy_names:
+        new_position_policy = get_valid_selection("Select Security Policy to position after: ", policy_names)
+        if policy_names.index(new_position_policy) == len(policy_names) - 1:
+            key = f"insert=\"after\" key=\"[ name='{policy_names[-1]}' ]\""
+        else:
+            key = f"insert=\"after\" key=\"[ name='{new_position_policy}' ]\""
+    else:
+        key = "insert=\"first\""
+    
+    policy_config = f"""<policy {key} operation=\"merge\"> 
+                        <name>{selected_name}</name> 
+                    </policy>"""
+    payload = f"""
+    <configuration>
+        <security>
+            <policies>
+                <policy>
+                    <from-zone-name>{from_zone}</from-zone-name>
+                    <to-zone-name>{to_zone}</to-zone-name>
+                    {policy_config}
+                </policy>
+            </policies>
+        </security>
+    </configuration>""".strip()
+    return payload
+
+
+    
+
+
