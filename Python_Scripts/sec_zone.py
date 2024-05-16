@@ -58,7 +58,6 @@ class SecurityZoneManager(BaseManager):
         
     def create_security_zone(self):
         zones,interface_list = self.get_security_zone()
-        print(interface_list)
         print("See existing zones below.......\n")
         zone_names = [zone['name'] for zone in zones]
         payload = select_zone(zone_names, interface_list)
