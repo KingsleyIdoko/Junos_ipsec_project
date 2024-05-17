@@ -34,6 +34,15 @@ def get_valid_name(prompt="Enter a valid name: "):
         else:
             print("Invalid name Entered. Try again")
 
+def get_valid_ipv4_name(prompt="Enter a valid IPv4 address or name: "):
+    pattern = r'(^([a-zA-Z_*][a-zA-Z0-9_*]*(-[0-9]+)?)$)|(^(\d{1,3}\.){3}\d{1,3}(/\d{1,2})?(_[a-zA-Z0-9_*]+)?$)'
+    while True:
+        name = input(prompt)
+        if re.match(pattern, name):
+            return name
+        else:
+            print("Invalid name entered. Try again.")
+
 def get_valid_choice(prompt, choices):
     while True:
         for i, choice in enumerate(choices, start=1):

@@ -32,7 +32,7 @@ class AddressBookManager(BaseManager):
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_address_book(self, get_addresses=False, interactive=False):
+    def get_address_book(self, get_addresses=False, interactive=False, get_address_book_by_name=False):
         try:
             response = self.nr.run(task=pyez_get_config, database=self.database)
             for nat in response:
@@ -44,8 +44,7 @@ class AddressBookManager(BaseManager):
                 except KeyError:
                     print("Zones do not exist: Please create zones.")
                     return None
-                hostname = result.get('system', {}).get('host-name') or \
-                        result.get('groups', [{}])[0].get('system', {}).get('host-name', 'Unknown')
+                hostname = result.get('system', {}).get('host-name') or result.get('groups', [{}])[0].get('system', {}).get('host-name', 'Unknown')
                 addresses = result.get('security', {}).get('address-book')
                 if not addresses:
                     print(f"No address books or network objects found on {hostname} device.")
@@ -54,6 +53,9 @@ class AddressBookManager(BaseManager):
                 if interactive:
                     print(addresses)
                     return None
+                if get_address_book_by_name:
+                    address_book_names = [address.get('name') for address in addresses]
+                    return address_book_names
                 else:
                     return (addresses, None) if get_addresses else (addresses, zone_names)
         except Exception as e:
@@ -61,10 +63,13 @@ class AddressBookManager(BaseManager):
             return None
 
     def create_address_book(self):
-            addresses, zone =  self.get_address_book()
-            payload = gen_addressbook_config(addresses, zone)
-            print(payload)
-            return payload
+        addresses, zone = self.get_address_book()
+        address_book_by_name = self.get_address_book(get_address_book_by_name=True)
+        payload = gen_addressbook_config(addresses, zone, address_book_by_name)
+        print(payload)
+        return payload
+
+
 
     
     def update_address_book(self):
