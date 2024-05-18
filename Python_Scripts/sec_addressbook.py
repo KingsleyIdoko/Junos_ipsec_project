@@ -46,32 +46,54 @@ class AddressBookManager(BaseManager):
                     return None
                 hostname = result.get('system', {}).get('host-name') or result.get('groups', [{}])[0].get('system', {}).get('host-name', 'Unknown')
                 addresses = result.get('security', {}).get('address-book')
-                if not addresses:
+                if interactive:
+                    if addresses:
+                        print(addresses)
+                    else:
+                        print("Address book is empty on the device")
+                    return None
+                elif get_address_book_by_name:
+                    if not isinstance(addresses, list):
+                        addresses = [addresses]
+                    address_book_names = [address.get('name') for address in addresses] if addresses else None
+                    return address_book_names
+                elif addresses:
+                    return (addresses, None) if get_addresses else (addresses, zone_names)
+                elif zone_names:
+                    return None, zone_names
+                else:
                     print(f"No address books or network objects found on {hostname} device.")
                     print("Please create at least one network object.")
-                    return None
-                if interactive:
-                    print(addresses)
-                    return None
-                if get_address_book_by_name:
-                    address_book_names = [address.get('name') for address in addresses]
-                    return address_book_names
-                else:
-                    return (addresses, None) if get_addresses else (addresses, zone_names)
+                    return None, None
         except Exception as e:
             print(f"An error occurred: {str(e)}")
+            return None, None
+        
+    def create_address_book(self):
+        addresses = zone = address_book_by_name = None
+        try:
+            addresses, zone = self.get_address_book()
+        except Exception as e:
+            print(f"An error occurred while fetching addresses and zones: {e}")
+        try:
+            address_book_by_name = self.get_address_book(get_address_book_by_name=True)
+        except Exception as e:
+            print(f"No address_book_by_name is present on the device")
+        if addresses is None and zone is None:
+            print("Failed to fetch addresses and zones. Cannot generate address book configuration.")
+            return None
+        try:
+            payload = gen_addressbook_config(addresses, zone, address_book_by_name)
+            if payload:
+                print(payload)
+            else:
+                print("Failed to generate address book configuration.")
+            return payload
+        except Exception as e:
+            print(f"An error occurred while generating address book configuration: {e}")
             return None
 
-    def create_address_book(self):
-        addresses, zone = self.get_address_book()
-        address_book_by_name = self.get_address_book(get_address_book_by_name=True)
-        payload = gen_addressbook_config(addresses, zone, address_book_by_name)
-        print(payload)
-        return payload
 
-
-
-    
     def update_address_book(self):
         print("updating address book")
         

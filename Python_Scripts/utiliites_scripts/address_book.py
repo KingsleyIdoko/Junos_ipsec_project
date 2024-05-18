@@ -1,92 +1,109 @@
-from utiliites_scripts.commons import (get_valid_selection, validate_yes_no, 
-                                       get_valid_ipv4_name, get_valid_network_address)
+from utiliites_scripts.commons import (get_valid_selection, validate_yes_no,get_valid_name,get_valid_ipv4_name, 
+                                       get_valid_network_address)
 
-def generate_addr_cfg(prefix_name=None, ipv4_address=None, attached_zone_name=None,
-                      address_name=None, address_book_name=None, existing_zones=None,
-                      existing_names=None):
+def generate_addr_cfg(**kwargs):
+    zone_address_name = kwargs.get("zone_address_name")
+    new_prefix_name = kwargs.get("new_prefix_name")
+    new_ipv4_address = kwargs.get("new_ipv4_address")
+    selected_zone_name = kwargs.get("selected_zone_name")
+    default_sec_zones = kwargs.get("default_sec_zones")
+    existing_address_names = kwargs.get("existing_address_names")
+    print(existing_address_names)
     attached_zone = attribute = sub_attribute = ""
-
-    if address_name and attached_zone_name and attached_zone_name in existing_zones:
+    if selected_zone_name in default_sec_zones:
         attached_zone = f"""
                         <attach>
                             <zone>
-                                <name>{attached_zone_name}</name>
+                                <name>{selected_zone_name}</name>
                             </zone>
                         </attach>"""
-    elif attached_zone_name in address_book_name:
-        address_name = attached_zone_name
-        last_existing_name = existing_names[-1] if prefix_name != existing_names[-1] else existing_names[-2]
-        sub_attribute = f""" insert="after" key="[ name='{last_existing_name}' ]" operation="create" """
+    if existing_address_names:
+        last_address_name = existing_address_names[-1]
+        sub_attribute = f""" insert="after" key="[ name='{last_address_name}' ]" operation="create" """
     else:
-        address_name = attached_zone_name
-        if address_book_name and address_name not in address_book_name:
-            last_attached_zone = address_book_name[-1] if address_name != address_book_name[-1] else address_book_name[-2]
-            attribute = f""" insert="after" key="[ name='{last_attached_zone}' ]" operation="create" """
-
+        attribute = f""" operation="create" """
     return f"""
     <configuration>
         <security>
             <address-book {attribute}>
-                <name>{address_name}</name>
+                <name>{zone_address_name}</name>
                 <address{sub_attribute}>
-                    <name>{prefix_name}</name>
-                    <ip-prefix>{ipv4_address}</ip-prefix>
+                    <name>{new_prefix_name}</name>
+                    <ip-prefix>{new_ipv4_address}</ip-prefix>
                 </address>
                 {attached_zone}
             </address-book>
         </security>
     </configuration>""".strip()
 
+def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_name):
+    try:
+        if not raw_sec_zones:
+            raise ValueError("No raw_sec_zones available. Please create a sec zone first.")
+        default_sec_zones = raw_sec_zones[:]  
+        if "global" not in raw_sec_zones:
+            raw_sec_zones = raw_sec_zones + ["global"]  
+        selected_zone_name = get_valid_selection("Please select traffic zone: ", raw_sec_zones)
+        matching_address = None
+        if existing_address_book:
+            if not isinstance(existing_address_book, list):
+                existing_address_book = [existing_address_book]
+            for address in existing_address_book:
+                if address.get('attach', {}).get('zone', {}).get('name') == selected_zone_name or address.get('name') == selected_zone_name:
+                    matching_address = address
+                    break
+            if matching_address:
+                address_name = matching_address['name']
+                choice = validate_yes_no(f"Address book name {address_name} exists in zone {selected_zone_name}. Add new address? (yes/no): ")
+                if choice:
+                    print(f"Creating/Adding addresses to {address_name} in zone {selected_zone_name}")
+                    new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book)
+                    return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address, zone_address_name=zone_address_name,
+                                             selected_zone_name=selected_zone_name,default_sec_zones=default_sec_zones,
+                                             existing_address_names=existing_address_names)
+                else:
+                    print(f"Not adding new addresses to {address_name}.")
+                    return None
+        new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book)
+        return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address,default_sec_zones=default_sec_zones,
+                                 zone_address_name=zone_address_name,selected_zone_name=selected_zone_name, 
+                                 existing_address_names=existing_address_names)
+    except ValueError as ve:
+        print(f"Error: {ve}")
+        return None
 
 
-def gen_addressbook_config(addresses, zones, address_book_name):
-    existing_zones = zones[:]  
-    if "global" not in zones:
-        zones = zones + ["global"]  
-    attached_zone_name = get_valid_selection("Please select traffic zone: ", zones)
-    matching_address = None
-    for address in addresses:
-        if address.get('attach', {}).get('zone', {}).get('name') == attached_zone_name or address.get('name') == attached_zone_name:
-            matching_address = address
-            break
-    if matching_address:
-        address_name = matching_address['name']
-        choice = validate_yes_no(f"Address book name {address_name} exists in zone {attached_zone_name}. Add new address? (yes/no): ")
-        if choice:
-            print(f"Creating/Adding addresses to {address_name} in zone {attached_zone_name}")
-            existing_names = [addr['name'] for addr in matching_address.get('address', [])]
-            existing_prefixes = [addr['ip-prefix'] for addr in matching_address.get('address', [])]
-            prefix_name, ipv4_address = create_address_name_prefix(existing_names=existing_names, existing_prefixes=existing_prefixes)
-            return generate_addr_cfg(prefix_name=prefix_name, ipv4_address=ipv4_address, 
-                                     attached_zone_name=attached_zone_name, address_name=address_name, 
-                                     address_book_name=address_book_name, existing_zones= existing_zones,
-                                     existing_names=existing_names)
-        else:
-            print(f"Not adding new addresses to {address_name}.")
-            return None
+def create_address_name_prefix(existing_address_book=None):
+    existing_address_names = []
+    existing_address_prefixes = []
+    if existing_address_book:
+        for addr in existing_address_book:
+            zone_addressbook_name = addr.get('name')
+            if 'address' in addr and isinstance(addr['address'], dict):
+                existing_address_names.append(addr['address'].get('name'))
+                print(existing_address_names)
+                existing_address_prefixes.append(addr['address'].get('ip-prefix'))
+            elif 'address' in addr and isinstance(addr['address'], list):
+                for address in addr['address']:
+                    existing_address_names.append(address.get('name'))
+                    existing_address_prefixes.append(address.get('ip-prefix'))
     else:
-        prefix_name, ipv4_address = create_address_name_prefix()
-        print(existing_zones)  # Print the original zones without "global"
-        return generate_addr_cfg(prefix_name=prefix_name, ipv4_address=ipv4_address, attached_zone_name=attached_zone_name, address_book_name=address_book_name)
-
-        
-def create_address_name_prefix(existing_names=None, existing_prefixes=None):
-    if not existing_names:
-        existing_prefixes = existing_names = []
+        zone_addressbook_name = get_valid_name("Enter sec zone addressbook name: ")
     while True:
-        prefix_name = get_valid_ipv4_name("Enter address name: ")
-        if prefix_name in existing_names:
-            print(f"Prefix name {prefix_name} already exists, try again.")
+        new_prefix_name = get_valid_ipv4_name(f"Enter address name under {zone_addressbook_name} addressbook: ")
+        if new_prefix_name in existing_address_names:
+            print(f"Prefix name {new_prefix_name} already exists, try again.")
             continue
         break
     while True:
-        ipv4_address = get_valid_network_address("Enter network address: ")
-        if ipv4_address in existing_prefixes:
-            print(f"Prefix {ipv4_address} already exists, try again.")
+        new_ipv4_address = get_valid_network_address(f"Specify network address under {new_prefix_name} addressbook: ")
+        if new_ipv4_address in existing_address_prefixes:
+            print(f"Prefix {new_ipv4_address} already exists, try again.")
             continue
         break
-    return prefix_name, ipv4_address
-
+    if existing_address_names:
+        return new_prefix_name, new_ipv4_address, zone_addressbook_name, existing_address_names
+    return new_prefix_name, new_ipv4_address, zone_addressbook_name, None
 
 
 def create_zone():
