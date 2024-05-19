@@ -106,8 +106,7 @@ class IkePolicyManager(BaseManager):
             policy_name=policy_name
             payload = del_ike_policy(policy_name=policy_name,used_policy=used_policy)
             run_pyez_tasks(self, payload, 'xml')
-
-
+            
 if __name__ == "__main__":
     config = IkePolicyManager()
     response = config.push_config()
