@@ -1,6 +1,5 @@
-from utiliites_scripts.commons import (get_valid_selection, validate_yes_no,get_valid_name,get_valid_ipv4_name, 
-                                       get_valid_network_address)
-
+from utiliites_scripts.commons import (get_valid_selection,validate_yes_no,get_valid_name,multiple_selection,
+                                       get_valid_ipv4_name,get_valid_network_address)
 def generate_addr_cfg(**kwargs):
     zone_address_name = kwargs.get("zone_address_name")
     new_prefix_name = kwargs.get("new_prefix_name")
@@ -22,6 +21,7 @@ def generate_addr_cfg(**kwargs):
         sub_attribute = f""" insert="after" key="[ name='{last_address_name}' ]" operation="create" """
     else:
         if address_book_name:
+            print(address_book_name)
             attribute = f""" insert="after"  key="[ name='{[address_book_name[-1]]}' ]" operation="create" """
         else:
             attribute = f""" operation="create" """
@@ -38,6 +38,37 @@ def generate_addr_cfg(**kwargs):
             </address-book>
         </security>
     </configuration>""".strip()
+
+
+def gen_address_set_config(addresses, zone, address_book_by_name):
+    selected = get_valid_selection("Select address book name: ", address_book_by_name)
+    address_names = default_address_set = []
+    if addresses:
+        for address in addresses:
+            if address['name'] == selected:
+                if address.get('address-set'):
+                    default_address_set = [addrr_set['address-set']['name'] for addrr_set in addresses if 'address-set' in addrr_set]
+                address_names = [item['name'] for item in address.get('address', [])]
+                while True:
+                    address_set_name = get_valid_name("Create new address-set name: ")
+                    if address_set_name in default_address_set or address_set_name in address_names:
+                        print("Address set name already exists. Please enter a different name.")
+                        continue
+                    break
+        members = multiple_selection("Select and add address names", address_names)
+        addr_set = '\n'.join([f'<address><name>{member}</name></address>' for member in members])
+    return f"""<configuration>
+    <security>
+        <address-book>
+            <name>{selected}</name>
+            <address-set operation="create">
+                <name>{address_set_name}</name>
+                {addr_set}
+            </address-set>
+        </address-book>
+    </security>
+</configuration>""".strip()
+
 
 def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_name):
     try:
@@ -74,7 +105,6 @@ def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_na
     except ValueError as ve:
         print(f"Error: {ve}")
         return None
-
 
 def create_address_name_prefix(existing_address_book=None, selected_zone_name=None,default_sec_zones=None):
     existing_address_names = []
@@ -117,10 +147,82 @@ def create_address_name_prefix(existing_address_book=None, selected_zone_name=No
     return new_prefix_name, new_ipv4_address, zone_addressbook_name, None
 
 
-def create_zone():
-    print("Creating new zone...")
-    # Implement zone creation logic here
-
-def create_address_book():
-    print("Creating new address book...")
-    # Implement address book creation logic here
+def gen_updated_config(addresses, address_book_by_name):
+    updated_name_prefix = []
+    selected_book = get_valid_selection("Please select address book: ", address_book_by_name)
+    selected_addresses = None
+    zone = None
+    for address_book in addresses:
+        if address_book['name'] == selected_book:
+            selected_addresses = address_book.get('address', [])
+            zone = address_book['attach']['zone'].get("name")
+            break
+    if not selected_addresses:
+        print(f"No addresses found for the selected address book: {selected_book}")
+        return None
+    address_names = [addr['name'] for addr in selected_addresses]
+    selected_address_name = get_valid_selection("Select address name", address_names)
+    subnet_to_update = next((subnet for subnet in selected_addresses if subnet['name'] == selected_address_name), None)
+    if not subnet_to_update:
+        print(f"No subnet found with the name: {selected_address_name}")
+        return
+    original_values = {
+        "name": subnet_to_update['name'],
+        "ip-prefix": subnet_to_update.get('ip-prefix')
+    }
+    while True:
+        policy_attributes = {
+            "name": subnet_to_update['name'],
+            "ip-prefix": subnet_to_update.get('ip-prefix')
+        }
+        attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
+        selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
+        key_to_update = selected_attribute.split(":")[0].strip()
+        new_value = None
+        if key_to_update == "name":
+            new_value = get_valid_name(f"Enter new value for {key_to_update}: ").strip()
+        elif key_to_update == "ip-prefix":
+            new_value = get_valid_network_address(f"Enter new value for {key_to_update}: ").strip()
+        else:
+            print("Invalid Selection, Please try again")
+            continue
+        if original_values[key_to_update] != new_value and {key_to_update: original_values[key_to_update]} not in updated_name_prefix:
+            updated_name_prefix.append({key_to_update: original_values[key_to_update]})
+        subnet_to_update[key_to_update] = new_value
+        if not validate_yes_no("Do you want to update another parameter? (yes/no): "):
+            break
+    sub_attribute = prefix_name = ip_prefix = old_prefix_name = old_ip_prefix = ""
+    if subnet_to_update['name'] != original_values['name']:
+        old_prefix_name = f"""<address operation="delete"><name>{original_values['name']}</name></address>"""
+        prefix_name = f"""<name>{subnet_to_update['name']}</name>"""
+    else:
+        prefix_name = f"""<name>{subnet_to_update['name']}</name>"""
+    if subnet_to_update['ip-prefix'] != original_values['ip-prefix']:
+        if old_prefix_name == "":
+            old_ip_prefix = f"""<ip-prefix operation="delete"/>"""
+            ip_prefix = f"""<ip-prefix operation="create">{subnet_to_update['ip-prefix']}</ip-prefix>"""
+        else:
+            ip_prefix = f"""<ip-prefix>{subnet_to_update['ip-prefix']}</ip-prefix>"""
+    else:
+        ip_prefix = f"""<ip-prefix>{subnet_to_update['ip-prefix']}</ip-prefix>"""
+    if old_prefix_name and len(address_names) >= 1:
+        if subnet_to_update['name'] != address_names[-1]:
+            sub_attribute = f""" insert="after" key="[name='{address_names[-1]}']" operation="create" """
+        else:
+            sub_attribute = f""" insert="after" key="[name='{address_names[0]}']" operation="create" """
+    new_config = f"""
+    <configuration>
+        <security>
+            <address-book>
+                <name>{selected_book}</name>
+                <address{sub_attribute}>
+                    {prefix_name}
+                    {old_ip_prefix}
+                    {ip_prefix}
+                </address>
+                {old_prefix_name}
+            </address-book>
+        </security>
+    </configuration>""".strip()
+    print(new_config)
+    return new_config

@@ -98,7 +98,14 @@ def get_valid_network_address(prompt):
                 return str(network)
         except ValueError:
             print("Invalid input. Please enter a valid IPv4 network address.")
-
+            
+def multiple_selection(prompt, options):
+    print(prompt)
+    for idx, option in enumerate(options, start=1):
+        print(f"{idx}: {option}")
+    selections = input("Enter your choices as comma-separated values (e.g., 1,2,3): ").split(',')
+    selected_values = [options[int(choice.strip()) - 1] for choice in selections if choice.strip().isdigit() and 0 < int(choice.strip()) <= len(options)]
+    return selected_values
 
 def get_vlan_names_by_ids(received_vlans):
     input_str = input("Enter VLANs to assign (comma-separated, e.g. 10,20,40): ")
