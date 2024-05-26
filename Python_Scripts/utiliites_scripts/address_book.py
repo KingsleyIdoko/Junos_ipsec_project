@@ -151,12 +151,17 @@ def gen_updated_config(addresses, address_book_by_name):
     updated_name_prefix = []
     selected_book = get_valid_selection("Please select address book: ", address_book_by_name)
     selected_addresses = None
+    address_set = None
     zone = None
     for address_book in addresses:
         if address_book['name'] == selected_book:
             selected_addresses = address_book.get('address', [])
-            zone = address_book['attach']['zone'].get("name")
-            break
+        if 'address-set' in address_book:
+                if isinstance(address_book['address-set'], list):
+                    address_set = [addr for addr_set in address_book['address-set'] for addr in addr_set['address']]
+                else:
+                    address_set = [addr for addr in address_book['address-set']['address']]
+                break
     if not selected_addresses:
         print(f"No addresses found for the selected address book: {selected_book}")
         return None
@@ -180,7 +185,12 @@ def gen_updated_config(addresses, address_book_by_name):
         key_to_update = selected_attribute.split(":")[0].strip()
         new_value = None
         if key_to_update == "name":
-            new_value = get_valid_name(f"Enter new value for {key_to_update}: ").strip()
+            print(f"Please double check subnet {original_values['name']} is not in use!")
+            if address_set:
+                if any(addr['name'] == original_values['name'] for addr in address_set):
+                    print(f"{original_values['name']} is in use in address-set. First delete from address-set")
+                    return
+                new_value = get_valid_name(f"Enter new value for {key_to_update}: ").strip()
         elif key_to_update == "ip-prefix":
             new_value = get_valid_network_address(f"Enter new value for {key_to_update}: ").strip()
         else:
@@ -224,5 +234,111 @@ def gen_updated_config(addresses, address_book_by_name):
             </address-book>
         </security>
     </configuration>""".strip()
-    print(new_config)
     return new_config
+
+
+def gen_delete_config(addresses, address_book_by_name):
+    selected_addresses = address_set = zone = None
+    option = ["delete_address_book","delete_address_name","delete_address_set"]
+    operation  = get_valid_selection("Please select delete operation", option)
+    if operation == "delete_address_name":
+        selected_book = get_valid_selection("Please select address book?: ", address_book_by_name)
+        selected_addresses, address_set = extract_addresses(addresses, selected_book)
+        address_names = [addr['name'] for addr in selected_addresses]
+        selected_address_name = get_valid_selection("Select address name", address_names)
+        subnet_to_update = next((subnet for subnet in selected_addresses if subnet['name'] == selected_address_name), None)
+        if not subnet_to_update:
+            print(f"No subnet found with the name: {selected_address_name}")
+            return
+        original_values = {
+            "name": subnet_to_update['name'],
+            "ip-prefix": subnet_to_update.get('ip-prefix')
+    }
+    elif operation == "delete_address_set":
+        selected_book = get_valid_selection("Please select address book?: ", address_book_by_name)
+        selected_addresses, address_set= extract_addresses(addresses, selected_book)
+        if not address_set:
+            print(f"No address sets found in the address book: {selected_book}")
+            return None
+        print(f"The following address_set exist under the selected {selected_book} address book:")
+        select_address_set = get_valid_selection("Select address_set for deletion: ", address_set)
+        address_set_members = extract_address_set_member(addresses, selected_book, select_address_set)
+        if len(address_set_members) >= 1:
+            print(f"The address_set {select_address_set} contain address listed below: ")
+            for i, address in enumerate(address_set_members, 1):
+                print(f"{i}. {address}")
+        choice = validate_yes_no(f"The address_set contains addresses that might be in use. Do you still want to proceed? (yes/no) ")
+        if choice == True:
+            del_config = f"""<address-book>
+                        <name>{selected_book}</name>
+                            <address-set operation="delete">
+                                <name>{select_address_set}</name>
+                            </address-set>
+                    </address-book>"""
+        else:
+            print("Operation cancelled by the user.")
+            return None
+    elif operation == "delete_address_book":
+        selected_book = get_valid_selection("Please select address book to delete?: ", address_book_by_name)
+        selected_addresses, address_set = extract_addresses(addresses, selected_book)
+        if selected_addresses:
+            print(f"The following addresses exist under the selected {selected_book} address book:")
+            for i, address in enumerate(selected_addresses, 1):
+                print(f"{i}. {address}")
+        if address_set:
+            print(f"The following address_set exist under the selected {selected_book} address book:")
+            for i, address in enumerate(selected_addresses, 1):
+                print(f"{i}. {address}")
+        choice = validate_yes_no(f"The {selected_book} contains addresses. Do you still want to proceed? (yes/no): ")
+        if choice == True:
+                del_config = f"""
+                <address-book operation="delete">
+                    <name>{selected_book}</name>
+                </address-book>"""
+        else:
+            print("Operation cancelled by the user.")
+            return None
+    payload = f"""<configuration>
+            <security>
+                {del_config}
+            </security>
+    </configuration>""".strip()
+    print(payload)
+    return payload
+
+
+
+def extract_addresses(addresses, selected_book):
+    if addresses is None:
+        return [], []
+    selected_addresses = []
+    address_set = []
+    for address_book in addresses:
+        if address_book['name'] == selected_book:
+            selected_addresses = address_book.get('address', [])
+            if 'address-set' in address_book:
+                if isinstance(address_book['address-set'], list):
+                    address_set = [addr_set['name'] for addr_set in address_book['address-set']]
+                else:
+                    address_book['address-set'] = [address_book['address-set']]
+                    address_set = [addr_set['name'] for addr_set in address_book['address-set']]
+            break
+    return selected_addresses, address_set
+
+def extract_address_set_member(addresses, selected_book, select_address_set):
+    address_set_members = []
+    if not addresses:
+        return address_set_members
+    for address_book in addresses:
+        if address_book['name'] == selected_book and 'address-set' in address_book:
+            address_sets = address_book['address-set']
+            if not isinstance(address_sets, list):
+                address_sets = [address_sets]
+            for addr_set in address_sets:
+                if addr_set['name'] == select_address_set:
+                    addresses = addr_set['address']
+                    if not isinstance(addresses, list):
+                        addresses = [addresses]
+                    address_set_members = [addr['name'] for addr in addresses]
+                    return address_set_members
+    return address_set_members

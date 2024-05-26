@@ -3,7 +3,8 @@ from rich import print
 import os, subprocess
 from utiliites_scripts.commons import get_valid_selection
 from utiliites_scripts.zones import ensure_list, get_zone_names
-from utiliites_scripts.address_book import gen_addressbook_config,gen_address_set_config,gen_updated_config
+from utiliites_scripts.address_book import (gen_addressbook_config,gen_address_set_config,
+                                            gen_updated_config,gen_delete_config)
 from sec_basemanager import BaseManager
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -108,7 +109,17 @@ class AddressBookManager(BaseManager):
             return None
         
     def delete_address_book(self):
-        print("Delete address book")
+        addresses = zone = address_book_by_name = None
+        try:
+            addresses, *_ = self.get_address_book()
+        except Exception as e:
+            print(f"An error occurred while fetching addresses and zones: {e}")
+        try:
+            address_book_by_name = self.get_address_book(get_address_book_by_name=True)
+            return gen_delete_config(addresses,address_book_by_name)
+        except Exception as e:
+            print(f"No address_book_by_name is present on the device")
+            return None
 
 class AddressBookService:
     def __init__(self):
