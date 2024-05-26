@@ -21,7 +21,6 @@ def generate_addr_cfg(**kwargs):
         sub_attribute = f""" insert="after" key="[ name='{last_address_name}' ]" operation="create" """
     else:
         if address_book_name:
-            print(address_book_name)
             attribute = f""" insert="after"  key="[ name='{[address_book_name[-1]]}' ]" operation="create" """
         else:
             attribute = f""" operation="create" """
@@ -236,24 +235,26 @@ def gen_updated_config(addresses, address_book_by_name):
     </configuration>""".strip()
     return new_config
 
-
 def gen_delete_config(addresses, address_book_by_name):
     selected_addresses = address_set = zone = None
     option = ["delete_address_book","delete_address_name","delete_address_set"]
     operation  = get_valid_selection("Please select delete operation", option)
+
     if operation == "delete_address_name":
         selected_book = get_valid_selection("Please select address book?: ", address_book_by_name)
         selected_addresses, address_set = extract_addresses(addresses, selected_book)
         address_names = [addr['name'] for addr in selected_addresses]
         selected_address_name = get_valid_selection("Select address name", address_names)
-        subnet_to_update = next((subnet for subnet in selected_addresses if subnet['name'] == selected_address_name), None)
-        if not subnet_to_update:
-            print(f"No subnet found with the name: {selected_address_name}")
-            return
-        original_values = {
-            "name": subnet_to_update['name'],
-            "ip-prefix": subnet_to_update.get('ip-prefix')
-    }
+        result  = check_address_set(addresses, selected_book, selected_address_name)
+        if result == True:
+            print(f"{selected_address_name } is used in address-set, Please first delete from address-set ")
+            return None
+        del_config  = f"""<address-book>
+                    <name>{selected_book}</name>
+                    <address operation="delete">
+                        <name>{selected_address_name}</name>
+                    </address>
+                </address-book>"""
     elif operation == "delete_address_set":
         selected_book = get_valid_selection("Please select address book?: ", address_book_by_name)
         selected_addresses, address_set= extract_addresses(addresses, selected_book)
@@ -303,7 +304,6 @@ def gen_delete_config(addresses, address_book_by_name):
                 {del_config}
             </security>
     </configuration>""".strip()
-    print(payload)
     return payload
 
 
@@ -316,6 +316,8 @@ def extract_addresses(addresses, selected_book):
     for address_book in addresses:
         if address_book['name'] == selected_book:
             selected_addresses = address_book.get('address', [])
+            if selected_book == "global":
+                pass
             if 'address-set' in address_book:
                 if isinstance(address_book['address-set'], list):
                     address_set = [addr_set['name'] for addr_set in address_book['address-set']]
@@ -342,3 +344,21 @@ def extract_address_set_member(addresses, selected_book, select_address_set):
                     address_set_members = [addr['name'] for addr in addresses]
                     return address_set_members
     return address_set_members
+
+
+def check_address_set(addresses, selected_book, selected_address):
+    for address_book in addresses:
+        if address_book['name'] == selected_book:
+            if 'address-set' in address_book:
+                address_sets = address_book['address-set']
+                if not isinstance(address_sets, list):
+                    address_sets = [address_sets]
+                for addr_set in address_sets:
+                    addresses_in_set = addr_set['address']
+                    if not isinstance(addresses_in_set, list):
+                        addresses_in_set = [addresses_in_set]
+                    for addr in addresses_in_set:
+                        if addr['name'] == selected_address:
+                            return True
+    return False
+
