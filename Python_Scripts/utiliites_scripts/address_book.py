@@ -8,6 +8,7 @@ def generate_addr_cfg(**kwargs):
     default_sec_zones = kwargs.get("default_sec_zones")
     existing_address_names = kwargs.get("existing_address_names")
     address_book_name = kwargs.get("address_book_name")
+    global_address_names = kwargs.get("global_address_names")
     attached_zone = attribute = sub_attribute = ""
     if selected_zone_name in default_sec_zones:
         attached_zone = f"""
@@ -19,9 +20,11 @@ def generate_addr_cfg(**kwargs):
     if existing_address_names:
         last_address_name = existing_address_names[-1]
         sub_attribute = f""" insert="after" key="[ name='{last_address_name}' ]" operation="create" """
+    elif zone_address_name == "global":
+        sub_attribute = f""" insert="after"  key="[ name='{global_address_names[-1]}' ]" operation="create" """
     else:
         if address_book_name:
-            attribute = f""" insert="after"  key="[ name='{[address_book_name[-1]]}' ]" operation="create" """
+            attribute = f""" insert="after"  key="[ name='{address_book_name[-1]}' ]" operation="create" """
         else:
             attribute = f""" operation="create" """
     return f"""
@@ -81,6 +84,8 @@ def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_na
         if existing_address_book:
             if not isinstance(existing_address_book, list):
                 existing_address_book = [existing_address_book]
+            global_address_names = [addr['address']['name'] for addr in existing_address_book if addr['name'] == 'global']
+            print(global_address_names)
             for address in existing_address_book:
                 if address.get('attach', {}).get('zone', {}).get('name') == selected_zone_name or address.get('name') == selected_zone_name:
                     matching_address = address
@@ -88,19 +93,23 @@ def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_na
             if matching_address:
                 address_name = matching_address['name']
                 choice = validate_yes_no(f"Address book name {address_name} exists in zone {selected_zone_name}. Add new address? (yes/no): ")
-                if choice:
+                if choice == True:
                     print(f"Creating/Adding addresses to {address_name} in zone {selected_zone_name}")
                     new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book, selected_zone_name,
                                                                                                     default_sec_zones=default_sec_zones)
-                    return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address, zone_address_name=zone_address_name,address_book_name=address_book_name,
-                                             selected_zone_name=selected_zone_name,default_sec_zones=default_sec_zones,existing_address_names=existing_address_names)
+                    return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address, 
+                                             zone_address_name=zone_address_name,address_book_name=address_book_name,
+                                             selected_zone_name=selected_zone_name,default_sec_zones=default_sec_zones,
+                                             existing_address_names=existing_address_names,global_address_names=global_address_names)
                 else:
                     print(f"Not adding new addresses to {address_name}.")
                     return None
         new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book, selected_zone_name,
                                                                                         default_sec_zones=default_sec_zones)
-        return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address,default_sec_zones=default_sec_zones,address_book_name=address_book_name,
-                                 zone_address_name=zone_address_name,selected_zone_name=selected_zone_name,existing_address_names=existing_address_names)
+        return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address,
+                                 default_sec_zones=default_sec_zones,address_book_name=address_book_name,
+                                 zone_address_name=zone_address_name,selected_zone_name=selected_zone_name,
+                                 existing_address_names=existing_address_names,global_address_names=None)
     except ValueError as ve:
         print(f"Error: {ve}")
         return None
