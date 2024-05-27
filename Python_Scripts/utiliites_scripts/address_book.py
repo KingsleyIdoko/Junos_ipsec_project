@@ -44,21 +44,34 @@ def generate_addr_cfg(**kwargs):
 
 def gen_address_set_config(addresses, zone, address_book_by_name):
     selected = get_valid_selection("Select address book name: ", address_book_by_name)
-    address_names = default_address_set = []
+    address_names = []
+    default_address_set = []
+    choice = False
     if addresses:
         for address in addresses:
             if address['name'] == selected:
-                if address.get('address-set'):
-                    default_address_set = [addrr_set['address-set']['name'] for addrr_set in addresses if 'address-set' in addrr_set]
+                if 'address-set' in address:
+                    if isinstance(address['address-set'], list):
+                        default_address_set.extend([addr_set['name'] for addr_set in address['address-set']])
+                    else:
+                        default_address_set.append(address['address-set']['name'])
                 address_names = [item['name'] for item in address.get('address', [])]
-                while True:
-                    address_set_name = get_valid_name("Create new address-set name: ")
-                    if address_set_name in default_address_set or address_set_name in address_names:
-                        print("Address set name already exists. Please enter a different name.")
-                        continue
-                    break
-        members = multiple_selection("Select and add address names", address_names)
-        addr_set = '\n'.join([f'<address><name>{member}</name></address>' for member in members])
+                break  
+    if len(default_address_set) >= 1:
+        print(f"The following address-set exist under {selected}.")
+        for i, sets in enumerate(default_address_set, 1):
+            print(f" {i}. {sets}")
+        choice = validate_yes_no("Do you want to create new address (yes/no): ")
+        if choice == False:
+            return None
+    while True:
+        address_set_name = get_valid_name("Create new address-set name: ")
+        if address_set_name in default_address_set or address_set_name in address_names:
+            print("Address set name already exists. Please enter a different name.")
+            continue
+        break
+    members = multiple_selection("Select and add address names", address_names)
+    addr_set = '\n'.join([f'<address><name>{member}</name></address>' for member in members])
     return f"""<configuration>
     <security>
         <address-book>
@@ -71,21 +84,26 @@ def gen_address_set_config(addresses, zone, address_book_by_name):
     </security>
 </configuration>""".strip()
 
-
 def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_name):
     try:
         if not raw_sec_zones:
             raise ValueError("No raw_sec_zones available. Please create a sec zone first.")
-        default_sec_zones = raw_sec_zones[:]  
+        default_sec_zones = raw_sec_zones[:]
         if "global" not in raw_sec_zones:
-            raw_sec_zones = raw_sec_zones + ["global"]  
+            raw_sec_zones.append("global")
         selected_zone_name = get_valid_selection("Please select traffic zone: ", raw_sec_zones)
         matching_address = None
+        global_address_names = []
         if existing_address_book:
             if not isinstance(existing_address_book, list):
                 existing_address_book = [existing_address_book]
-            global_address_names = [addr['address']['name'] for addr in existing_address_book if addr['name'] == 'global']
-            print(global_address_names)
+            
+            for addr in existing_address_book:
+                if addr['name'] == 'global':
+                    if isinstance(addr['address'], list):
+                        global_address_names.extend([a['name'] for a in addr['address']])
+                    else:
+                        global_address_names.append(addr['address']['name'])
             for address in existing_address_book:
                 if address.get('attach', {}).get('zone', {}).get('name') == selected_zone_name or address.get('name') == selected_zone_name:
                     matching_address = address
@@ -93,23 +111,29 @@ def gen_addressbook_config(existing_address_book, raw_sec_zones, address_book_na
             if matching_address:
                 address_name = matching_address['name']
                 choice = validate_yes_no(f"Address book name {address_name} exists in zone {selected_zone_name}. Add new address? (yes/no): ")
-                if choice == True:
+                if choice:
                     print(f"Creating/Adding addresses to {address_name} in zone {selected_zone_name}")
-                    new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book, selected_zone_name,
-                                                                                                    default_sec_zones=default_sec_zones)
-                    return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address, 
-                                             zone_address_name=zone_address_name,address_book_name=address_book_name,
-                                             selected_zone_name=selected_zone_name,default_sec_zones=default_sec_zones,
-                                             existing_address_names=existing_address_names,global_address_names=global_address_names)
+                    new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(
+                        existing_address_book, selected_zone_name, default_sec_zones=default_sec_zones
+                    )
+                    return generate_addr_cfg(
+                        new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address, 
+                        zone_address_name=zone_address_name, address_book_name=address_book_name,
+                        selected_zone_name=selected_zone_name, default_sec_zones=default_sec_zones,
+                        existing_address_names=existing_address_names, global_address_names=global_address_names
+                    )
                 else:
                     print(f"Not adding new addresses to {address_name}.")
                     return None
-        new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(existing_address_book, selected_zone_name,
-                                                                                        default_sec_zones=default_sec_zones)
-        return generate_addr_cfg(new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address,
-                                 default_sec_zones=default_sec_zones,address_book_name=address_book_name,
-                                 zone_address_name=zone_address_name,selected_zone_name=selected_zone_name,
-                                 existing_address_names=existing_address_names,global_address_names=None)
+        new_prefix_name, new_ipv4_address, zone_address_name, existing_address_names = create_address_name_prefix(
+            existing_address_book, selected_zone_name, default_sec_zones=default_sec_zones
+        )
+        return generate_addr_cfg(
+            new_prefix_name=new_prefix_name, new_ipv4_address=new_ipv4_address,
+            default_sec_zones=default_sec_zones, address_book_name=address_book_name,
+            zone_address_name=zone_address_name, selected_zone_name=selected_zone_name,
+            existing_address_names=existing_address_names, global_address_names=global_address_names
+        )
     except ValueError as ve:
         print(f"Error: {ve}")
         return None
@@ -160,16 +184,7 @@ def gen_updated_config(addresses, address_book_by_name):
     selected_book = get_valid_selection("Please select address book: ", address_book_by_name)
     selected_addresses = None
     address_set = None
-    zone = None
-    for address_book in addresses:
-        if address_book['name'] == selected_book:
-            selected_addresses = address_book.get('address', [])
-        if 'address-set' in address_book:
-                if isinstance(address_book['address-set'], list):
-                    address_set = [addr for addr_set in address_book['address-set'] for addr in addr_set['address']]
-                else:
-                    address_set = [addr for addr in address_book['address-set']['address']]
-                break
+    selected_addresses, address_set = get_selected_addresses(selected_book,addresses)
     if not selected_addresses:
         print(f"No addresses found for the selected address book: {selected_book}")
         return None
@@ -197,7 +212,12 @@ def gen_updated_config(addresses, address_book_by_name):
             if address_set:
                 if any(addr['name'] == original_values['name'] for addr in address_set):
                     print(f"{original_values['name']} is in use in address-set. First delete from address-set")
-                    return
+                    return None
+                else:
+                    print(f"Address_set does not exist under {selected_book} ....\n")
+                    new_value = get_valid_name(f"Enter new value for {key_to_update}: ").strip()
+            else:
+                print(f"Address_set does not exist under {selected_book}")
                 new_value = get_valid_name(f"Enter new value for {key_to_update}: ").strip()
         elif key_to_update == "ip-prefix":
             new_value = get_valid_network_address(f"Enter new value for {key_to_update}: ").strip()
@@ -371,3 +391,21 @@ def check_address_set(addresses, selected_book, selected_address):
                             return True
     return False
 
+def get_selected_addresses(selected_book,addresses):
+    address_set =  None
+    for address_book in addresses:
+        if address_book['name'] == selected_book:
+            if address_book['name'] == 'global':
+                if isinstance(address_book['address'], list):
+                    selected_addresses = address_book['address']
+                else:
+                    selected_addresses = [address_book['address']]
+            else:
+                selected_addresses = address_book.get('address', [])
+            if 'address-set' in address_book:
+                if isinstance(address_book['address-set'], list):
+                    address_set = [addr for addr_set in address_book['address-set'] for addr in addr_set['address']]
+                else:
+                    address_set = [addr for addr in address_book['address-set']['address']]
+            break
+    return selected_addresses, address_set
