@@ -2,22 +2,22 @@ from utiliites_scripts.commons import (get_valid_name, get_valid_string, get_val
                                     get_valid_selection, get_valid_passwd)
 
 def gen_ikepolicy_config(**kwargs):
-    old_ike_policy = kwargs.get('old_ike_policy',None)
-    ike_proposal_names = kwargs.get('ike_proposal',None)
+    old_ike_policy = kwargs.get('old_ike_policy',[])
+    ike_proposal_names = kwargs.get('ike_proposal',[])
     if old_ike_policy:
         print(f"There are {len(old_ike_policy)} existing IKE Policy on the device")
         for i, choice in enumerate(old_ike_policy, start=1):
             print(f"{i}. {choice}")
     while True:
         ike_policy_name = get_valid_name("Enter new IKE policy name: ")
-        if ike_policy_name in old_ike_policy:
+        if old_ike_policy and ike_policy_name in old_ike_policy:
             print("Name already used, Try another name")
         break
     description = get_valid_string("Enter IKE Policy description: ", max_words=10)
     mode = prompt_for_ike_policy_mode()
     passwd = get_valid_passwd("Enter Valid Password: ")
     if old_ike_policy:
-        if len(old_ike_policy) > 1:
+        if len(old_ike_policy) >= 1:
             last_policy_name = old_ike_policy[-1] if ike_policy_name != old_ike_policy[-1] else old_ike_policy[-2]
             insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]"'
     else:

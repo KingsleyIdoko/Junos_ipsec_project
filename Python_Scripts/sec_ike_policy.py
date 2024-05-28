@@ -35,41 +35,41 @@ class IkePolicyManager(BaseManager):
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_policy(self, interactive=False, get_raw_data=False, retries=3, 
-                       get_proposal_names=False, get_policy_name=False):
-        attempt = 0
-        ike_policy_names = []
-        get_used_proposals = None  
-        while attempt < retries:
-            try:
-                response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response:
-                    for _, result in response.items():
-                        ike_config = result.result['configuration']['security'].get('ike', {})
-                        proposals = ike_config.get('proposal', [])
-                        ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
-                        if ike_config:
-                            raw_ike_policy = ike_config.get('policy', [])
-                            ike_policy = [raw_ike_policy] if isinstance(raw_ike_policy, dict) else raw_ike_policy
-                            ike_policy_names = [policy['name'] for policy in ike_policy if 'name' in policy]
-                            used_ike_proposals = [policy['proposals'] for policy in ike_policy if 'proposals' in policy]
-                        else:
-                            print("No IKE configuration found on the device.")
-                            break
-                    if interactive:
-                        print("No existing IKE Policy on the device" if raw_ike_policy in ([], None) else raw_ike_policy)
+    def get_ike_policy(self, interactive=False, get_raw_data=False, get_proposal_names=False, get_policy_name=False):
+        try:
+            response = self.nr.run(task=pyez_get_config, database=self.database)
+            if response:
+                for _, result in response.items():
+                    ike_config = result.result['configuration']['security'].get('ike', {})
+                    proposals = ike_config.get('proposal', [])
+                    if not isinstance(proposals, list):
+                        proposals = [proposals]
+                    ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
+                    if ike_config:
+                        raw_ike_policy = ike_config.get('policy', [])
+                        if not raw_ike_policy:
+                            print("No existing IKE Policy on the device.")
+                            return None
+                        ike_policy = [raw_ike_policy] if isinstance(raw_ike_policy, dict) else raw_ike_policy
+                        ike_policy_names = [policy['name'] for policy in ike_policy if 'name' in policy]
+                        used_ike_proposals = [policy['proposals'] for policy in ike_policy if 'proposals' in policy]
+                    else:
+                        print("No IKE configuration found on the device.")
                         return None
-                    if get_proposal_names:
-                        return used_ike_proposals
-                    if get_policy_name:
-                        return ike_policy_names
-                    if get_raw_data and raw_ike_policy:
-                        return raw_ike_policy, ike_proposal_names or None
-            except Exception as e:
-                print(f"An error has occurred: {e}. Trying again...")
-            attempt += 1
-        print("Failed to retrieve IKE policies after several attempts.")
+                if interactive:
+                    print("No existing IKE Policy on the device" if raw_ike_policy in ([], None) else raw_ike_policy)
+                    return None
+                if get_proposal_names:
+                    return used_ike_proposals
+                if get_policy_name:
+                    return ike_policy_names
+                if get_raw_data and raw_ike_policy:
+                    return raw_ike_policy, ike_proposal_names or None
+        except Exception as e:
+            print(f"An error has occurred: {e}.")
+        print("Failed to retrieve IKE policies.")
         return None
+
 
     def create_ike_policy(self):
         old_ike_policy = self.get_ike_policy(get_policy_name=True)
@@ -81,9 +81,9 @@ class IkePolicyManager(BaseManager):
         return payload
 
     def update_ike_policy(self):
-        from sec_ike_gateway import IkeGatewayManager
-        gateway_manager = IkeGatewayManager()
         try:
+            from sec_ike_gateway import IkeGatewayManager
+            gateway_manager = IkeGatewayManager()
             ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True)
             used_policy = gateway_manager.get_ike_gateways(used_policy=True)
             payload, del_policy = update_ike_policy(ike_configs=ike_configs,proposal_names=proposal_names,

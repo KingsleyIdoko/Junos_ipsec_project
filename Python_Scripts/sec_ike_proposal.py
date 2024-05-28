@@ -32,35 +32,31 @@ class IkeProposalManager(BaseManager):
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ike_proposals(self, interactive=False, get_raw_data=False, retries=3):
-        attempt = 0
-        while attempt < retries:
-            try:
-                response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response.failed:  # Check if the task failed
-                    print("Failed to connect to the device, trying again...")
-                    attempt += 1
-                    continue
-                for _, result in response.items():
-                    ike_config = result.result['configuration']['security'].get('ike', {})
-                    proposals = ike_config.get('proposal', [])
-                    proposals = [proposals] if isinstance(proposals, dict) else proposals
-                    ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
-                if not proposals:  
-                    print("No IKE configurations exist on the device.")
-                    return None
-                if interactive:
-                    print(proposals)
-                    return
-                if get_raw_data:
-                    return ike_config, ike_proposal_names
-                return ike_proposal_names
-            except Exception as e:
-                print(f"An error has occurred: {e}. Checking connectivity to the device, trying again...")
-                attempt += 1
-                continue  
-        print("Failed to retrieve proposals after several attempts due to connectivity issues.")
-        return None
+    def get_ike_proposals(self, interactive=False, get_raw_data=False):
+        try:
+            response = self.nr.run(task=pyez_get_config, database=self.database)
+            if response.failed:
+                print("Failed to connect to the device.")
+                return None
+            for _, result in response.items():
+                ike_config = result.result['configuration']['security'].get('ike', {})
+                proposals = ike_config.get('proposal', [])
+                proposals = [proposals] if isinstance(proposals, dict) else proposals
+                ike_proposal_names = [proposal['name'] for proposal in proposals if 'name' in proposal]
+            if not proposals:
+                print("No IKE configurations exist on the device.")
+                return None
+            if interactive:
+                print(proposals)
+                return
+            if get_raw_data:
+                return ike_config, ike_proposal_names
+            return ike_proposal_names
+        except Exception as e:
+            print(f"An error has occurred: {e}.")
+            print("Failed to retrieve proposals due to connectivity issues.")
+            return None
+
 
     def create_proposal(self):
         try:
@@ -75,9 +71,9 @@ class IkeProposalManager(BaseManager):
             return None
 
     def update_proposal(self):
-        from sec_ike_policy import IkePolicyManager
-        policy_manager = IkePolicyManager()
         try:
+            from sec_ike_policy import IkePolicyManager
+            policy_manager = IkePolicyManager()
             ike_configs, _ = self.get_ike_proposals(get_raw_data=True)
             if ike_configs:
                 try:
@@ -107,6 +103,7 @@ class IkeProposalManager(BaseManager):
             print("No existing IKE Proposals found on the device.")
 
     def delete_proposal(self, **kwargs):
+        print("Checking if proposals are in use by Ike Policy")
         from sec_ike_policy import IkePolicyManager
         policy_manager = IkePolicyManager()
         direct_del = kwargs.get('direct_del', False)

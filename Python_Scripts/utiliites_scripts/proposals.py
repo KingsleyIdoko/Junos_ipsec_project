@@ -1,4 +1,5 @@
-from utiliites_scripts.commons import get_valid_string, get_ike_lifetime, get_valid_choice, get_valid_selection, get_valid_name
+from utiliites_scripts.commons import (get_valid_string, get_ike_lifetime, get_valid_choice,get_ike_lifetime,
+                                        get_valid_selection, get_valid_name, validate_yes_no)
 encrypt = ['3des-cbc', 'aes-128-cbc', 'aes-128-gcm', 'aes-192-cbc', 'aes-256-cbc', 'aes-256-gcm', 'des-cbc']
 dh_group = ['group1', 'group14', 'group19', 'group2', 'group20', 'group24', 'group5']
 auth_meth = ['dsa-signatures', 'ecdsa-signatures-256', 'ecdsa-signatures-384', 'pre-shared-keys', 'rsa-signatures']
@@ -18,8 +19,8 @@ def extract_and_update_proposal(ike_config, used_proposals):
         insert_after = None
     old_name = selected_proposal['name']
     print("Selected Proposal:", selected_proposal['name'])
-    proposal_keys = [f"{key}: {selected_proposal[key]}" for key in selected_proposal.keys()]
     while True:
+        proposal_keys = [f"{key}: {selected_proposal[key]}" for key in selected_proposal.keys()]
         key_index = get_valid_choice("Select a key to update (shown with value)", proposal_keys)
         selected_key_with_value = proposal_keys[key_index]
         selected_key = selected_key_with_value.split(": ")[0]
@@ -33,26 +34,32 @@ def extract_and_update_proposal(ike_config, used_proposals):
             new_value = get_valid_selection(f"Enter new value for {selected_key}", choice_mappings[selected_key])
             if selected_key == 'encryption-algorithm' and 'gcm' in new_value:
                 if 'authentication-algorithm' in selected_proposal:
-                    print("Deleting 'authentication-algorithm' due to GCM selection.")
-                    changed_key.append({'authentication-algorithm': None})   
+                    print("We'll remove 'authentication-algorithm' from the configuration due to GCM selection.")
+                    selected_proposal.pop('authentication-algorithm', None)
+                    changed_key.append({'authentication-algorithm': None})
+            elif selected_key == 'encryption-algorithm' and 'gcm' not in new_value:
+                if 'authentication-algorithm' not in selected_proposal:
+                    selected_proposal['authentication-algorithm'] = get_valid_selection("Please select 'authentication-algorithm'", auth_algo)
+        elif selected_key == "name":
+            new_value = get_valid_name(f"Enter new value for {selected_key}: ")
+            if used_proposals and selected_proposal['name'] in used_proposals:
+                print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
+                return None, None, None, None, None
+        elif selected_key == "lifetime-seconds":
+            new_value = get_ike_lifetime()
         else:
-            if selected_key == "name":
-                new_value = get_valid_name(f"Enter new value for {selected_key}: ")
-                if used_proposals and selected_proposal['name'] in used_proposals:
-                    print(f"Proposal {selected_proposal['name']} is currently in use by IKE Policy")
-                    return None, None, None, None, None, None
-            else:
-                new_value = get_valid_string(f"Enter new value for {selected_key}: ", max_words=10)
+            new_value = get_valid_string(f"Enter new value for {selected_key}: ", max_words=10)
         old_value = selected_proposal.get(selected_key, 'N/A')
         selected_proposal[selected_key] = new_value
         changed_key.append({selected_key: new_value})
         if selected_key == 'name':
             old_name = old_value
-        choice = get_valid_string("Do you want to update another parameter in the IKE Proposal, yes/no: ", max_words=1)
-        if choice.lower() != "yes":
+        choice = validate_yes_no("Do you want to update another parameter in the IKE Proposal, yes/no: ")
+        if not choice:
             break
     description = f"Updated Proposal: {selected_proposal.get('name', 'N/A')}, changes applied."
     return selected_proposal, insert_after, old_name, description, changed_key
+
 
 
 def update_ikeproposal_xml(**kwargs):
@@ -169,17 +176,18 @@ def gen_ikeprop_config(old_proposal_names, encrypt=encrypt, dh_group=dh_group,
         f"<encryption-algorithm>{encrypt_algorithm}</encryption-algorithm>",
         f"<lifetime-seconds>{ike_lifetime}</lifetime-seconds>"
     ])
-    ike_proposal_xml = f"""
-        <configuration>
-            <security>
-                <ike>
-                    <proposal {proposal_attributes}>
-                        {''.join(xml_components)}
-                    </proposal>
-                </ike>
-            </security>
-        </configuration>""".strip()
-
+    formatted_xml_components = "\n                ".join(xml_components)
+    ike_proposal_xml = (
+        "<configuration>\n"
+        "    <security>\n"
+        "        <ike>\n"
+        f"            <proposal {proposal_attributes}>\n"
+        f"                {formatted_xml_components}\n"
+        "            </proposal>\n"
+        "        </ike>\n"
+        "    </security>\n"
+        "</configuration>"
+    ).strip()
     print("Generated IKE Proposal Configuration:")
     return ike_proposal_xml
 
