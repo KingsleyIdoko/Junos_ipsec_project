@@ -31,41 +31,36 @@ class IPsecProposalManager(BaseManager):
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ipsec_proposal(self, interactive=False, get_raw_data=False, retries=3):
-        attempt = 0
-        while attempt < retries:
-            try:
-                response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response.failed:  
-                    print("Failed to connect to the device, trying again...")
-                    attempt += 1
-                    continue
-                for _, result in response.items():
-                    ike_config = result.result['configuration']['security'].get('ipsec', {})
-                    ipsec_proposal = ike_config.get('proposal', [])
-                    ipsec_proposal = [ipsec_proposal] if isinstance(ipsec_proposal, dict) else ipsec_proposal
-                    ipesec_ipsec_proposal = [ipsec_proposal['name'] for ipsec_proposal in ipsec_proposal if 'name' in ipsec_proposal]              
-                if not ipsec_proposal:  
-                    print("No IPsec Proposal configurations exist on the device.")
-                    return None
-                if interactive:
-                    print(ipsec_proposal)
-                    return
-                if get_raw_data:
-                    return ipsec_proposal
-                return ipesec_ipsec_proposal
-            except Exception as e:
-                print(f"Check connectivity to the device, trying again...")
-                attempt += 1
-                continue  
-        print("Failed to retrieve gateways after several attempts due to connectivity issues.")
-        return None
+    def get_ipsec_proposal(self, interactive=False, get_raw_data=False):
+        try:
+            response = self.nr.run(task=pyez_get_config, database=self.database)
+            if response.failed:  
+                print("Failed to connect to the device.")
+                return None
+            all_ipsec_proposals = []
+            for _, result in response.items():
+                ike_config = result.result['configuration']['security'].get('ipsec', {})
+                ipsec_proposal = ike_config.get('proposal', [])
+                ipsec_proposal = [ipsec_proposal] if isinstance(ipsec_proposal, dict) else ipsec_proposal
+                all_ipsec_proposals.extend(ipsec_proposal)
+            if not all_ipsec_proposals:  
+                print("No IPsec Proposal configurations exist on the device.")
+                return None
+            ipsec_proposal_names = [proposal['name'] for proposal in all_ipsec_proposals if 'name' in proposal]
+            if interactive:
+                print(all_ipsec_proposals)
+                return
+            if get_raw_data:
+                return all_ipsec_proposals
+            return ipsec_proposal_names
+        except Exception as e:
+            print(f"An error has occurred: {e}. Failed to retrieve IPsec proposals due to connectivity issues.")
+            return None
+
 
     def create_ipsec_proposal(self):
         try:
             old_ipsec_proposal = self.get_ipsec_proposal()
-            if not old_ipsec_proposal:
-                print("No existing IPSEC Proposal found on the device")
             payload = gen_ipsec_proposal_config(old_ipsec_proposal=old_ipsec_proposal)
             return payload
         except Exception as e:

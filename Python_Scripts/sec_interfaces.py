@@ -33,36 +33,37 @@ class InterfaceManager(BaseManager):
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_interfaces(self, interactive=False, get_interface_name=None, retries=3):
-        attempt = 0
-        lacp_chassis = None
-        while attempt < retries:
-            try:
-                response = self.nr.run(task=pyez_get_config, database=self.database)
-                if response:
-                    all_results = []
-                    for _, interface_value in response.items():
-                        result = interface_value.result['configuration']['interfaces']['interface']
-                        try:
-                            lacp_chassis = interface_value.result['configuration']['chassis']['aggregated-devices']['ethernet']
-                        except KeyError:
-                            lacp_chassis = None
-                        all_results.append(result)
-                    if interactive:
-                        for result in all_results:
-                            print(result)
-                        return 
-                    if get_interface_name:
-                        interface_names = [interface['name'] for sublist in all_results for interface in sublist if not interface['name'].startswith('fxp')]
-                        return interface_names
-                    return (all_results, lacp_chassis) if lacp_chassis else all_results
-                else:
-                    print("No response received, trying again...")
-            except Exception as e:
-                print(f"An error has occurred: {e}")
-                print("Checking connectivity to the device, trying again...")
-            attempt += 1
-        print("Failed to retrieve interfaces after several attempts.")
+    def get_interfaces(self, interactive=False, get_interface_name=None, get_only_interfaces=False):
+        try:
+            response = self.nr.run(task=pyez_get_config, database=self.database)
+            if response:
+                all_results = []
+                lacp_chassis = None
+                for _, interface_value in response.items():
+                    result = interface_value.result['configuration']['interfaces']['interface']
+                    try:
+                        lacp_chassis = interface_value.result['configuration']['chassis']['aggregated-devices']['ethernet']
+                    except KeyError:
+                        lacp_chassis = None
+                    all_results.append(result)
+                    
+                if interactive:
+                    for result in all_results:
+                        print(result)
+                    return
+                
+                if get_interface_name:
+                    interface_names = [interface['name'] for sublist in all_results for interface in sublist if not interface['name'].startswith('fxp')]
+                    return interface_names
+                if get_only_interfaces:
+                    return all_results
+                return (all_results, lacp_chassis) if lacp_chassis else all_results
+            else:
+                print("No response received.")
+        except Exception as e:
+            print(f"An error has occurred: {e}")
+            print("Failed to retrieve interfaces due to connectivity issues.")
+        
         return None
 
 

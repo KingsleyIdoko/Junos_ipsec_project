@@ -6,19 +6,20 @@ interface_manager = InterfaceManager()
 policy_manager = IkePolicyManager()
 
 def gen_ikegateway_config(**kwargs):
-    old_gateways = kwargs.get('old_gateways', None)
+    old_gateways = kwargs.get('old_gateways', [])
     if old_gateways:
         print(f"There are {len(old_gateways)} existing IKE Policy on the device")
         for i, choice in enumerate(old_gateways, start=1):
             print(f"{i}. {choice}")
     while True:
         gateway_name = get_valid_name("Enter new IKE gateway name: ")
-        if gateway_name not in old_gateways:
+        if old_gateways and gateway_name in old_gateways:
+            print("This gateway name is already in use. Please choose another name.")
+        else:
             break
-        print("This gateway name is already in use. Please choose another name.")
-    interface_data = interface_manager.get_interfaces()
-    choices = policy_manager.get_ike_policy(get_policy_name=True)
-    gateway_names =  get_valid_selection("Select IKE Policy", choices)
+    interface_data = interface_manager.get_interfaces(get_only_interfaces=True)
+    ike_policy_names = policy_manager.get_ike_policy(get_policy_name=True)
+    gateway_names =  get_valid_selection("Select IKE Policy", ike_policy_names)
     selected_data = select_interface_with_ip(interface_data)
     if selected_data:
         external_interface = selected_data['external-interface']
@@ -51,7 +52,6 @@ def gen_ikegateway_config(**kwargs):
                 </ike>
             </security>
     </configuration>""".strip()
-    print(payload)
     return payload
 
 
@@ -80,14 +80,14 @@ def select_interface_with_ip(interfaces):
                 if ip_address:
                     valid_interfaces.append({
                         'external-interface': interface['name'],
-                        'local-address': ip_address
+                        'local-address': ip_address.split('/')[0]
                     })
         elif isinstance(addresses, dict):
             ip_address = addresses.get('name')
             if ip_address:
                 valid_interfaces.append({
                     'external-interface': interface['name'],
-                    'local-address': ip_address
+                    'local-address': ip_address.split('/')[0]
                 })
     for index, intf in enumerate(valid_interfaces, start=1):
         print(f"{index}. {intf['external-interface']}: {intf['local-address']}")
@@ -172,22 +172,20 @@ def extract_gateways_params(**kwargs):
         selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
         selected_key = selected_attribute.split(':')[0].strip()
         if selected_key in ['external-interface', 'local-address']:
-            interface_data = interface_manager.get_interfaces()
+            interface_data = interface_manager.get_interfaces(get_only_interfaces=True)
             device_interface = select_interface_with_ip(interface_data)
             selected_gateway['external-interface'] = device_interface.get('external-interface')
             selected_gateway['local-address'] = device_interface.get('local-address')
             print(f"Updated external interface to {selected_gateway['external-interface']}")
             print(f"Updated local address to {selected_gateway['local-address']}")
+        elif used_gateways and selected_gateway[selected_key] in used_gateways:
+            print(f"{selected_gateway[selected_key]} is in use by IPsec VPN, Cannot be modified")
         else:
-            if selected_gateway[selected_key] in used_gateways:
-                print(f"{selected_gateway[selected_key]} is in use by IPsec VPN, Cannot be modified")
-            else:
-                selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies, used_gateways)
+            selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies, used_gateways)
         another_change = input("Would you like to make another change? (yes/no): ").strip().lower()
         continue_update = another_change == 'yes'
     insert_attribute = get_insert_attribute(old_gateway_name, old_gateways, selected_gateway)
     payload = create_payload(selected_gateway, insert_attribute)
-    print(payload)
     return (payload, old_gateway_name if old_gateway_name != selected_gateway['name'] else None)
 
 def handle_key_selection(key, policies, used_gateways):
