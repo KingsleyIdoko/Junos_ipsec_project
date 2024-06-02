@@ -1,7 +1,7 @@
 import re
 import ipaddress
+import itertools
 
-import re
 
 def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10):
     pattern = r'^[a-zA-Z0-9_\- ]+$'
@@ -64,6 +64,42 @@ def get_valid_selection(prompt, choices):
         else:
             print("Invalid choice, please try again.")
 
+
+def get_valid_selection_dict(prompt, update_options):
+    for idx, (key, value) in enumerate(update_options.items(), start=1):
+        print(f"{idx}. {key}: {value}")
+    while True:
+        try:
+            choice = int(input(f"{prompt} (1 to {len(update_options)}): "))
+            if 1 <= choice <= len(update_options):
+                break
+            else:
+                print("Invalid selection, try again.")
+        except ValueError:
+            print("Invalid selection, try again.")
+    return list(update_options.keys())[choice - 1]
+
+def generate_zone_directions(zones):
+    if len(zones) < 2:
+        raise ValueError("At least two zones are needed to create directions.")
+    directions = []
+    for first_zone, second_zone in itertools.combinations(zones, 2):
+        directions.append(f"zone_{first_zone}_to_{second_zone}")
+        directions.append(f"zone_{second_zone}_to_{first_zone}")
+    return directions
+
+def get_policy_names_by_zone(raw_data, from_zone, to_zone):
+    policy_names = []
+    if not raw_data:  
+        return policy_names  
+    for entry in raw_data:
+        if entry['from-zone-name'] == from_zone and entry['to-zone-name'] == to_zone:
+            if isinstance(entry['policy'], list):
+                policy_names.extend(policy['name'] for policy in entry['policy'])
+            else:
+                policy_names.append(entry['policy']['name'])
+    return policy_names
+
 def get_valid_integer(prompt="Enter a number: "):
     while True:
         try:
@@ -100,12 +136,26 @@ def get_valid_network_address(prompt):
             print("Invalid input. Please enter a valid IPv4 network address.")
             
 def multiple_selection(prompt, options):
-    print(prompt)
-    for idx, option in enumerate(options, start=1):
-        print(f"{idx}: {option}")
-    selections = input("Enter your choices as comma-separated values (e.g., 1,2,3): ").split(',')
-    selected_values = [options[int(choice.strip()) - 1] for choice in selections if choice.strip().isdigit() and 0 < int(choice.strip()) <= len(options)]
-    return selected_values
+    while True:
+        print(prompt)
+        for idx, option in enumerate(options, start=1):
+            print(f"{idx}: {option}")
+        selections = input("Enter your choices as comma-separated values (e.g., 1,2,3): ").split(',')
+        valid_selections = True
+        selected_values = []
+        for choice in selections:
+            choice = choice.strip()
+            if choice.isdigit() and 0 < int(choice) <= len(options):
+                selected_values.append(options[int(choice) - 1])
+            else:
+                valid_selections = False
+                break
+
+        if valid_selections:
+            return selected_values
+        else:
+            print("Invalid input detected. Please enter valid choices as comma-separated values (e.g., 1,2,3).")
+
 
 def get_vlan_names_by_ids(received_vlans):
     input_str = input("Enter VLANs to assign (comma-separated, e.g. 10,20,40): ")

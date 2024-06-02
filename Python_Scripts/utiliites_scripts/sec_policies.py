@@ -1,4 +1,5 @@
-from utiliites_scripts.commons import get_valid_selection, get_valid_name, get_valid_string, validate_yes_no
+from utiliites_scripts.commons import (get_valid_selection, get_valid_name, get_valid_string, validate_yes_no, 
+                                       get_policy_names_by_zone,generate_zone_directions)
 from sec_addressbook import AddressBookManager
 from sec_zone import SecurityZoneManager
 from sec_ipsec_vpn import IpsecVpnManager
@@ -10,14 +11,7 @@ import itertools, re
 app = ["any","junos-aol","junos-bgp","junos-biff","junos-bootpc","junos-bootps","junos-defaults","junos-dhcp-client","junos-dhcp-relay","junos-dhcp-server",    
   "junos-discard","junos-dns-tcp","junos-dns-udp","junos-echo","junos-finger","junos-ftp","junos-ftp-data"]
 actions = ["permit", "deny", "deny","log","permit","reject"]
-def generate_zone_directions(zones):
-    if len(zones) < 2:
-        raise ValueError("At least two zones are needed to create directions.")
-    directions = []
-    for first_zone, second_zone in itertools.combinations(zones, 2):
-        directions.append(f"zone_{first_zone}_to_{second_zone}")
-        directions.append(f"zone_{second_zone}_to_{first_zone}")
-    return directions
+
 
 def confirm_policy_name(zone_dir):
     pattern = r'^(yes|no)$'
@@ -336,19 +330,6 @@ def confirm_action(prompt):
             return user_input.lower() == 'yes'
         else:
             print("Please enter 'yes' or 'no'.")
-
-
-def get_policy_names_by_zone(raw_data, from_zone, to_zone):
-    policy_names = []
-    if not raw_data:  
-        return policy_names  
-    for entry in raw_data:
-        if entry['from-zone-name'] == from_zone and entry['to-zone-name'] == to_zone:
-            if isinstance(entry['policy'], list):
-                policy_names.extend(policy['name'] for policy in entry['policy'])
-            else:
-                policy_names.append(entry['policy']['name'])
-    return policy_names
 
  
 def gen_delete_config(raw_data, old_policy_name=None):

@@ -72,7 +72,6 @@ class IpsecVpnManager(BaseManager):
         old_ipsec_vpn = self.get_ipsec_vpn(get_vpn_name=True)
         ipsec_policy = vpn_manager.get_ipsec_policy(get_policy_name=True)
         ike_gateway =  gateway_manager.get_ike_gateways()
-        print(ike_gateway)
         if not old_ipsec_vpn:
             print("No existing IPsec VPN found on the device")
         payload = gen_ipsec_vpn_config(old_ipsec_vpn=old_ipsec_vpn,ipsec_policy=ipsec_policy,

@@ -6,7 +6,7 @@ class BaseManager:
     
     def __init__(self, config_file="config.yml"):
         self.nr = InitNornir(config_file=config_file)
-
+        
     def push_config(self):
         try:
             xml_data = self.operations()

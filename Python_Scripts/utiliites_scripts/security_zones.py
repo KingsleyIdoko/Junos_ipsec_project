@@ -1,4 +1,3 @@
-from utiliites_scripts.pool_data import is_valid_name 
 import re
 
 def is_valid_string(input_string):

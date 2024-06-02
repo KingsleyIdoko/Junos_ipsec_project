@@ -11,7 +11,7 @@ def gen_ipsecpolicy_config(**kwargs):
     description = get_valid_string("Enter IKE Policy description: ", max_words=20)
     pfs = get_valid_selection("Enter perfect-forward-secrecy group : ",pfs_groups)
     proposal = get_valid_selection("Select IPsec Proposal to attach : ",ipsec_proposal_names)
-    if old_ipsec_policy and len(old_ipsec_policy) > 1:
+    if old_ipsec_policy and len(old_ipsec_policy) >= 1:
         last_policy_name = old_ipsec_policy[-1] 
         insert_attribute = f'insert="after" key="[ name=\'{last_policy_name}\' ]" operation="create"'
     else:

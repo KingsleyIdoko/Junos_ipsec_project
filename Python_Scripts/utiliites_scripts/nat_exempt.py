@@ -24,7 +24,6 @@ def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_t
         prefixes.append(f"<destination-address>{dst_prefix}</destination-address>")
     prefixes = textwrap.indent('\n'.join(prefixes),'')
 
-    # Create the payload with the f-string and the variable values
     payload = f"""
                 <configuration>
                 <security>
@@ -45,7 +44,6 @@ def nat_policy(global_nat_rule, source_zone, destination_zone, rule_name,  nat_t
                 </security>
                 </configuration>
             """
-    # Return the payload
     return payload
 
 def delete_default_rules():
