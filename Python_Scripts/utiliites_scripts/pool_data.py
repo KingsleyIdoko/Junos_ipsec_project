@@ -8,7 +8,6 @@ def extract_pool_names(rule_set):
     rules = rule_set.get('rule')
     if isinstance(rules, dict):
         rules = [rules]
-        print(rules)
     for rule in rules:
         if 'pool' in rule.get('then', {}).get('source-nat', {}):
             pool_name = rule['then']['source-nat']['pool'].get('pool-name')
