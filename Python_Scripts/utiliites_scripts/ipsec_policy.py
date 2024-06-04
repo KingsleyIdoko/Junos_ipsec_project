@@ -64,7 +64,6 @@ def update_ipsec_policy(**kwargs):
     old_proposal = selected_policy['proposals']
     old_policy_name = selected_policy['name']
     new_proposal = None
-    update_proposal = None
     continue_update = True
     while continue_update:
         policy_attributes = {
