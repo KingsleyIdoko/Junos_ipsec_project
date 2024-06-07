@@ -337,3 +337,51 @@ def gen_delete_nat_rule(**kwargs) -> str:
         print(payload)
         return payload
 
+
+def order_nat_rule(nat_data):
+    for params in nat_data:
+        global_name = params.get('global_name')
+        rule_list = params.get("rules_list")
+        
+        if len(rule_list) <= 1:
+            print("Only one rule exists and cannot be re-ordered.")
+            return None
+        
+        selected_name = get_valid_selection("Select NAT rule you want to re-order: ", rule_list)
+        rule_list.remove(selected_name)
+        
+        position = get_valid_selection("Move selected NAT rule: ", ["before", "after"])
+        
+        if position == "before" and rule_list:
+            new_position_policy = get_valid_selection("Select NAT rule to position before: ", rule_list)
+            if rule_list.index(new_position_policy) == 0:
+                key = "insert=\"first\""
+            else:
+                key = f"insert=\"before\" key=\"[ name='{new_position_policy}' ]\""
+        elif position == "after" and rule_list:
+            new_position_policy = get_valid_selection("Select NAT rule to position after: ", rule_list)
+            if rule_list.index(new_position_policy) == len(rule_list) - 1:
+                key = f"insert=\"after\" key=\"[ name='{rule_list[-1]}' ]\""
+            else:
+                key = f"insert=\"after\" key=\"[ name='{new_position_policy}' ]\""
+        else:
+            key = "insert=\"first\""
+
+        payload = f"""
+        <configuration>
+            <security>
+                <nat>
+                    <source>
+                        <rule-set>
+                            <name>{global_name}</name>
+                            <rule {key} operation="merge">
+                                <name>{selected_name}</name>
+                            </rule>
+                        </rule-set>
+                    </source>
+                </nat>
+            </security>
+        </configuration>""".strip()
+        
+        print(payload)
+        return payload

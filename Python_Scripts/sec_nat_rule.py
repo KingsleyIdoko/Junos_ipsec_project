@@ -1,5 +1,5 @@
 from sec_basemanager import BaseManager
-from utiliites_scripts.nat_rule import (generate_nat_rule_config,extract_nat_config,
+from utiliites_scripts.nat_rule import (generate_nat_rule_config,extract_nat_config,order_nat_rule,
                                         gen_nat_update_config,gen_delete_nat_rule)
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
@@ -137,7 +137,7 @@ class NatPolicyManager(BaseManager):
     def order_nat_rule(self):
         try:
             *_,nat_data = self.get_nat(get_all_configs=True)
-            return gen_delete_nat_rule(nat_data=nat_data)
+            return order_nat_rule(nat_data)
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None   
