@@ -10,7 +10,7 @@ import itertools, re
 
 app = ["any","junos-aol","junos-bgp","junos-biff","junos-bootpc","junos-bootps","junos-defaults","junos-dhcp-client","junos-dhcp-relay","junos-dhcp-server",    
   "junos-discard","junos-dns-tcp","junos-dns-udp","junos-echo","junos-finger","junos-ftp","junos-ftp-data"]
-actions = ["permit", "deny", "deny","log","permit","reject"]
+actions = ["permit", "deny","log","reject"]
 
 
 def confirm_policy_name(zone_dir):
@@ -26,7 +26,7 @@ def confirm_policy_name(zone_dir):
 def get_subnet_names_by_zone(addresses, zone_name):
     subnet_names = []
     for address_entry in addresses:
-        if address_entry['attach']['zone']['name'] == zone_name:
+        if 'attach' in address_entry and 'zone' in address_entry['attach'] and address_entry['attach']['zone']['name'] == zone_name:
             if isinstance(address_entry['address'], list):
                 subnet_names.extend([addr['name'] for addr in address_entry['address']])
             else:
@@ -97,7 +97,7 @@ def gen_sec_policies_config(**kwargs):
         zone_dir = zone_dir 
     zone_dir  = confirm_policy_name(zone_dir)
     desc = get_valid_string("Enter policy description: ")
-    addresses = address_manager.get_address_book(get_addresses=True)
+    addresses, *_ = address_manager.get_address_book(get_addresses=True)
     src_address_options = get_subnet_names_by_zone(addresses, from_zone)
     dst_address_options = get_subnet_names_by_zone(addresses, to_zone)
     src_address = get_valid_selection("Select source address: ", src_address_options)
@@ -105,10 +105,21 @@ def gen_sec_policies_config(**kwargs):
     application = get_valid_selection("Select application to allow: ", app)
     action = get_valid_selection("Selection match action: ", actions )
     tunnel_config = get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction)
-    policy_xml = build_policy_xml(from_zone, to_zone, zone_dir, desc, src_address, dst_address, 
-                                  application, action, tunnel_config, raw_data, old_policy_names, 
-                                  zone_direction)
-    print(policy_xml)
+    policy_parameters = {
+        'from_zone': from_zone,
+        'to_zone': to_zone,
+        'zone_dir': zone_dir,
+        'desc': desc,
+        'src_address': src_address,
+        'dst_address': dst_address,
+        'application': application,
+        'action': action,
+        'tunnel_config': tunnel_config,
+        'raw_data': raw_data,
+        'old_policy_names': old_policy_names,
+        'zone_direction': zone_direction
+    }
+    policy_xml = build_policy_xml(**policy_parameters)
     return policy_xml
 
 def update_zone_dir(policy_data, zone_dir_choice):
@@ -140,8 +151,7 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
         else:
             print("No VPN options available.")
     return selected_vpn
-
-def build_policy_xml(**kwargs):
+def extract_policy_parameters(kwargs):
     from_zone = kwargs.get('from_zone')
     to_zone = kwargs.get('to_zone')
     zone_dir = kwargs.get('zone_dir')
@@ -155,6 +165,12 @@ def build_policy_xml(**kwargs):
     old_policy_names = kwargs.get('old_policy_names')
     zone_direction = kwargs.get('zone_direction')
     attribute = sub_attribute = ""
+    return (from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, 
+            action, tunnel_config, raw_data, old_policy_names, zone_direction, attribute, sub_attribute)
+
+def build_policy_xml(**kwargs):
+    (from_zone, to_zone, zone_dir, desc, src_address, dst_address, application, action, 
+    tunnel_config, raw_data, old_policy_names, zone_direction, attribute, sub_attribute) = extract_policy_parameters(kwargs)
     if raw_data:
         is_present, existing_zone = check_exact_zone_match(zone_direction, from_zone, to_zone)
         if is_present:
@@ -162,6 +178,7 @@ def build_policy_xml(**kwargs):
                 sub_attribute = f"""insert="after" key="[name='{old_policy_names[-1]}']" operation="create" """
         else:
             attribute = f"""insert="after" key="[from-zone-name={from_zone} to-zone-name={to_zone}]" operation="create" """
+
     return f"""
     <configuration>
         <security>
@@ -179,7 +196,7 @@ def build_policy_xml(**kwargs):
                         </match>
                         <then>
                             <{action}>
-                                {tunnel_config}
+                                {tunnel_config if tunnel_config else ""}
                             </{action}>
                         </then>
                     </policy>
@@ -187,7 +204,6 @@ def build_policy_xml(**kwargs):
             </policies>
         </security>
     </configuration>""".strip()
-
 
 def gen_update_config(raw_data):
     old_policy_data = []

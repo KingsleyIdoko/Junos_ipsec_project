@@ -40,7 +40,6 @@ def gen_ikepolicy_config(**kwargs):
             </ike>
         </security>
     </configuration>""".strip()
-    print(payload)
     return payload
 
 
@@ -131,7 +130,6 @@ def update_ike_policy(**kwargs):
             </ike>
         </security>
     </configuration>"""
-    print(payload)
     return (payload, old_policy_name) if old_policy_name != selected_policy['name'] else (payload, None)
 
 

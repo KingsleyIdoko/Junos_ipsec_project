@@ -12,10 +12,10 @@ class SecPolicyManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. get security policies")
-            print("2. create security policies")
-            print("3. update security policies")
-            print("4. delete security policies")
+            print("1. get sec policies")
+            print("2. create sec policies")
+            print("3. update sec policies")
+            print("4. delete sec policies")
             print("5. re_order security policies")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
@@ -40,11 +40,13 @@ class SecPolicyManager(BaseManager):
                 sec_policies = value.result.get('configuration', {}).get('security', {}).get('policies', {}).get('policy')
                 if sec_policies:
                     all_sec_policies += sec_policies if isinstance(sec_policies, list) else [sec_policies]
-            if interactive:
-                for policy in all_sec_policies:
-                    print(policy)
-                return
-            return all_sec_policies if all_sec_policies else None
+            if all_sec_policies:
+                if interactive:
+                    for policy in all_sec_policies:
+                        print(policy)
+                    return None
+                return all_sec_policies if all_sec_policies else None
+            print("No security policies configuration on the device")
         except Exception as e:
             print(f"An error has occurred while retrieving security policies: {e}")
             return None

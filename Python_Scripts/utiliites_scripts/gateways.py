@@ -101,20 +101,6 @@ def select_interface_with_ip(interfaces):
     except ValueError:
         print("Invalid input; please enter a number.")
         return None
-
-def select_gateways_to_update(ike_gateways):
-    if not ike_gateways:
-        print("No IKE gateways available.")
-        return None
-    while True:
-        print("Select a policy to update:")
-        for i, gateway in enumerate(ike_gateways, start=1):
-            print(f"{i}. {gateway['name']}")
-        selection = input("Enter the number of the gateway: ")
-        if selection.isdigit() and 1 <= int(selection) <= len(ike_gateways):
-            return ike_gateways[int(selection) - 1]
-        else:
-            print("Invalid selection, please try again.")
     
 def del_ike_gateway(**kwargs):
     gateway_names = kwargs.get('gateway_names', [])
@@ -148,12 +134,12 @@ def del_ike_gateway(**kwargs):
     </configuration>"""
     return payload.strip()
 
-def extract_gateways_params(**kwargs):
+def gen_ike_gateway_config(**kwargs):
     ike_gateways = kwargs.get('ike_gateways', [])
     used_gateways = kwargs.get('used_ike_gateways', [])
     old_gateways = [gateway['name'] for gateway in ike_gateways if 'name' in gateway]
     ike_policies = policy_manager.get_ike_policy(get_policy_name=True)
-    selected_gateway = select_gateways_to_update(ike_gateways)
+    selected_gateway = get_valid_selection("Select ike gateway to update: ",ike_gateways)
     if not selected_gateway:
         print("No gateway selected or invalid selection. Exiting update process.")
         return None, None
@@ -203,7 +189,7 @@ def get_insert_attribute(old_name, old_names, gateway):
             last_gateway_name = old_names[-2] if old_names[-1] == old_name else old_names[-1]
             return f'insert="after" key="[ name=\'{last_gateway_name}\' ]" operation="create"'
     print("No existing IKE policies found. Creating the first policy.")
-    return ""
+    return None
 
 def create_payload(gateway, insert_attribute):
     return f"""

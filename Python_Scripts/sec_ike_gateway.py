@@ -3,7 +3,7 @@ from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
 import os
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.gateways import gen_ikegateway_config,extract_gateways_params, del_ike_gateway
+from utiliites_scripts.gateways import gen_ikegateway_config,gen_ike_gateway_config, del_ike_gateway
 script_dir = os.path.dirname(os.path.realpath(__file__))
 from sec_basemanager import BaseManager
 
@@ -84,10 +84,7 @@ class IkeGatewayManager(BaseManager):
         try:
             ike_gateways = self.get_ike_gateways(get_raw_data=True)
             if ike_gateways:
-                payload, old_gateway_name = extract_gateways_params(ike_gateways=ike_gateways,used_ike_gateways=used_ike_gateways)
-            if old_gateway_name:
-                self.delete_ike_gateway(commit=True, gateway_name=old_gateway_name,get_used_gateways=used_ike_gateways)
-            return payload
+                return gen_ike_gateway_config(ike_gateways=ike_gateways,used_ike_gateways=used_ike_gateways)
         except Exception as e:
             print("No existing IKE gateways found on the device.")
 
