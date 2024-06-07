@@ -334,7 +334,6 @@ def gen_delete_nat_rule(**kwargs) -> str:
                 </nat>
             </security>
         </configuration>""".strip()
-        print(payload)
         return payload
 
 
@@ -382,6 +381,4 @@ def order_nat_rule(nat_data):
                 </nat>
             </security>
         </configuration>""".strip()
-        
-        print(payload)
         return payload
