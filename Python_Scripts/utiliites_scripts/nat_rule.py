@@ -38,7 +38,7 @@ def generate_nat_rule_config(nat_type,nat_data):
                             dest_address=dest_address, nat_type=nat_type, rule_list=rule_list)
     return payload
 
-def nat_policy(**kwargs):
+def initialize_kwargs(kwargs):
     attribute = ""
     nat_types = kwargs.get("nat_type", {})
     source_prefixes = kwargs.get("source_address", [])
@@ -53,54 +53,9 @@ def nat_policy(**kwargs):
     src_prefixes = []
     dest_prefixes = []
     xml_components = []
-    if source_nat:
-        if isinstance(source_nat, dict):
-            pool_name = source_nat['pool']['pool-name']
-            xml_components.append(f"<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>")
-        elif source_nat == "off":
-            xml_components.append("<source-nat><off/></source-nat>")
-        elif source_nat == "interface":
-            xml_components.append("<source-nat><interface></interface></source-nat>")
-    else:
-        for type_key, type_value in nat_types.items():
-            if type_key == 'off':
-                xml_components.append("<source-nat><off/></source-nat>")
-            elif type_key == 'interface':
-                xml_components.append("<source-nat><interface></interface></source-nat>")
-            elif type_key == 'pool':
-                nat_pool, *_ = pool_manager.get_nat(get_pool_names=True)
-                if isinstance(nat_pool, dict):
-                    nat_pool = [nat_pool]
-                pool_names = [pool['name'] for pool in nat_pool]
-                pool_name = get_valid_selection("Select pool names: ", pool_names)
-                xml_components.append(f"<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>")
-    if 'name' in track_changes:
-        dele_rule_name = f"""<rule operation="delete"><name>{track_changes['name']}</name></rule>"""
-    else:
-        dele_rule_name = ""
-    if source_prefixes:
-        if not isinstance(source_prefixes, list):
-            source_prefixes = [source_prefixes]
-        if 'source-address' in track_changes:
-            src_prefixes.append(f"""<source-address operation="delete"/>""")
-        for src_prefix in source_prefixes:
-            src_prefixes.append(f"<source-address>{src_prefix}</source-address>")
-    if remote_prefixes:
-        if not isinstance(remote_prefixes, list):
-            remote_prefixes = [remote_prefixes]
-        if 'destination-address' in track_changes:
-            dest_prefixes.append(f"""<destination-address operation="delete"/>""")
-        for dst_prefix in remote_prefixes:
-            dest_prefixes.append(f"<destination-address>{dst_prefix}</destination-address>")
-    formatted_src_prefixes = "\n                              ".join(src_prefixes)
-    formatted_dest_prefixes = "\n                             ".join(dest_prefixes)
-    formatted_nat = "\n                        ".join(xml_components)
-    if rule_list and len(rule_list) >= 1:
-        if rule_name != rule_list[-1]:
-            if not track_changes:
-                attribute = f""" insert="after"  key="[ name='{rule_list[-1]}' ]" operation="create" """
-            if track_changes and "name" in track_changes:
-                attribute = f""" insert="after"  key="[ name='{rule_list[-1]}' ]" operation="create" """
+    return attribute, nat_types, source_prefixes, remote_prefixes, global_name, from_zone, to_zone, rule_name, rule_list, source_nat, track_changes, src_prefixes, dest_prefixes, xml_components
+
+def create_payload(global_name, from_zone, to_zone, dele_rule_name, attribute, rule_name, formatted_src_prefixes, formatted_dest_prefixes, formatted_nat):
     payload = f"""
         <configuration>
             <security>
@@ -127,9 +82,60 @@ def nat_policy(**kwargs):
             </security>
         </configuration>
         """
-    print(payload)
     return payload.strip()
 
+def nat_policy(**kwargs):
+    attribute, nat_types, source_prefixes, remote_prefixes, global_name, from_zone, to_zone, rule_name, rule_list, source_nat, track_changes, src_prefixes, dest_prefixes, xml_components = initialize_kwargs(kwargs)
+    if source_nat:
+        if isinstance(source_nat, dict):
+            pool_name = source_nat['pool']['pool-name']
+            xml_components.append(f"<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>")
+        elif source_nat == "off":
+            xml_components.append("<source-nat><off/></source-nat>")
+        elif source_nat == "interface":
+            xml_components.append("<source-nat><interface></interface></source-nat>")
+    else:
+        for type_key, type_value in nat_types.items():
+            if type_key == 'off':
+                xml_components.append("<source-nat><off/></source-nat>")
+            elif type_key == 'interface':
+                xml_components.append("<source-nat><interface></interface></source-nat>")
+            elif type_key == 'pool':
+                nat_pool, *_ = pool_manager.get_nat(get_pool_names=True)
+                if isinstance(nat_pool, dict):
+                    nat_pool = [nat_pool]
+                pool_names = [pool['name'] for pool in nat_pool]
+                pool_name = get_valid_selection("Select pool names: ", pool_names)
+                xml_components.append(f"<source-nat><pool><pool-name>{pool_name}</pool-name></pool></source-nat>")
+
+    if 'name' in track_changes and track_changes.get("name") in rule_list:
+        dele_rule_name = f"""<rule operation="delete"><name>{track_changes['name']}</name></rule>"""
+    else:
+        dele_rule_name = ""
+    if source_prefixes:
+        if not isinstance(source_prefixes, list):
+            source_prefixes = [source_prefixes]
+        if 'source-address' in track_changes and dele_rule_name != "":
+            src_prefixes.append(f"""<source-address operation="delete"/>""")
+        for src_prefix in source_prefixes:
+            src_prefixes.append(f"<source-address>{src_prefix}</source-address>")
+
+    if remote_prefixes:
+        if not isinstance(remote_prefixes, list):
+            remote_prefixes = [remote_prefixes]
+        if 'destination-address' in track_changes and dele_rule_name != "":
+            dest_prefixes.append(f"""<destination-address operation="delete"/>""")
+        for dst_prefix in remote_prefixes:
+            dest_prefixes.append(f"<destination-address>{dst_prefix}</destination-address>")
+
+    formatted_src_prefixes = "\n                              ".join(src_prefixes)
+    formatted_dest_prefixes = "\n                             ".join(dest_prefixes)
+    formatted_nat = "\n                        ".join(xml_components)
+    attribute = determine_attribute(rule_list, rule_name, track_changes, dele_rule_name)
+    payload = create_payload(global_name, from_zone, to_zone, dele_rule_name, attribute, rule_name, 
+                             formatted_src_prefixes, formatted_dest_prefixes, formatted_nat)
+    print(payload)
+    return payload.strip()
 
 
 def extract_nat_config(nat_data):
@@ -164,7 +170,6 @@ def grab_address(addresses):
     address_names = [addr['name'] for addr in address]
     selections = multiple_selection("Select address_book child addresses", address_names)
     selected_addresses = [addr['ip-prefix'] for addr in address if addr['name'] in selections]
-    print(selected_addresses)
     return selected_addresses
 
 def generate_next_rule_name(rule_names):
@@ -263,4 +268,72 @@ def process_nat_data(nat_data):
     return rule_list, global_name, from_zone, to_zone, rule_name
 
 
+
+
+def determine_attribute(
+    rule_list: list, 
+    rule_name: str, 
+    track_changes: dict, 
+    dele_rule_name: str
+) -> str:
+    """
+    Determines the attribute for the XML rule insertion based on the given parameters.
+
+    Parameters:
+    rule_list (list): List of existing rule names.
+    rule_name (str): The name of the current rule.
+    track_changes (dict): Dictionary tracking changes that need to be applied.
+    dele_rule_name (str): The delete rule XML string if a rule is marked for deletion.
+
+    Returns:
+    str: The attribute string for the XML rule insertion.
+    """
+    attribute = ""
+    if rule_list and len(rule_list) >= 1:
+        if rule_name != rule_list[-1]:
+            if not track_changes:
+                attribute = f""" insert="after"  key="[ name='{rule_list[-1]}' ]" operation="create" """
+            elif dele_rule_name != "":
+                if track_changes.get("name") != rule_list[-1]:
+                    attribute = f""" insert="after"  key="[ name='{rule_list[-1]}' ]" operation="create" """
+                else:
+                    try:
+                        attribute = f""" insert="after"  key="[ name='{rule_list[-2]}' ]" operation="create" """
+                    except IndexError:
+                        attribute = ""
+    return attribute
+
+
+def gen_delete_nat_rule(**kwargs) -> str:
+    """
+    Generates an XML payload to delete a NAT rule based on the provided parameters.
+    Parameters:
+    kwargs (dict): Dictionary containing 'nat_data' which is a list of dictionaries.
+                   Each dictionary should contain 'global_name', 'from_zone', 'to_zone', and 'rules_list'.
+    Returns:
+    str: The XML payload for deleting the specified NAT rule.
+    """
+    nat_data = kwargs.get("nat_data")
+    for params in nat_data:
+        global_name = params.get('global_name')
+        rule_list = params.get("rules_list")
+        rule_name = get_valid_selection("Select nat rules for delete: ", rule_list)
+        
+        payload = f"""
+        <configuration>
+            <security>
+                <nat>
+                    <source>
+                        <rule-set>
+                            <name>{global_name}</name>
+                            <rule operation="delete">
+                                <name>{rule_name}</name>
+                            </rule>
+                        </rule-set>
+                    </source>
+                </nat>
+            </security>
+        </configuration>""".strip()
+        print(payload)
+        return payload
 
