@@ -26,7 +26,7 @@ def gen_ipsec_proposal_config(**kwargs):
         last_ipsec_name = old_ipsec_proposal[-1]  
         insert_attribute = f'insert="after" key="[ name=\'{last_ipsec_name}\' ]"'
     else:
-        print("No existing IPSEC policies found. Creating the first policy.")
+        print("No existing IPSEC policies found. Creating first proposal.")
         insert_attribute = ""
     ipsec_policy_name = get_valid_name("Enter new IPsec Proposal name: ")
     description = get_valid_string("Enter IPsec proposal description: ")

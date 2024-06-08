@@ -219,6 +219,9 @@ def create_payload(gateway, insert_attribute, track_changes):
     update_new_name = f"""<gateway operation="delete"><name>{track_changes['name']}</name></gateway>""" if 'name' in track_changes else ""
     ike_policy = f"<ike-policy>{gateway['ike-policy']}</ike-policy>" if 'ike-policy' in gateway else ""
     address = f"<address>{gateway['address']}</address>" if 'address' in gateway else ""
+    update_address = f"""<address operation="delete"/><address>{gateway['address']}</address>""" if "address" in track_changes else ""
+    update_external_interface = f"""<external-interface operation="delete"/><external-interface>{gateway['external-interface']}</external-interface>""" if 'external-interface' in track_changes else ""
+    update_local_address = f"""<local-address operation="delete"/>""" if 'local-address' in track_changes else ""
     external_interface = f"<external-interface>{gateway['external-interface']}</external-interface>" if 'external-interface' in gateway else ""
     local_address = f"<local-address>{gateway['local-address']}</local-address>" if 'local-address' in gateway else ""
     version = f"<version>{gateway['version']}</version>" if 'version' in gateway else ""
@@ -230,11 +233,15 @@ def create_payload(gateway, insert_attribute, track_changes):
                 <gateway {insert_attribute}>
                     <name>{gateway['name']}</name>
                     {ike_policy}
+                    {update_address}
                     {address}
+                    {update_external_interface}
                     {external_interface}
+                    {update_local_address}
                     {local_address}
                     {version}
                 </gateway>
             </ike>
         </security>
     </configuration>""".strip()
+

@@ -54,7 +54,7 @@ class IPsecProposalManager(BaseManager):
                 return all_ipsec_proposals
             return ipsec_proposal_names
         except Exception as e:
-            print(f"An error has occurred: {e}. Failed to retrieve IPsec proposals due to connectivity issues.")
+            print(f"Failed to retrieve IPsec proposals. Check connectivity")
             return None
 
 

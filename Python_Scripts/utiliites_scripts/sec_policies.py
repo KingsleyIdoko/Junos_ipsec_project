@@ -98,6 +98,9 @@ def gen_sec_policies_config(**kwargs):
     zone_dir  = confirm_policy_name(zone_dir)
     desc = get_valid_string("Enter policy description: ")
     addresses, *_ = address_manager.get_address_book(get_addresses=True)
+    if not addresses:
+        print("Address book is empty. Please create addresses and try again")
+        return None
     src_address_options = get_subnet_names_by_zone(addresses, from_zone)
     dst_address_options = get_subnet_names_by_zone(addresses, to_zone)
     src_address = get_valid_selection("Select source address: ", src_address_options)
@@ -135,9 +138,10 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
     selected_vpn = pair_policy = ""
     choice = get_valid_selection("Enter valid Permit action", ['tunnel', 'None'])
     if choice == "tunnel":
-        vpn_options = get_vpn 
-        if vpn_options:
-            selected = get_valid_selection("Enter IPsec VPN: ", vpn_options)
+        if get_vpn:
+            selected = get_valid_selection("Enter IPsec VPN: ", get_vpn)
+            print("There is a match")
+            print(policy_data)
             reverse_policy = get_reverse_policy(policy_data, from_zone, to_zone)
             if reverse_policy:
                 reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)

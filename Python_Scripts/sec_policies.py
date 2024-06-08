@@ -12,11 +12,11 @@ class SecPolicyManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. get sec policies")
-            print("2. create sec policies")
-            print("3. update sec policies")
-            print("4. delete sec policies")
-            print("5. re_order security policies")
+            print("1. get Sec_Policies")
+            print("2. create Sec_Policy")
+            print("3. update Sec_Policy")
+            print("4. delete Sec_Policy")
+            print("5. re_order Sec_policies")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
                 return self.get_sec_policy(interactive=True)

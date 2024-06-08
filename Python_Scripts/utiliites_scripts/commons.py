@@ -3,7 +3,7 @@ import ipaddress
 import itertools
 
 
-def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=10):
+def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=15):
     pattern = r'^[a-zA-Z0-9_\- ]+$'
     while True:
         input_string = input(prompt)
