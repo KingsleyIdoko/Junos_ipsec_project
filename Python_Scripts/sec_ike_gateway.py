@@ -79,8 +79,8 @@ class IkeGatewayManager(BaseManager):
     def update_ike_gateway(self):
         from sec_ipsec_vpn import IpsecVpnManager
         vpn_manager = IpsecVpnManager()
-        old_gateway_name = payload =  None
-        used_ike_gateways = vpn_manager.get_ipsec_vpn(get_used_gateways=True)
+        get_gateways = vpn_manager.get_ipsec_vpn(get_used_gateways=True)
+        used_ike_gateways = get_gateways if get_gateways else []
         try:
             ike_gateways = self.get_ike_gateways(get_raw_data=True)
             if ike_gateways:

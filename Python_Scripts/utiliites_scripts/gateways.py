@@ -1,5 +1,5 @@
 from utiliites_scripts.commons import (get_valid_name,get_valid_selection,
-                                       get_valid_ipv4_address)
+                                       get_valid_ipv4_address,validate_yes_no)
 from sec_interfaces import InterfaceManager
 from sec_ike_policy import IkePolicyManager
 interface_manager = InterfaceManager()
@@ -135,15 +135,19 @@ def del_ike_gateway(**kwargs):
     return payload.strip()
 
 def gen_ike_gateway_config(**kwargs):
+    track_changes = {}
     ike_gateways = kwargs.get('ike_gateways', [])
     used_gateways = kwargs.get('used_ike_gateways', [])
     old_gateways = [gateway['name'] for gateway in ike_gateways if 'name' in gateway]
     ike_policies = policy_manager.get_ike_policy(get_policy_name=True)
-    selected_gateway = get_valid_selection("Select ike gateway to update: ",ike_gateways)
+    ike_gateway_names = [gates['name'] for gates in ike_gateways]
+    choice = get_valid_selection("Select IKE gateway to update: ", ike_gateway_names)
+    selected_gateway = next((gateway for gateway in ike_gateways if gateway['name'] == choice), None)
     if not selected_gateway:
         print("No gateway selected or invalid selection. Exiting update process.")
         return None, None
     old_gateway_name = selected_gateway['name']
+    old_gateway_values = selected_gateway.copy()
     continue_update = True
     while continue_update:
         policy_attributes = {
@@ -155,54 +159,81 @@ def gen_ike_gateway_config(**kwargs):
             'version': selected_gateway.get('version'),
         }
         attribute_keys = [f"{key}: {value}" for key, value in policy_attributes.items() if value is not None]
-        selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
+        selected_attribute = get_valid_selection("Select an attribute to update: ", attribute_keys)
         selected_key = selected_attribute.split(':')[0].strip()
         if selected_key in ['external-interface', 'local-address']:
             interface_data = interface_manager.get_interfaces(get_only_interfaces=True)
             device_interface = select_interface_with_ip(interface_data)
-            selected_gateway['external-interface'] = device_interface.get('external-interface')
-            selected_gateway['local-address'] = device_interface.get('local-address')
-            print(f"Updated external interface to {selected_gateway['external-interface']}")
-            print(f"Updated local address to {selected_gateway['local-address']}")
-        elif used_gateways and selected_gateway[selected_key] in used_gateways:
+            if 'external-interface' in selected_key:
+                track_changes[selected_key] = old_gateway_values['external-interface']
+                selected_gateway['external-interface'] = device_interface.get('external-interface')
+                print(f"Updated external interface to {selected_gateway['external-interface']}")
+            if 'local-address' in selected_key:
+                track_changes[selected_key] = old_gateway_values['local-address']
+                selected_gateway['local-address'] = device_interface.get('local-address')
+                print(f"Updated local address to {selected_gateway['local-address']}")
+        elif selected_gateway[selected_key] in used_gateways:
             print(f"{selected_gateway[selected_key]} is in use by IPsec VPN, Cannot be modified")
+            return None, None
         else:
-            selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies, used_gateways)
-        another_change = input("Would you like to make another change? (yes/no): ").strip().lower()
-        continue_update = another_change == 'yes'
-    insert_attribute = get_insert_attribute(old_gateway_name, old_gateways, selected_gateway)
-    payload = create_payload(selected_gateway, insert_attribute)
-    return (payload, old_gateway_name if old_gateway_name != selected_gateway['name'] else None)
+            track_changes[selected_key] = old_gateway_values[selected_key]
+            selected_gateway[selected_key] = handle_key_selection(selected_key, ike_policies, old_gateways, used_gateways)
+            print(f"Updated {selected_key} to {selected_gateway[selected_key]}")   
+        continue_update = validate_yes_no("Would you like to make another change? (yes/no): ")
+    insert_attribute = get_insert_attribute(old_gateways, selected_gateway, track_changes)
+    payload = create_payload(selected_gateway, insert_attribute, track_changes)
+    print(payload)
+    return payload
 
-def handle_key_selection(key, policies, used_gateways):
+def handle_key_selection(key, policies, old_gateways, used_gateways):
     if key == 'ike-policy':
-        return get_valid_selection("Select a new ike policy: ", policies)
+        return get_valid_selection("Select a new IKE policy: ", policies)
     elif key == 'address':
         return get_valid_ipv4_address("Enter a new IP address: ")
     elif key == 'version':
         return get_valid_selection("Select a new version: ", ["v1-only", "v2-only"])
-    return get_valid_name(f"Enter the new value for {key}: ")
+    elif key == 'name':
+        while True:
+            new_value = get_valid_name(f"Enter the new value for {key}: ")
+            if new_value in old_gateways or new_value in used_gateways:
+                print(f"{new_value} is in use. Try again.")
+            else:
+                return new_value
 
-def get_insert_attribute(old_name, old_names, gateway):
-    if old_name != gateway['name']:
-        if old_names and len(old_names) > 1:
-            last_gateway_name = old_names[-2] if old_names[-1] == old_name else old_names[-1]
-            return f'insert="after" key="[ name=\'{last_gateway_name}\' ]" operation="create"'
+
+def get_insert_attribute(old_names, gateway, track_changes):
+    if 'name' in track_changes and track_changes['name'] != gateway['name']:
+        if old_names:
+            last_gateway_name = None
+            if old_names[-1] != gateway['name']:
+                last_gateway_name = old_names[-1]
+            elif len(old_names) > 1:
+                last_gateway_name = old_names[-2]
+            if last_gateway_name == track_changes['name']:
+                last_gateway_name = old_names[-2] if len(old_names) > 1 else None
+            return f'insert="after" key="[name=\'{last_gateway_name}\']" operation="create"' if last_gateway_name else ""
     print("No existing IKE policies found. Creating the first policy.")
-    return None
+    return ""
 
-def create_payload(gateway, insert_attribute):
+def create_payload(gateway, insert_attribute, track_changes):
+    update_new_name = f"""<gateway operation="delete"><name>{track_changes['name']}</name></gateway>""" if 'name' in track_changes else ""
+    ike_policy = f"<ike-policy>{gateway['ike-policy']}</ike-policy>" if 'ike-policy' in gateway else ""
+    address = f"<address>{gateway['address']}</address>" if 'address' in gateway else ""
+    external_interface = f"<external-interface>{gateway['external-interface']}</external-interface>" if 'external-interface' in gateway else ""
+    local_address = f"<local-address>{gateway['local-address']}</local-address>" if 'local-address' in gateway else ""
+    version = f"<version>{gateway['version']}</version>" if 'version' in gateway else ""
     return f"""
     <configuration>
         <security>
             <ike>
+                {update_new_name}
                 <gateway {insert_attribute}>
                     <name>{gateway['name']}</name>
-                    <ike-policy>{gateway['ike-policy']}</ike-policy>
-                    <address>{gateway['address']}</address>
-                    <external-interface>{gateway['external-interface']}</external-interface>
-                    <local-address>{gateway['local-address']}</local-address>
-                    <version>{gateway['version']}</version>
+                    {ike_policy}
+                    {address}
+                    {external_interface}
+                    {local_address}
+                    {version}
                 </gateway>
             </ike>
         </security>
