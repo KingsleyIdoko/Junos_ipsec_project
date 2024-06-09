@@ -140,8 +140,6 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
     if choice == "tunnel":
         if get_vpn:
             selected = get_valid_selection("Enter IPsec VPN: ", get_vpn)
-            print("There is a match")
-            print(policy_data)
             reverse_policy = get_reverse_policy(policy_data, from_zone, to_zone)
             if reverse_policy:
                 reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)
@@ -155,6 +153,7 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
         else:
             print("No VPN options available.")
     return selected_vpn
+
 def extract_policy_parameters(kwargs):
     from_zone = kwargs.get('from_zone')
     to_zone = kwargs.get('to_zone')
@@ -209,64 +208,152 @@ def build_policy_xml(**kwargs):
         </security>
     </configuration>""".strip()
 
-def gen_update_config(raw_data):
+
+def initial_setup_and_selection(raw_data):
     old_policy_data = []
     zones = zone_manager.get_security_zone(get_zone_name=True)
+    get_vpn = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
     list_zones = generate_zone_directions(zones)
     zone_dir = get_valid_selection("Please select traffic zone: ", list_zones)
     from_zone, to_zone = zone_dir.split('_')[1], zone_dir.split('_')[-1]
     old_policy_data.extend([from_zone, to_zone])
     policy_names = get_policy_names_by_zone(raw_data, from_zone, to_zone)
     selected_policies, reverse_policy = selected_zone_with_reverse(raw_data, from_zone, to_zone)
+    reverse_policy = [reverse_policy] if isinstance(reverse_policy, dict) else reverse_policy
+    reverse_policy_names = [rev_policy['name'] for rev_policy in reverse_policy]
     edit_policy_name = get_valid_selection("Please select a policy to view details: ", policy_names)
+    selected_policies = [selected_policies] if isinstance(selected_policies, dict) else selected_policies
     selected_policy = next((policy for policy in selected_policies if policy['name'] == edit_policy_name), None)
-    old_policy_name = selected_policy['name']
-    old_policy_data.append(selected_policy['name'])
-    updated = display_and_select_policy_details(selected_policy, from_zone, to_zone, reverse_policy)
-    attribute, sub_attribute = "", ""
-    pair_policy = updated.get('then', {}).get('permit', {}).get('tunnel', {}).get('pair-policy', '')
-    ipsec_vpn = updated.get('then', {}).get('permit', {}).get('tunnel', {}).get('ipsec-vpn', '')
-    pair_policy_xml = f"<pair-policy>{pair_policy}</pair-policy>" if pair_policy else ""
-    ipsec_vpn_xml = f"<ipsec-vpn>{ipsec_vpn}</ipsec-vpn>" if ipsec_vpn else ""
-    tunnel_config_xml = f"""<tunnel>
-                                    {ipsec_vpn_xml}
-                                    {pair_policy_xml}
-                        </tunnel>"""
-    updated_action  = 'permit' if 'permit' in updated.get('then', {}) else ""
-    sub_attribute = ""
-    if len(policy_names) > 1:
-        try:
-            index = policy_names.index(edit_policy_name)
-            if index + 1 < len(policy_names):
-                sub_attribute = f"insert=\"after\" key=\"[name='{policy_names[index + 1]}']\" operation=\"create\""
-        except ValueError:
-            pass
-    payload = f"""
-    <configuration>
-        <security>
-            <policies>
-                <policy {attribute}>
-                    <from-zone-name>{from_zone}</from-zone-name>
-                    <to-zone-name>{to_zone}</to-zone-name>
-                    <policy {sub_attribute}>
-                        <name>{updated['name']}</name>
-                        <description>{updated['description']}</description>
-                        <match>
-                            <source-address>{updated['match']['source-address']}</source-address>
-                            <destination-address>{updated['match']['destination-address']}</destination-address>
-                            <application>{updated['match']['application']}</application>
-                        </match>
-                        <then>
-                            <{updated_action}>
-                                {tunnel_config_xml}
-                            </{updated_action}>
-                        </then>
-                    </policy>
-                </policy>
-            </policies>
-        </security>
-    </configuration>""".strip()
-    return (payload, None) if old_policy_name == updated['name'] else (payload, old_policy_data)
+    if not selected_policy:
+        print("Policy not found.")
+        return None, None, None, None, None
+    return selected_policy, reverse_policy_names, from_zone, to_zone, old_policy_data
+
+def update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone):
+    continue_update = True
+    while continue_update:
+        policy_then = selected_policy.get('then', {})
+        details = extract_policy_details(policy_then)
+        action = list(policy_then.keys())[0] if policy_then else None
+        traffic = list(policy_then[action].keys())[0] if action and policy_then[action] else None
+        pair_policy = details.get(f"{action}_{traffic}_ipsec-vpn") if action and traffic else None
+        attributes = {
+            "name": selected_policy.get('name'),
+            "description": selected_policy.get('description'),
+            "source_address": selected_policy['match'].get('source-address'),
+            "destination_address": selected_policy['match'].get('destination-address'),
+            "application": selected_policy['match'].get('application'),
+            "action": action,
+            "traffic": traffic,
+            "pair_policy": pair_policy
+        }
+        attribute_keys = [f"{key}: {value}" for key, value in attributes.items() if value is not None]
+        selected_attribute = get_valid_selection("Select an attribute to update: ", attribute_keys)
+        selected_key = selected_attribute.split(':')[0].strip()
+        if selected_key == 'source_address':
+            addresses, *_ = address_manager.get_address_book(get_addresses=True)
+            src_address_options = get_subnet_names_by_zone(addresses, from_zone)
+            new_value = get_valid_selection("Select source address: ", src_address_options)
+            selected_policy['match'][selected_key.replace('_', '-')] = new_value
+            attributes[selected_key] = new_value
+        elif selected_key == 'destination_address':
+            addresses, *_ = address_manager.get_address_book(get_addresses=True)
+            dst_address_options = get_subnet_names_by_zone(addresses, to_zone)
+            new_value = get_valid_selection("Select destination address: ", dst_address_options)
+            selected_policy['match'][selected_key.replace('_', '-')] = new_value
+            attributes[selected_key] = new_value
+        elif selected_key == 'application':
+            new_value = get_valid_selection("Select application to allow: ", app)
+            selected_policy['match'][selected_key.replace('_', '-')] = new_value
+            attributes[selected_key] = new_value
+        elif selected_key == 'action':
+            new_value = get_valid_selection(f"Enter new value for {selected_key}: ", ['permit', 'deny'])
+            selected_policy['then'] = {new_value: {}}
+            traffic_type = get_valid_selection("Specify the traffic type: ", ["None", "tunnel"])
+            if traffic_type == 'tunnel':
+                vpn_names = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
+                tunnel_name = get_valid_selection("Select ipsec vpn name: ", vpn_names)
+                selected_policy['then'][new_value] = {'tunnel': {'ipsec-vpn': tunnel_name}}
+                pair_policy_name = get_valid_selection("Select pair policy names: ", reverse_policy_names)
+                selected_policy['then'][new_value]['tunnel']['pair-policy'] = pair_policy_name
+            else:
+                selected_policy['then'][new_value] = None
+        elif selected_key == 'traffic':
+            new_value = get_valid_selection(f"Enter new value for {selected_key}: ", ['tunnel', 'None'])
+            if new_value == 'tunnel':
+                vpn_names = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
+                tunnel_name = get_valid_selection("Select ipsec vpn name: ", vpn_names)
+                selected_policy['then'][action] = {'tunnel': {'ipsec-vpn': tunnel_name}}
+                pair_policy_name = get_valid_selection("Select pair policy names: ", reverse_policy_names)
+                selected_policy['then'][action]['tunnel']['pair-policy'] = pair_policy_name
+            else:
+                selected_policy['then'] = {'permit': None}
+        elif selected_key == 'pair_policy':
+            new_value = get_valid_selection("Select pair policy names: ", reverse_policy_names)
+            selected_policy['then'][action][traffic]['pair-policy'] = new_value
+        continue_update = validate_yes_no("Do you want to continue updating? (yes/no): ")
+
+def gen_update_config(raw_data):
+    selected_policy, reverse_policy_names, from_zone, to_zone, old_policy_data = initial_setup_and_selection(raw_data)
+    if selected_policy:
+        update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone)
+
+
+
+
+
+
+
+
+    # sub_attribute = ""
+    # if len(policy_names) > 1:
+    #     try:
+    #         index = policy_names.index(edit_policy_name)
+    #         if index + 1 < len(policy_names):
+    #             sub_attribute = f"insert=\"after\" key=\"[name='{policy_names[index + 1]}']\" operation=\"create\""
+    #     except ValueError:
+    #         pass
+    # payload = f"""
+    # <configuration>
+    #     <security>
+    #         <policies>
+    #             <policy {attribute}>
+    #                 <from-zone-name>{from_zone}</from-zone-name>
+    #                 <to-zone-name>{to_zone}</to-zone-name>
+    #                 <policy {sub_attribute}>
+    #                     <name>{updated['name']}</name>
+    #                     <description>{updated['description']}</description>
+    #                     <match>
+    #                         <source-address>{updated['match']['source-address']}</source-address>
+    #                         <destination-address>{updated['match']['destination-address']}</destination-address>
+    #                         <application>{updated['match']['application']}</application>
+    #                     </match>
+    #                     <then>
+    #                         <{updated_action}>
+    #                             {tunnel_config_xml}
+    #                         </{updated_action}>
+    #                     </then>
+    #                 </policy>
+    #             </policy>
+    #         </policies>
+    #     </security>
+    # </configuration>""".strip()
+    # return (payload, None) if old_policy_name == updated['name'] else (payload, old_policy_data)
+
+def extract_policy_details(policy_then):
+    result = {}
+    def recursive_extraction(d, parent_key=''):
+        if d is None:
+            result[parent_key] = None
+            return
+        for k, v in d.items():
+            new_key = parent_key + '_' + k if parent_key else k
+            if isinstance(v, dict):
+                recursive_extraction(v, new_key)
+            else:
+                result[new_key] = v
+    recursive_extraction(policy_then)
+    return result
 
 
 def selected_zone_with_reverse(raw_data, from_zone, to_zone):
@@ -278,43 +365,6 @@ def selected_zone_with_reverse(raw_data, from_zone, to_zone):
         elif entry['from-zone-name'] == to_zone and entry['to-zone-name'] == from_zone:
             reverse_policies = entry['policy']
     return selected_policies, reverse_policies
-
-
-def display_and_select_policy_details(policy, from_zone, to_zone, reverse_policy):
-    while True:
-        keys = list(policy.keys())
-        print("\nCurrent Policy Details:")
-        for index, key in enumerate(keys):
-            value = policy[key]
-            display_value = '{...}' if isinstance(value, dict) else value
-            print(f"{index + 1}. {key}: {display_value}")
-        choice_input = input("Enter the number of the detail (0 to exit): ").strip()
-        if choice_input.isdigit():
-            choice = int(choice_input) - 1
-            if choice == -1:
-                print("Exiting.")
-                break
-        else:
-            print("Invalid input. Please enter a valid number.")
-            continue
-        if 0 <= choice < len(keys):
-            selected_key = keys[choice]
-            selected_value = policy[selected_key]
-            if isinstance(selected_value, dict):
-                updated_value = display_and_select_policy_details(selected_value, from_zone, to_zone, reverse_policy)
-                if updated_value is not None:
-                    policy[selected_key] = updated_value
-            else:
-                new_value = get_new_value(selected_key, from_zone, to_zone, reverse_policy)
-                policy[selected_key] = new_value
-                print(f"'{selected_key}' updated to: {new_value}")
-            continuation  = validate_yes_no("Do you want to continue editing the policy? (yes/no): ")
-            if continuation == "no":
-                print("Exiting.")
-                break
-        else:
-            print("Invalid selection. Please choose a number listed above.")
-    return policy
 
 
 def get_new_value(key, from_zone, to_zone, reverse_policy):
