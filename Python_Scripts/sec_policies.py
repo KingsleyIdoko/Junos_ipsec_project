@@ -1,6 +1,7 @@
 from sec_basemanager import BaseManager
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
+from utiliites_scripts.commons import send_ping
 from utiliites_scripts.sec_policies import (gen_sec_policies_config, gen_update_config, 
                                     gen_delete_config, re_order_policy)
 import logging
@@ -12,11 +13,11 @@ class SecPolicyManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. get Sec_Policies")
-            print("2. create Sec_Policy")
-            print("3. update Sec_Policy")
-            print("4. delete Sec_Policy")
-            print("5. re_order Sec_policies")
+            print("1. get sec_policies")
+            print("2. create sec_policy")
+            print("3. update sec_policy")
+            print("4. delete sec_policy")
+            print("5. re_order sec_policies")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
                 return self.get_sec_policy(interactive=True)
@@ -33,6 +34,7 @@ class SecPolicyManager(BaseManager):
                 continue
 
     def get_sec_policy(self, interactive=False):
+        hostname = None
         try:
             response = self.nr.run(task=pyez_get_config, database=self.database)
             all_sec_policies = []
@@ -48,8 +50,9 @@ class SecPolicyManager(BaseManager):
                 return all_sec_policies if all_sec_policies else None
             print("No security policies configuration on the device")
         except Exception as e:
-            print(f"An error has occurred while retrieving security policies: {e}")
+            print(f"The device is not reachable. Please check connectivity")
             return None
+
 
     def create_sec_policy(self):
         try:
@@ -65,14 +68,10 @@ class SecPolicyManager(BaseManager):
             return None
 
     def update_sec_policy(self):
-        updated_payload = []
         try:
-            raw_data = self.get_sec_policy()  
-            payload1, old_policy_name = gen_update_config(raw_data)
-            if old_policy_name:
-                updated_payload.append(self.delete_sec_policy(old_policy_data=old_policy_name))
-            updated_payload.append(payload1)
-            return updated_payload
+            raw_data = self.get_sec_policy() 
+            if raw_data: 
+                return gen_update_config(raw_data)
         except Exception as e:  
             logging.error(f"An error has occurred: {e}") 
             return None  

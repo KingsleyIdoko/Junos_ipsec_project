@@ -1,7 +1,7 @@
 import re
 import ipaddress
 import itertools
-
+import subprocess
 
 def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=15):
     pattern = r'^[a-zA-Z0-9_\- ]+$'
@@ -15,6 +15,10 @@ def get_valid_string(prompt="Enter a valid name: ", text_length=5, max_words=15)
                 print(f"The string contains more than {max_words} words. Please try again.")
         else:
             print(f"Invalid input. Enter valid characters and ensure the name is at least {text_length} characters long.")
+
+def send_ping(host):
+    result = subprocess.run(['ping', '-c', '4', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return result.stdout.decode('utf-8')
 
 def validate_yes_no(prompt):
     pattern = r"^(yes|y|no|n)$"
@@ -58,20 +62,14 @@ def get_valid_selection(prompt, choices):
     if not choices:
         print("The list of choices is empty.")
         return None
-    choices.append("Cancel/Abort")
     while True:
         for i, choice in enumerate(choices, start=1):
             print(f"{i}. {choice}")
         selection = input(f"{prompt} (1-{len(choices)}): ")
         if selection.isdigit() and 1 <= int(selection) <= len(choices):
-            if choices[int(selection) - 1] == "Cancel/Abort":
-                print("Operation cancelled.")
-                return None
-            return choices[int(selection) - 1] 
+            return choices[int(selection) - 1]
         else:
             print("Invalid choice, please try again.")
-
-
 
 def get_valid_selection_dict(prompt, update_options):
     for idx, (key, value) in enumerate(update_options.items(), start=1):

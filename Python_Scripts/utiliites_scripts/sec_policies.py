@@ -127,12 +127,9 @@ def gen_sec_policies_config(**kwargs):
 
 def update_zone_dir(policy_data, zone_dir_choice):
     if any(zone_dir_choice == policy_key for policy_key in policy_data):       
-        new_zone_dir = get_valid_name(f"{zone_dir_choice} is already in use. Please enter a new zone direction name: ")
+        new_zone_dir = get_valid_name(f"Please enter a policy name: ")
         return new_zone_dir
     return zone_dir_choice
-
-def get_reverse_policy(policies, from_zone, to_zone):
-    return [policy['name'] for policy in policies] if policies else []
 
 def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
     selected_vpn = pair_policy = ""
@@ -142,8 +139,12 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
             selected = get_valid_selection("Enter IPsec VPN: ", get_vpn)
             reverse_policy = get_reverse_policy(policy_data, from_zone, to_zone)
             if reverse_policy:
-                reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)
-                pair_policy = f"""<pair-policy>{reverse_policy_choice}</pair-policy>"""
+                specify_pair = validate_yes_no("Do you want to specify a pair-policy? (yes/no): ")
+                if specify_pair:
+                    reverse_policy_choice = get_valid_selection("Select Pair: ", reverse_policy)
+                    pair_policy = f"""<pair-policy>{reverse_policy_choice}</pair-policy>"""
+                else:
+                    print("Pair-policy not specified.")
             else:
                 print("No reverse policy found. No pair policy will be created.")
             selected_vpn = f"""<tunnel>
@@ -153,6 +154,17 @@ def get_tunnel_config(from_zone, to_zone, get_vpn, policy_data, zone_direction):
         else:
             print("No VPN options available.")
     return selected_vpn
+
+def get_reverse_policy(policies, from_zone, to_zone):
+    reverse_key = None
+    for key, value in policies.items():
+        if value['from_zone'] == to_zone and value['to_zone'] == from_zone:
+            reverse_key = key
+            break
+    if reverse_key:
+        return policies[reverse_key]['policies']
+    return []
+
 
 def extract_policy_parameters(kwargs):
     from_zone = kwargs.get('from_zone')
@@ -212,7 +224,6 @@ def build_policy_xml(**kwargs):
 def initial_setup_and_selection(raw_data):
     old_policy_data = []
     zones = zone_manager.get_security_zone(get_zone_name=True)
-    get_vpn = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
     list_zones = generate_zone_directions(zones)
     zone_dir = get_valid_selection("Please select traffic zone: ", list_zones)
     from_zone, to_zone = zone_dir.split('_')[1], zone_dir.split('_')[-1]
@@ -227,16 +238,19 @@ def initial_setup_and_selection(raw_data):
     if not selected_policy:
         print("Policy not found.")
         return None, None, None, None, None
-    return selected_policy, reverse_policy_names, from_zone, to_zone, old_policy_data
+    return selected_policy, reverse_policy_names, from_zone, to_zone,policy_names
 
 def update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone):
+    track_changes = {}
+    clone_policy = selected_policy.copy()
     continue_update = True
     while continue_update:
         policy_then = selected_policy.get('then', {})
         details = extract_policy_details(policy_then)
         action = list(policy_then.keys())[0] if policy_then else None
         traffic = list(policy_then[action].keys())[0] if action and policy_then[action] else None
-        pair_policy = details.get(f"{action}_{traffic}_ipsec-vpn") if action and traffic else None
+        tunnel = details.get(f"{action}_{traffic}_ipsec-vpn") if action and traffic else None
+        pair_policy = details.get(f"{action}_{traffic}_pair-policy") if action and traffic else None
         attributes = {
             "name": selected_policy.get('name'),
             "description": selected_policy.get('description'),
@@ -244,101 +258,145 @@ def update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone
             "destination_address": selected_policy['match'].get('destination-address'),
             "application": selected_policy['match'].get('application'),
             "action": action,
-            "traffic": traffic,
+            "tunnel": tunnel,
             "pair_policy": pair_policy
         }
         attribute_keys = [f"{key}: {value}" for key, value in attributes.items() if value is not None]
         selected_attribute = get_valid_selection("Select an attribute to update: ", attribute_keys)
         selected_key = selected_attribute.split(':')[0].strip()
-        if selected_key == 'source_address':
+        if selected_key == 'name':
+            selected_policy[selected_key] = get_valid_name("Enter new seurity policy name: ")
+            track_changes[selected_key] = clone_policy['name']
+        elif selected_key == 'source_address':
             addresses, *_ = address_manager.get_address_book(get_addresses=True)
             src_address_options = get_subnet_names_by_zone(addresses, from_zone)
             new_value = get_valid_selection("Select source address: ", src_address_options)
+            track_changes[selected_key] = clone_policy['match'][selected_key.replace('_', '-')]
             selected_policy['match'][selected_key.replace('_', '-')] = new_value
-            attributes[selected_key] = new_value
         elif selected_key == 'destination_address':
             addresses, *_ = address_manager.get_address_book(get_addresses=True)
             dst_address_options = get_subnet_names_by_zone(addresses, to_zone)
             new_value = get_valid_selection("Select destination address: ", dst_address_options)
+            track_changes[selected_key] = clone_policy['match'][selected_key.replace('_', '-')]
             selected_policy['match'][selected_key.replace('_', '-')] = new_value
-            attributes[selected_key] = new_value
         elif selected_key == 'application':
+            track_changes[selected_key] = clone_policy['match'][selected_key.replace('_', '-')]
             new_value = get_valid_selection("Select application to allow: ", app)
             selected_policy['match'][selected_key.replace('_', '-')] = new_value
-            attributes[selected_key] = new_value
+            selected_policy[selected_key] = new_value
+        if selected_key == 'description':
+            selected_policy[selected_key] = get_valid_string("Enter new description: ")
         elif selected_key == 'action':
+            track_changes[selected_key] = list(clone_policy['then'].keys())[0] if clone_policy['then'] else None
             new_value = get_valid_selection(f"Enter new value for {selected_key}: ", ['permit', 'deny'])
             selected_policy['then'] = {new_value: {}}
             traffic_type = get_valid_selection("Specify the traffic type: ", ["None", "tunnel"])
             if traffic_type == 'tunnel':
+                action  = list(clone_policy['then'].keys())[0] if clone_policy['then'] else None
                 vpn_names = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
                 tunnel_name = get_valid_selection("Select ipsec vpn name: ", vpn_names)
                 selected_policy['then'][new_value] = {'tunnel': {'ipsec-vpn': tunnel_name}}
-                pair_policy_name = get_valid_selection("Select pair policy names: ", reverse_policy_names)
-                selected_policy['then'][new_value]['tunnel']['pair-policy'] = pair_policy_name
+                specify_pair = validate_yes_no("Do you want to specify a pair-policy? (yes/no): ")
+                if specify_pair:
+                    pair_policy_name = get_valid_selection("Select pair policy names: ", reverse_policy_names)
+                    selected_policy['then'][new_value]['tunnel']['pair-policy'] = pair_policy_name
             else:
                 selected_policy['then'][new_value] = None
-        elif selected_key == 'traffic':
+        elif selected_key == 'tunnel':
             new_value = get_valid_selection(f"Enter new value for {selected_key}: ", ['tunnel', 'None'])
             if new_value == 'tunnel':
                 vpn_names = vpn_manager.get_ipsec_vpn(get_vpn_name=True)
                 tunnel_name = get_valid_selection("Select ipsec vpn name: ", vpn_names)
                 selected_policy['then'][action] = {'tunnel': {'ipsec-vpn': tunnel_name}}
                 pair_policy_name = get_valid_selection("Select pair policy names: ", reverse_policy_names)
+                track_changes[selected_key] = clone_policy['then'][action]
                 selected_policy['then'][action]['tunnel']['pair-policy'] = pair_policy_name
             else:
                 selected_policy['then'] = {'permit': None}
         elif selected_key == 'pair_policy':
+            track_changes[selected_key] = clone_policy['then'][action][traffic].get('pair-policy')
             new_value = get_valid_selection("Select pair policy names: ", reverse_policy_names)
             selected_policy['then'][action][traffic]['pair-policy'] = new_value
         continue_update = validate_yes_no("Do you want to continue updating? (yes/no): ")
+    print(track_changes)
+    return selected_policy, track_changes
 
 def gen_update_config(raw_data):
-    selected_policy, reverse_policy_names, from_zone, to_zone, old_policy_data = initial_setup_and_selection(raw_data)
-    if selected_policy:
-        update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone)
+    selected_policy, reverse_policy_names, from_zone, to_zone, policy_names = initial_setup_and_selection(raw_data)
+    if not selected_policy:
+        return None
+
+    updated, track_changes = update_policy_loop(selected_policy, reverse_policy_names, from_zone, to_zone)
+    if not updated:
+        return None
+
+    pair_policy = ""
+    description = f"""<description>{updated.get('description')}</description>""" if updated.get('description') is not None else ""
+    tunnel_config_xml = ""
+    action = list(updated['then'].keys())[0]
+
+    delete_name  =  f"""<policy operation="delete">
+                            <name>{track_changes.get("name")}</name>
+                        </policy>""" if "name" in track_changes else ""
+    delete_action = f"""<{track_changes.get('action', '')} operation="delete"/>""" if "action" in track_changes else ""
+    delete_src_address = f"""<source-address operation="delete"/>""" if "source_address" in track_changes else ""
+    delete_dest_address = f"""<destination-address operation="delete"/>""" if "destination_address" in track_changes else ""
+    delete_app_address = f"""<application operation="delete"/>""" if "application" in track_changes else ""
+
+    if updated['then'][action] and 'tunnel' in updated['then'][action]:
+        ipsec_vpn = updated['then'][action]['tunnel'].get('ipsec-vpn')
+        pair_policy_value = updated['then'][action]['tunnel'].get('pair-policy')
+        if pair_policy_value:
+            pair_policy = f"<pair-policy>{pair_policy_value}</pair-policy>"
+        tunnel_config_xml = f"""<tunnel>
+                                <ipsec-vpn>{ipsec_vpn}</ipsec-vpn>
+                                {pair_policy}
+                            </tunnel>"""
+
+    if updated['name'] not in policy_names:
+        if updated['name'] != policy_names[-1]:
+            sub_attribute = f"insert=\"after\" key=\"[name='{policy_names[-1]}']\" operation=\"create\""
+        else:
+            if len(policy_names) > 1:
+                sub_attribute = f"insert=\"after\" key=\"[name='{policy_names[-2]}']\" operation=\"create\""
+            else:
+                sub_attribute = f"operation=\"create\""
+    else:
+        sub_attribute = ""
+    payload = f"""
+    <configuration>
+        <security>
+            <policies>
+                <policy>
+                    <from-zone-name>{from_zone}</from-zone-name>
+                    <to-zone-name>{to_zone}</to-zone-name>
+                    <policy {sub_attribute}>
+                        <name>{updated['name']}</name>
+                        {description}
+                        <match>
+                            {delete_src_address}
+                            <source-address>{updated['match']['source-address']}</source-address>
+                            {delete_dest_address}
+                            <destination-address>{updated['match']['destination-address']}</destination-address>
+                            {delete_app_address}
+                            <application>{updated['match']['application']}</application>
+                        </match>
+                        <then>
+                            {delete_action}
+                            <{action}>
+                                {tunnel_config_xml}
+                            </{action}>
+                        </then>
+                    </policy>
+                    {delete_name}
+                </policy>
+            </policies>
+        </security>
+    </configuration>""".strip()
+    print(payload)
+    return payload
 
 
-
-
-
-
-
-
-    # sub_attribute = ""
-    # if len(policy_names) > 1:
-    #     try:
-    #         index = policy_names.index(edit_policy_name)
-    #         if index + 1 < len(policy_names):
-    #             sub_attribute = f"insert=\"after\" key=\"[name='{policy_names[index + 1]}']\" operation=\"create\""
-    #     except ValueError:
-    #         pass
-    # payload = f"""
-    # <configuration>
-    #     <security>
-    #         <policies>
-    #             <policy {attribute}>
-    #                 <from-zone-name>{from_zone}</from-zone-name>
-    #                 <to-zone-name>{to_zone}</to-zone-name>
-    #                 <policy {sub_attribute}>
-    #                     <name>{updated['name']}</name>
-    #                     <description>{updated['description']}</description>
-    #                     <match>
-    #                         <source-address>{updated['match']['source-address']}</source-address>
-    #                         <destination-address>{updated['match']['destination-address']}</destination-address>
-    #                         <application>{updated['match']['application']}</application>
-    #                     </match>
-    #                     <then>
-    #                         <{updated_action}>
-    #                             {tunnel_config_xml}
-    #                         </{updated_action}>
-    #                     </then>
-    #                 </policy>
-    #             </policy>
-    #         </policies>
-    #     </security>
-    # </configuration>""".strip()
-    # return (payload, None) if old_policy_name == updated['name'] else (payload, old_policy_data)
 
 def extract_policy_details(policy_then):
     result = {}
