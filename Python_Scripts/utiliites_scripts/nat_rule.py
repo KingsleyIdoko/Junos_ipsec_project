@@ -12,6 +12,7 @@ addresses = address_manager.get_address_book()
 protocol =  ["ah","egp","esp","gre","icmp","ospf","pim","rsvp","sctp", "tcp","udp"]
 
 def generate_nat_rule_config(nat_type,nat_data):
+    rule_list = []
     if nat_data:
         rule_list, global_name, from_zone, to_zone, rule_name = process_nat_data(nat_data)
     else:
@@ -174,8 +175,11 @@ def grab_address(addresses):
     else:
         address = selected_item['address']
     address_names = [addr['name'] for addr in address]
+    if address_names:
+        address_names.append("any")  # Append "any" to the list of child address names
     selections = multiple_selection("Select address_book child addresses", address_names)
     selected_addresses = [addr['ip-prefix'] for addr in address if addr['name'] in selections]
+    
     return selected_addresses
 
 def generate_next_rule_name(rule_names):

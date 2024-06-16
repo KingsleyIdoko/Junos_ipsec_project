@@ -95,9 +95,10 @@ class NatPolicyManager(BaseManager):
             # Loop until a valid choice is made
             while True:
                 print("\nSpecify the type of NAT rule:")
-                print("1. NAT with Interface")
-                print("2. NAT with Address Pool")
+                print("1. NAT Interface")
+                print("2. NAT Address Pool")
                 print("3. NAT Exempt")
+                print("4. NAT Overlapping")
                 nat_type = input("Enter your choice (1-3): ")
 
                 # Process the user's choice
@@ -108,6 +109,9 @@ class NatPolicyManager(BaseManager):
                     nat_type = {'pool': None}
                     return generate_nat_rule_config(nat_type, nat_data)
                 elif nat_type == "3":
+                    nat_type = {'off': None}
+                    return generate_nat_rule_config(nat_type, nat_data)
+                elif nat_type == "4":
                     nat_type = {'off': None}
                     return generate_nat_rule_config(nat_type, nat_data)
                 else:
