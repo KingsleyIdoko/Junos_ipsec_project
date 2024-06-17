@@ -391,3 +391,71 @@ def order_nat_rule(nat_data):
             </security>
         </configuration>""".strip()
         return payload
+    
+
+def generate_static_nat_config(nat_data):
+    print(nat_data)
+    rule_list = []
+    if nat_data:
+        rule_list, global_name, from_zone, to_zone, rule_name = process_nat_data(nat_data)
+    else:
+        global_name = get_valid_name("Enter nat global name: ")
+        zones = zone_manager.get_security_zone(get_zone_name=True)
+        list_zones = generate_zone_directions(zones)
+        zone_dir  = get_valid_selection("Please select the security zone direction: ", list_zones)
+        if zone_dir is None:
+            return None
+        from_zone, to_zone = zone_dir.split('_')[1], zone_dir .split('_')[-1]
+        rule_name = generate_next_rule_name(rule_list)
+    selection = get_valid_selection("Select prefixes from?", ["address_book", "Manual"])
+    if selection is None:
+        return None
+    if selection == "address_book":
+        print("Fetching addresses from address_book to match...\n")
+        source_address = grab_address(addresses[0])
+        print(f"Source address is set: {source_address}")
+        print("Selecting destination prefixes to nat...\n")
+        dest_address = grab_address(addresses[0])
+        print(f"Destination address is set: {dest_address}")
+    elif selection == "Manual":
+        print("Manually specify source/destination prefixes to match:")
+        source_address = [get_valid_network_address("Specify valid source address: ")]
+        dest_address = [get_valid_network_address("Specify valid destination address: ")]
+    payload = nat_policy(global_name=global_name, from_zone=from_zone, to_zone=to_zone, 
+                            rule_name=rule_name, source_address=source_address, 
+                            dest_address=dest_address, rule_list=rule_list)
+    return payload
+
+def build_static_nat_xml(nat_data):
+    global_name  = ""
+    source_address = ""
+    destination_address =""
+    floating_prefix = ""
+    payload = f"""<configuration>
+            <security>
+                <nat>
+                    <static operation="create">
+                        <rule-set>
+                            <name>{global_name}</name>
+                            <rule>
+                                <name>rule1</name>
+                                <static-nat-rule-match>
+                                    <source-address>{source_address}</source-address>
+                                    <destination-address>
+                                        <dst-addr>{destination_address}</dst-addr>
+                                    </destination-address>
+                                </static-nat-rule-match>
+                                <then>
+                                    <static-nat>
+                                        <prefix>
+                                            <addr-prefix>{floating_prefix}</addr-prefix>
+                                        </prefix>
+                                    </static-nat>
+                                </then> 
+                            </rule>     
+                        </rule-set>     
+                    </static>           
+                </nat>                  
+            </security>                 
+    </configuration>""".strip()
+    return payload
