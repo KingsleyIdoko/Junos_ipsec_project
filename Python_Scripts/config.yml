@@ -3,9 +3,9 @@
 inventory:
     plugin: SimpleInventory
     options:
-        host_file: "hosts.yml"
-        group_file: "groups.yml"
-        defaults_file: "defaults.yml"
+        host_file: "inventory/hosts.yml"
+        group_file: "inventory/groups.yml"
+        defaults_file: "inventory/defaults.yml"
 
 runner:
     plugin: threaded

@@ -1,13 +1,15 @@
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
-import os
-from xml.dom import minidom
+import os, sys
+from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.fetch_data import append_nat_data
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.selectprefix import select_prefix
+from utiliites_scripts.pool_data import (gen_delete_pool_config, extract_pool_names, gen_nat_pool_config,
+                                         gen_updated_pool_config)
 from sec_basemanager import BaseManager
-from utiliites_scripts.pool_data import (gen_delete_pool_config, extract_pool_names,gen_nat_pool_config,
-                                         gen_updated_pool_config,gen_updated_pool_config,extract_pool_names)
+from utiliites_scripts.main_func import main
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class NatPoolManager(BaseManager):
@@ -17,26 +19,26 @@ class NatPoolManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. Get nat configs")
-            print("2. Create nat pool")
-            print("3. Update nat pool")
-            print("4. Delete nat pool")
+            print("1. Get NAT configurations")
+            print("2. Create NAT pool")
+            print("3. Update NAT pool")
+            print("4. Delete NAT pool")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                return self.get_nat(interactive=True)
+                return "get"
             elif operation == "2":
-                return self.create_nat_pool()
+                return "create"
             elif operation == "3":
-                return self.update_nat_pool()
+                return "update"
             elif operation == "4":
-                return self.delete_nat_pool()
+                return "delete"
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_nat(self, interactive=False, get_pool_names=False):
+    def get(self, interactive=False, get_pool_names=False, target=None):
         try:
-            response = self.nr.run(task=pyez_get_config, database=self.database)    
+            response = self.nr.filter(name=target).run(task=pyez_get_config, database=self.database)
             all_nat_data = []
             all_nat_pools = []
             all_pool_names = []
@@ -68,31 +70,34 @@ class NatPoolManager(BaseManager):
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
-        
-    def create_nat_pool(self):
+
+    def create(self, target):
         try:
-            nat_data, used_pool_names = self.get_nat(get_pool_names=True)
+            nat_data, used_pool_names = self.get(get_pool_names=True, target=target)
             return gen_nat_pool_config(nat_data, used_pool_names)
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
-    def update_nat_pool(self):
+
+    def update(self, target):
         try:
-            nat_data, used_pool_names = self.get_nat(get_pool_names=True)
+            nat_data, used_pool_names = self.get(get_pool_names=True, target=target)
             return gen_updated_pool_config(nat_data, used_pool_names)
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
-    
-    def delete_nat_pool(self):
-        print("Select NAT Pool to delete: ")
+
+    def delete(self, target):
         try:
-            nat_data, used_pool_names = self.get_nat(get_pool_names=True)
+            nat_data, used_pool_names = self.get(get_pool_names=True, target=target)
             return gen_delete_pool_config(nat_data, used_pool_names)
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
 
 if __name__ == "__main__":
-    config = NatPoolManager()
-    result = config.push_config()
+    if len(sys.argv) != 2:
+        print("Usage: python nat_pool_manager.py <target>")
+        sys.exit(1)
+    target = sys.argv[1]
+    main(target, NatPoolManager)

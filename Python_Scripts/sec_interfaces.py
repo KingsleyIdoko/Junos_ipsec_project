@@ -1,41 +1,42 @@
 
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
-import os
-from utiliites_scripts.interfaces import select_interface,config_interface, enable_interface_config
+import os, sys
+from utiliites_scripts.interfaces import select_interface, config_interface, enable_interface_config
 from utiliites_scripts.commit import run_pyez_tasks
 from utiliites_scripts.commons import is_valid_interfaces, get_valid_integer
 from sec_basemanager import BaseManager
+from utiliites_scripts.main_func import main
 
 class InterfaceManager(BaseManager):
     def __init__(self, config_file="config.yml"):
         super().__init__(config_file=config_file)
         self.int_params = ['Description', 'Disable | Enable', 'L2/3 Addressing', 
-                           'LACP', 'Add|Remove Vlan','MAC', 'MTU', 'Speed']
+                           'LACP', 'Add|Remove Vlan', 'MAC', 'MTU', 'Speed']
 
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. Get Intefaces")
+            print("1. Get Interfaces")
             print("2. Create Interfaces")
             print("3. Update Interfaces")
             print("4. Delete Interfaces")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                return self.get_interfaces(interactive=True)
+                return "get"
             elif operation == "2":
-                return self.create_interfaces()
+                return "create"
             elif operation == "3":
-                return self.update_interfaces()
+                return "update"
             elif operation == "4":
-                return self.delete_interfaces()
+                return "delete"
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_interfaces(self, interactive=False, get_interface_name=None, get_only_interfaces=False):
+    def get(self, interactive=False, get_interface_name=False, get_only_interfaces=False, target=None):
         try:
-            response = self.nr.run(task=pyez_get_config, database=self.database)
+            response = self.nr.filter(name=target).run(task=pyez_get_config, database=self.database)
             if response:
                 all_results = []
                 lacp_chassis = None
@@ -66,9 +67,8 @@ class InterfaceManager(BaseManager):
         
         return None
 
-
-    def create_interfaces(self, commit_directly=False):
-        existing_interfaces = self.get_interfaces(get_interface_name=True)
+    def create(self, target, commit_directly=False):
+        existing_interfaces = self.get(get_interface_name=True, target=target)
         interface_name = is_valid_interfaces()
         if interface_name is None:
             print("No valid interface name provided. Exiting...")
@@ -84,10 +84,10 @@ class InterfaceManager(BaseManager):
         else:
             print("Configuration prepared but not committed.")
         return payload
-        
-    def update_interfaces(self):
+
+    def update(self, target):
         payload = []
-        get_interfaces_output = self.get_interfaces()
+        get_interfaces_output = self.get(target=target)
         if isinstance(get_interfaces_output, tuple) and len(get_interfaces_output) == 2:
             interfaces, lacp_chasis = get_interfaces_output
         else:
@@ -108,9 +108,12 @@ class InterfaceManager(BaseManager):
             print("Failed to retrieve interfaces.")
             return None
 
-    def delete_interfaces(self):
+    def delete(self, target):
         pass
 
 if __name__ == "__main__":
-    config = InterfaceManager()
-    response = config.push_config()
+    if len(sys.argv) != 2:
+        print("Usage: python interface_manager.py <target>")
+        sys.exit(1)
+    target = sys.argv[1]
+    main(target, InterfaceManager)

@@ -8,7 +8,7 @@ from sec_nat_pool import NatPoolManager
 pool_manager = NatPoolManager()
 zone_manager = SecurityZoneManager()
 address_manager = AddressBookManager()
-addresses = address_manager.get_address_book()
+addresses = address_manager.get()
 protocol =  ["ah","egp","esp","gre","icmp","ospf","pim","rsvp","sctp", "tcp","udp"]
 
 def generate_nat_rule_config(nat_type,nat_data):

@@ -1,15 +1,15 @@
-
 from nornir_pyez.plugins.tasks import pyez_get_config
 from rich import print
-import os
+import os, sys
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ipsec_vpn import (gen_ipsec_vpn_config, update_ipsec_vpn,del_ipsec_vpn)
+from utiliites_scripts.ipsec_vpn import gen_ipsec_vpn_config, update_ipsec_vpn, del_ipsec_vpn
 from sec_ipsec_policy import IpsecPolicyManager
 from sec_ike_gateway import IkeGatewayManager
 from sec_basemanager import BaseManager
+from utiliites_scripts.main_func import main
+
 vpn_manager = IpsecPolicyManager() 
 gateway_manager = IkeGatewayManager()
-
 
 class IpsecVpnManager(BaseManager):
     def __init__(self, config_file="config.yml"):
@@ -18,28 +18,28 @@ class IpsecVpnManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. get VPN policy")
-            print("2. create VPN policy")
-            print("3. update VPN policy")
-            print("4. delete VPN policy")
+            print("1. Get VPN policy")
+            print("2. Create VPN policy")
+            print("3. Update VPN policy")
+            print("4. Delete VPN policy")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                return self.get_ipsec_vpn(interactive=True)
+                return "get"
             elif operation == "2":
-                return self.create_ipsec_vpn()
+                return "create"
             elif operation == "3":
-                return self.update_ipsec_vpn()
+                return "update"
             elif operation == "4":
-                return self.delete_ipsec_vpn()
+                return "delete"
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ipsec_vpn(self,interactive=False,get_used_gateways=False,retries=3,get_vpn_name=False):
+    def get(self, interactive=False, get_used_gateways=False, retries=3, get_vpn_name=False, target=None):
         attempt = 0
         while attempt < retries:
             try:
-                response = self.nr.run(task=pyez_get_config, database=self.database)
+                response = self.nr.filter(name=target).run(task=pyez_get_config, database=self.database)
                 if response:
                     raw_ipsec_vpn, ipsec_vpn_names, used_gateways = [], [], []
                     for _, result in response.items():
@@ -68,42 +68,40 @@ class IpsecVpnManager(BaseManager):
         print("Failed to retrieve IPsec VPN configurations after several attempts.")
         return None
 
-    def create_ipsec_vpn(self):
-        old_ipsec_vpn = self.get_ipsec_vpn(get_vpn_name=True)
-        ipsec_policy = vpn_manager.get_ipsec_policy(get_policy_name=True)
-        ike_gateway =  gateway_manager.get_ike_gateways()
+    def create(self, target):
+        old_ipsec_vpn = self.get(get_vpn_name=True, target=target)
+        ipsec_policy = vpn_manager.get(get_policy_name=True, target=target)
+        ike_gateway = gateway_manager.get(target=target)
         if not old_ipsec_vpn:
             print("No existing IPsec VPN found on the device")
-        payload = gen_ipsec_vpn_config(old_ipsec_vpn=old_ipsec_vpn,ipsec_policy=ipsec_policy,
-                                       ike_gateway=ike_gateway)
+        payload = gen_ipsec_vpn_config(old_ipsec_vpn=old_ipsec_vpn, ipsec_policy=ipsec_policy, ike_gateway=ike_gateway)
         return payload
 
-    def update_ipsec_vpn(self):
+    def update(self, target):
         try:
-            ipsec_vpns, old_vpn_names = self.get_ipsec_vpn()
-            ike_gateway =  gateway_manager.get_ike_gateways()
-            ipsec_policy = vpn_manager.get_ipsec_policy(get_policy_name=True)
-            payload, del_vpn = update_ipsec_vpn(ipsec_vpns=ipsec_vpns, ike_gateway=ike_gateway,
-                                        ipsec_policy=ipsec_policy,old_vpn_names=old_vpn_names)
+            ipsec_vpns, old_vpn_names = self.get(target=target)
+            ike_gateway = gateway_manager.get(target=target)
+            ipsec_policy = vpn_manager.get(get_policy_name=True, target=target)
+            payload, del_vpn = update_ipsec_vpn(ipsec_vpns=ipsec_vpns, ike_gateway=ike_gateway, ipsec_policy=ipsec_policy, old_vpn_names=old_vpn_names)
             if del_vpn:
-                self.delete_ipsec_vpn(commit=True, vpn_name=del_vpn)
+                self.delete(commit=True, vpn_name=del_vpn, target=target)
             return payload
         except ValueError as e:
-            print(f"An error has occured, {e}")
-        
-    def delete_ipsec_vpn(self, commit=False, vpn_name=None):
+            print(f"An error has occurred, {e}")
+
+    def delete(self, target, commit=False, vpn_name=None):
         if not commit:
-            vpn_name = self.get_ipsec_vpn(get_vpn_name=True)
+            vpn_name = self.get(get_vpn_name=True, target=target)
             used_policy = None
-            payload = del_ipsec_vpn(vpn_name=vpn_name,used_policy=used_policy)
+            payload = del_ipsec_vpn(vpn_name=vpn_name, used_policy=used_policy)
             return payload
         else:
-            vpn_name=vpn_name
-            used_policy = None
-            payload = del_ipsec_vpn(vpn_name=vpn_name,used_policy=used_policy)
+            payload = del_ipsec_vpn(vpn_name=vpn_name, used_policy=None)
             run_pyez_tasks(self, payload, 'xml')
 
-
 if __name__ == "__main__":
-    config = IpsecVpnManager()
-    response = config.push_config()
+    if len(sys.argv) != 2:
+        print("Usage: python ipsec_vpn_manager.py <target>")
+        sys.exit(1)
+    target = sys.argv[1]
+    main(target, IpsecVpnManager)

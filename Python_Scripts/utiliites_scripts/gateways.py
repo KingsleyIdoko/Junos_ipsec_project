@@ -4,6 +4,8 @@ from sec_interfaces import InterfaceManager
 from sec_ike_policy import IkePolicyManager
 interface_manager = InterfaceManager()
 policy_manager = IkePolicyManager()
+from nornir_utils.plugins.functions import print_result
+from nornir_pyez.plugins.tasks import pyez_get_config, pyez_config
 
 def gen_ikegateway_config(**kwargs):
     old_gateways = kwargs.get('old_gateways', [])
@@ -245,3 +247,34 @@ def create_payload(gateway, insert_attribute, track_changes):
         </security>
     </configuration>""".strip()
 
+
+
+def run_task(task_name, target, config_class):
+    manager = config_class()
+    if target == "all":
+        result = manager.nr.run(task=task_name)
+    else:
+        result = manager.nr.filter(name=target).run(task=task_name)
+    print_result(result)
+
+def main(target, config_class):
+    config = config_class()
+    operation = config.operations()  
+
+    if operation == "get":
+        response = config.get_address_book(interactive=True, target=target)
+    elif operation == "create":
+        payload = config.create_address_book(target=target)
+        if payload:
+            run_task(lambda task: task.run(task=pyez_config, template_path=payload), target, config_class)
+    elif operation == "update":
+        payload = config.update_address_book(target=target)
+        if payload:
+            run_task(lambda task: task.run(task=pyez_config, template_path=payload), target, config_class)
+    elif operation == "delete":
+        payload = config.delete_address_book(target=target)
+        if payload:
+            run_task(lambda task: task.run(task=pyez_config, template_path=payload), target, config_class)
+    else:
+        print("Invalid operation specified. Please use 'get', 'create', 'update', or 'delete'.")
+        sys.exit(1)

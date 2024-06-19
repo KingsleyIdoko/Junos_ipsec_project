@@ -1,14 +1,14 @@
-
 from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir import InitNornir
 from rich import print
-import os, logging
+import os, sys, logging
 from utiliites_scripts.commit import run_pyez_tasks
-from utiliites_scripts.ipsec_policy import (gen_ipsecpolicy_config, update_ipsec_policy,del_ipsec_policy)
+from utiliites_scripts.ipsec_policy import gen_ipsecpolicy_config, update_ipsec_policy, del_ipsec_policy
 from sec_ipsec_proposal import IPsecProposalManager
 from sec_basemanager import BaseManager
-proposal_manager = IPsecProposalManager()
+from utiliites_scripts.main_func import main
 
+proposal_manager = IPsecProposalManager()
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 class IpsecPolicyManager(BaseManager):
@@ -18,26 +18,26 @@ class IpsecPolicyManager(BaseManager):
     def operations(self):
         while True:
             print("\nSpecify Operation.....")
-            print("1. get Ipsec policy")
-            print("2. create Ipsec policy")
-            print("3. update Ipsec policy")
-            print("4. delete Ipsec policy")
+            print("1. Get IPsec Policy")
+            print("2. Create IPsec Policy")
+            print("3. Update IPsec Policy")
+            print("4. Delete IPsec Policy")
             operation = input("Enter your choice (1-4): ")
             if operation == "1":
-                return self.get_ipsec_policy(interactive=True)
+                return "get"
             elif operation == "2":
-                return self.create_ipsec_policy()
+                return "create"
             elif operation == "3":
-                return self.update_ipsec_policy()
+                return "update"
             elif operation == "4":
-                return self.delete_ipsec_policy()
+                return "delete"
             else:
                 print("Invalid choice. Please specify a valid operation.")
                 continue
 
-    def get_ipsec_policy(self, interactive=False, get_proposal_name=False, get_raw_data=False, get_policy_name=False):
+    def get(self, interactive=False, get_proposal_name=False, get_raw_data=False, get_policy_name=False, target=None):
         try:
-            response = self.nr.run(task=pyez_get_config, database=self.database)
+            response = self.nr.filter(name=target).run(task=pyez_get_config, database=self.database)
             if response:
                 for _, result in response.items():
                     ipsec_config = result.result['configuration']['security'].get('ipsec', {})
@@ -47,10 +47,10 @@ class IpsecPolicyManager(BaseManager):
                         ipsec_policy_names = [policy['name'] for policy in ipsec_policy if 'name' in policy]
                         used_proposals = [prop['proposals'] for prop in ipsec_policy]
                     else:
-                        print("No IKE configuration found on the device.")
+                        print("No IPsec configuration found on the device.")
                         break
                 if interactive:
-                    print("No existing IKE Policy on the device" if raw_ipsec_policy in ([], None) else raw_ipsec_policy)
+                    print("No existing IPsec Policy on the device" if raw_ipsec_policy in ([], None) else raw_ipsec_policy)
                     return None
                 if get_policy_name:
                     return ipsec_policy_names
@@ -60,39 +60,40 @@ class IpsecPolicyManager(BaseManager):
                     return raw_ipsec_policy, ipsec_policy_names or None
         except Exception as e:
             print(f"An error has occurred: {e}.")
-        print("Failed to retrieve IKE policies.")
+        print("Failed to retrieve IPsec policies.")
         return None
 
-    def create_ipsec_policy(self):
-        old_ipsec_policy = self.get_ipsec_policy(get_policy_name=True)
-        ipsec_proposals  = proposal_manager.get_ipsec_proposal()
+    def create(self, target):
+        old_ipsec_policy = self.get(get_policy_name=True, target=target)
+        ipsec_proposals = proposal_manager.get_ipsec_proposal()
         if not old_ipsec_policy:
-            print("No existing IKE Policy found on the device")
+            print("No existing IPsec Policy found on the device")
         payload = gen_ipsecpolicy_config(old_ipsec_policy=old_ipsec_policy, ipsec_proposals=ipsec_proposals)
         return payload
 
-    def update_ipsec_policy(self):
+    def update(self, target):
         try:
-            ipsec_configs, proposal_names = self.get_ipsec_policy(get_raw_data=True)
+            ipsec_configs, proposal_names = self.get(get_raw_data=True, target=target)
             payload, del_policy = update_ipsec_policy(ipsec_configs=ipsec_configs, proposal_names=proposal_names)
             if del_policy:
-                self.delete_ipsec_policy(commit=True, policy_name=del_policy)
+                self.delete(commit=True, policy_name=del_policy, target=target)
             return payload
         except ValueError as e:
-            print(f"An error has occured, {e}")
-        
-    def delete_ipsec_policy(self, commit=False, policy_name=None):
+            print(f"An error has occurred, {e}")
+
+    def delete(self, target, commit=False, policy_name=None):
         if not commit:
-            policy_name = self.get_ipsec_policy(get_policy_name=True)
+            policy_name = self.get(get_policy_name=True, target=target)
             used_policy = None
-            payload = del_ipsec_policy(policy_name=policy_name,used_policy=used_policy)
+            payload = del_ipsec_policy(policy_name=policy_name, used_policy=used_policy)
             return payload
         else:
-            policy_name=policy_name
-            used_policy = None
-            payload = del_ipsec_policy(policy_name=policy_name,used_policy=used_policy)
+            payload = del_ipsec_policy(policy_name=policy_name, used_policy=None)
             run_pyez_tasks(self, payload, 'xml')
 
 if __name__ == "__main__":
-    config = IpsecPolicyManager()
-    response = config.push_config()
+    if len(sys.argv) != 2:
+        print("Usage: python ipsec_policy_manager.py <target>")
+        sys.exit(1)
+    target = sys.argv[1]
+    main(target, IpsecPolicyManager)
