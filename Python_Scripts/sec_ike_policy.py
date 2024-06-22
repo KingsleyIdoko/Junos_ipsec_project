@@ -70,8 +70,8 @@ class IkePolicyManager(BaseManager):
         return None
 
     def create(self, target):
-        old_ike_policy = self.get_ike_policy(get_policy_name=True, target=target)
-        ike_proposal = self.ike_proposal.get_ike_proposals()
+        old_ike_policy = self.get(get_policy_name=True, target=target)
+        ike_proposal = self.ike_proposal.get()
         if not ike_proposal:
             print("No existing IKE Proposal found on the device")
             return None
@@ -82,8 +82,8 @@ class IkePolicyManager(BaseManager):
         try:
             from sec_ike_gateway import IkeGatewayManager
             gateway_manager = IkeGatewayManager()
-            ike_configs, proposal_names = self.get_ike_policy(get_raw_data=True, target=target)
-            used_policy = gateway_manager.get_ike_gateways(used_policy=True, target=target)
+            ike_configs, proposal_names = self.get(get_raw_data=True, target=target)
+            used_policy = gateway_manager.get(used_policy=True, target=target)
             payload, del_policy = update_ike_policy(ike_configs=ike_configs, proposal_names=proposal_names, used_policy=used_policy)
             if del_policy:
                 self.delete(commit=True, policy_name=del_policy, used_policy=used_policy, target=target)
@@ -94,9 +94,9 @@ class IkePolicyManager(BaseManager):
     def delete(self, target, commit=False, policy_name=None):
         from sec_ike_gateway import IkeGatewayManager
         gateway_manager = IkeGatewayManager()
-        used_policy = gateway_manager.get_ike_gateways(used_policy=True, target=target)
+        used_policy = gateway_manager.get(used_policy=True, target=target)
         if not commit:
-            policy_name = self.get_ike_policy(get_policy_name=True, target=target)
+            policy_name = self.get(get_policy_name=True, target=target)
             payload = del_ike_policy(policy_name=policy_name, used_policy=used_policy)
             return payload
         else:

@@ -1,5 +1,5 @@
 from nornir import InitNornir
-from nornir_pyez.plugins.tasks import pyez_get_config, pyez_config
+from nornir_pyez.plugins.tasks import pyez_get_config
 from nornir_utils.plugins.functions import print_result
 from rich import print
 import os, sys
@@ -62,21 +62,20 @@ class AddressBookManager(BaseManager):
                     else:
                         print("Address book is empty on the device")
                     return None, None
-                elif get_address_book_by_name:
+                if get_address_book_by_name:
                     if addresses and not isinstance(addresses, list):
                         addresses = [addresses]
                     address_book_names = [address.get('name') for address in addresses] if addresses else None
                     return address_book_names
-                elif addresses:
+                if addresses:
                     return (addresses, None) if get_addresses else (addresses, zone_names)
-                elif zone_names:
+                if zone_names:
                     return None, zone_names
-                else:
-                    print(f"No address books or network objects found on {hostname} device.")
-                    print("Please create at least one network object.")
-                    return None, None
+                print(f"No address books or network objects found on {hostname} device.")
+                print("Please create at least one network object.")
+                return None, None
         except Exception as e:
-            print(f"could not retrieve configs from the device. Please check Connectivity. Error: {e}")
+            print(f"could not retrieve configs from the device. Please check connectivity. Error: {e}")
             return None, None
 
     def create(self, target):

@@ -1,4 +1,3 @@
-from utiliites_scripts.selectprefix import select_prefix
 from utiliites_scripts.nat_exempt import nat_policy
 from utiliites_scripts.commons import (get_valid_selection,multiple_selection, get_valid_network_address, 
                                        get_valid_name, generate_zone_directions, validate_yes_no)
@@ -7,11 +6,11 @@ from sec_addressbook import AddressBookManager
 from sec_nat_pool import NatPoolManager
 pool_manager = NatPoolManager()
 zone_manager = SecurityZoneManager()
-address_manager = AddressBookManager()
-addresses = address_manager.get()
+address_manager = AddressBookManager(config_file="config.yml")
 protocol =  ["ah","egp","esp","gre","icmp","ospf","pim","rsvp","sctp", "tcp","udp"]
 
-def generate_nat_rule_config(nat_type,nat_data):
+def generate_nat_rule_config(nat_type,nat_data, target):
+    addresses = address_manager.get(target=target)
     rule_list = []
     if nat_data:
         rule_list, global_name, from_zone, to_zone, rule_name = process_nat_data(nat_data)
@@ -39,7 +38,7 @@ def generate_nat_rule_config(nat_type,nat_data):
         source_address = [get_valid_network_address("Specify valid source address: ")]
         dest_address = [get_valid_network_address("Specify valid destination address: ")]
     payload = nat_policy(global_name=global_name, from_zone=from_zone, to_zone=to_zone, 
-                            rule_name=rule_name, source_address=source_address, 
+                            rule_name=rule_name, source_address=source_address, target=target,
                             dest_address=dest_address, nat_type=nat_type, rule_list=rule_list)
     return payload
 
@@ -55,10 +54,15 @@ def initialize_kwargs(kwargs):
     rule_list = kwargs.get("rule_list", [])
     source_nat = kwargs.get("source_nat", {})
     track_changes = kwargs.get("track_changes", {})
+    target = kwargs.get("target")
     src_prefixes = []
     dest_prefixes = []
     xml_components = []
-    return attribute, nat_types, source_prefixes, remote_prefixes, global_name, from_zone, to_zone, rule_name, rule_list, source_nat, track_changes, src_prefixes, dest_prefixes, xml_components
+    return (attribute, nat_types, source_prefixes, 
+            remote_prefixes, global_name, from_zone, 
+            to_zone, rule_name, rule_list, source_nat, 
+            track_changes, src_prefixes, dest_prefixes, 
+            xml_components, target)
 
 def create_payload(global_name, from_zone, to_zone, dele_rule_name, attribute, rule_name, formatted_src_prefixes, formatted_dest_prefixes, formatted_nat):
     payload = f"""
@@ -90,7 +94,10 @@ def create_payload(global_name, from_zone, to_zone, dele_rule_name, attribute, r
     return payload.strip()
 
 def nat_policy(**kwargs):
-    attribute, nat_types, source_prefixes, remote_prefixes, global_name, from_zone, to_zone, rule_name, rule_list, source_nat, track_changes, src_prefixes, dest_prefixes, xml_components = initialize_kwargs(kwargs)
+    (attribute, nat_types, source_prefixes, remote_prefixes, 
+     global_name, from_zone, to_zone, rule_name, rule_list, 
+     source_nat, track_changes, src_prefixes, dest_prefixes, 
+     xml_components, target) = initialize_kwargs(kwargs)
     if source_nat:
         if 'pool' in source_nat:
             pool_name = source_nat['pool']['pool-name']
@@ -106,7 +113,7 @@ def nat_policy(**kwargs):
             elif type_key == 'interface':
                 xml_components.append("<source-nat><interface></interface></source-nat>")
             elif type_key == 'pool':
-                nat_pool, *_ = pool_manager.get_nat(get_pool_names=True)
+                nat_pool, *_ = pool_manager.get(get_pool_names=True, target=target)
                 if isinstance(nat_pool, dict):
                     nat_pool = [nat_pool]
                 pool_names = [pool['name'] for pool in nat_pool]
@@ -145,28 +152,7 @@ def nat_policy(**kwargs):
     return payload.strip()
 
 
-def extract_nat_config(nat_data):
-    selected_data = []
-    if isinstance(nat_data, dict):
-        nat_data = [nat_data]
-    for data in nat_data:
-        global_nat_rule = data.get('name')
-        from_zone = data['from'].get('zone')
-        to_zone = data['to'].get('zone')
-        rules_list = []
-        if isinstance(data['rule'], list):
-            rules_list = [rule['name'] for rule in data['rule']]
-        else:
-            rules_list.append(data['rule']['name'])
-    selected_data.append({
-        'global_name': global_nat_rule,
-        'from_zone': from_zone,
-        'to_zone': to_zone,
-        'rules_list': rules_list
-    })
-    return selected_data
-
-def grab_address(addresses):
+def grab_address(addresses, get_single_address=False):
     address_names = [items['name'] for items in addresses]
     choice = get_valid_selection("Select address_book to choose from: ", address_names)
     selected_item = next(items for items in addresses if items['name'] == choice)
@@ -176,11 +162,17 @@ def grab_address(addresses):
         address = selected_item['address']
     address_names = [addr['name'] for addr in address]
     if address_names:
-        address_names.append("any")  # Append "any" to the list of child address names
-    selections = multiple_selection("Select address_book child addresses", address_names)
-    selected_addresses = [addr['ip-prefix'] for addr in address if addr['name'] in selections]
-    
-    return selected_addresses
+        address_names.append("any")  
+    if get_single_address:
+        selected_address = get_valid_selection("Select a single address", address_names)
+        if selected_address == "any":
+            return "any"
+        selected_address = next(addr['ip-prefix'] for addr in address if addr['name'] == selected_address)
+        return selected_address
+    else:
+        selections = multiple_selection("Select address_book child addresses", address_names)
+        selected_addresses = [addr['ip-prefix'] for addr in address if addr['name'] in selections]
+        return selected_addresses
 
 def generate_next_rule_name(rule_names):
     if not rule_names:
@@ -191,7 +183,7 @@ def generate_next_rule_name(rule_names):
             return f'rule{i}'
     return f'rule{rule_numbers[-1] + 1}'
 
-def gen_nat_update_config(rule_set, nat_data):
+def gen_nat_update_config(rule_set, nat_data, taget):
     track_changes = {}  # Dictionary to track changes
     rule_list = [rule['rules_list'] for rule in nat_data]
     nat_pool, *_ = pool_manager.get_nat(get_pool_names=True)
@@ -213,7 +205,7 @@ def gen_nat_update_config(rule_set, nat_data):
         attribute_keys = [f"{key}: {value}" for key, value in rule_attributes.items() if value is not None]
         selected_attribute = get_valid_selection("Select an attribute to update", attribute_keys)
         selected_key = selected_attribute.split(':')[0].strip()
-        
+        addresses = address_manager.get(target=target)
         if selected_key == 'name':
             while True:
                 new_value = get_valid_name(f"Enter new rule name for {selected_rule[selected_key]}: ")
@@ -227,6 +219,7 @@ def gen_nat_update_config(rule_set, nat_data):
             selected_rule['src-nat-rule-match']['source-address'] = new_value
 
         elif selected_key == 'destination-address':
+            print(addresses)
             new_value = grab_address(addresses[0])
             track_changes['destination-address'] = selected_rule['src-nat-rule-match']['destination-address']
             selected_rule['src-nat-rule-match']['destination-address'] = new_value
@@ -393,69 +386,105 @@ def order_nat_rule(nat_data):
         return payload
     
 
-def generate_static_nat_config(nat_data):
-    print(nat_data)
+def generate_static_nat_config(nat_data, target):
+    addresses = address_manager.get(target=target, get_addresses=True)
     rule_list = []
     if nat_data:
         rule_list, global_name, from_zone, to_zone, rule_name = process_nat_data(nat_data)
     else:
         global_name = get_valid_name("Enter nat global name: ")
-        zones = zone_manager.get_security_zone(get_zone_name=True)
-        list_zones = generate_zone_directions(zones)
-        zone_dir  = get_valid_selection("Please select the security zone direction: ", list_zones)
-        if zone_dir is None:
-            return None
-        from_zone, to_zone = zone_dir.split('_')[1], zone_dir .split('_')[-1]
         rule_name = generate_next_rule_name(rule_list)
     selection = get_valid_selection("Select prefixes from?", ["address_book", "Manual"])
-    if selection is None:
-        return None
     if selection == "address_book":
         print("Fetching addresses from address_book to match...\n")
-        source_address = grab_address(addresses[0])
+        source_address = grab_address(addresses[0],get_single_address=True)
         print(f"Source address is set: {source_address}")
         print("Selecting destination prefixes to nat...\n")
-        dest_address = grab_address(addresses[0])
+        dest_address = grab_address(addresses[0],get_single_address=True)
         print(f"Destination address is set: {dest_address}")
+        print("Select floating prefix for nat: ")
+        floating_prefix = grab_address(addresses[0],get_single_address=True)
     elif selection == "Manual":
         print("Manually specify source/destination prefixes to match:")
-        source_address = [get_valid_network_address("Specify valid source address: ")]
-        dest_address = [get_valid_network_address("Specify valid destination address: ")]
-    payload = nat_policy(global_name=global_name, from_zone=from_zone, to_zone=to_zone, 
-                            rule_name=rule_name, source_address=source_address, 
-                            dest_address=dest_address, rule_list=rule_list)
+        source_address = get_valid_network_address("Specify valid source address: ")
+        dest_address = get_valid_network_address("Specify valid destination address: ")
+        floating_prefix = get_valid_network_address("Select floating prefix: ")
+    payload = build_static_nat_xml(global_name=global_name,rule_name=rule_name, source_address=source_address, from_zone=from_zone,
+                            to_zone=to_zone, dest_address=dest_address, rule_list=rule_list, floating_prefix=floating_prefix)
     return payload
 
-def build_static_nat_xml(nat_data):
-    global_name  = ""
-    source_address = ""
-    destination_address =""
-    floating_prefix = ""
-    payload = f"""<configuration>
-            <security>
-                <nat>
-                    <static operation="create">
-                        <rule-set>
-                            <name>{global_name}</name>
-                            <rule>
-                                <name>rule1</name>
-                                <static-nat-rule-match>
-                                    <source-address>{source_address}</source-address>
-                                    <destination-address>
-                                        <dst-addr>{destination_address}</dst-addr>
-                                    </destination-address>
-                                </static-nat-rule-match>
-                                <then>
-                                    <static-nat>
-                                        <prefix>
-                                            <addr-prefix>{floating_prefix}</addr-prefix>
-                                        </prefix>
-                                    </static-nat>
-                                </then> 
-                            </rule>     
-                        </rule-set>     
-                    </static>           
-                </nat>                  
-            </security>                 
+def build_static_nat_xml(**kwargs):
+    global_name = kwargs.get("global_name")
+    source_address = kwargs.get("source_address")
+    destination_address = kwargs.get("dest_address")
+    floating_prefix = kwargs.get("floating_prefix")
+    rule_name = kwargs.get("rule_name")
+    rule_list = kwargs.get("rule_list")
+    attribute = sub_attribute = ""
+    if rule_list:
+        if rule_name != rule_list[-1]:
+            sub_attribute = f""" insert="after" key="[name='{rule_list[-1]}']" operation="create" """
+        elif len(rule_list) > 1:
+            sub_attribute = f""" insert="after" key="[name='{rule_list[-2]}']" operation="create" """
+        else:
+            attribute = f""" operation="create" """
+    else:
+        attribute = f""" operation="create" """
+    
+    payload = f"""
+    <configuration>
+        <security>
+            <nat>
+                <static {attribute}>
+                    <rule-set>
+                        <name>{global_name}</name>
+                        <rule {sub_attribute}>
+                            <name>{rule_name}</name>
+                            <static-nat-rule-match>
+                                <source-address>{source_address}</source-address>
+                                <destination-address>
+                                    <dst-addr>{destination_address}</dst-addr>
+                                </destination-address>
+                            </static-nat-rule-match>
+                            <then>
+                                <static-nat>
+                                    <prefix>
+                                        <addr-prefix>{floating_prefix}</addr-prefix>
+                                    </prefix>
+                                </static-nat>
+                            </then>
+                        </rule>
+                    </rule-set>
+                </static>
+            </nat>
+        </security>
     </configuration>""".strip()
     return payload
+
+
+def extract_nat_config(nat_data, choice):
+    selected_data = []
+    if not nat_data:
+        return selected_data
+    if isinstance(nat_data, dict):
+        nat_data = [nat_data]
+    for data in nat_data:
+        global_nat_rule = data.get('name')
+        from_zone = data['from'].get('zone')
+        try:
+            to_zone = data['to'].get('zone')
+        except:
+            to_zone  = None
+        rules_list = []
+        rules = data.get('rule', [])
+        if isinstance(rules, list):
+            rules_list = [rule['name'] for rule in rules]
+        elif isinstance(rules, dict):
+            rules_list.append(rules['name'])
+        selected_data.append({
+            'global_name': global_nat_rule,
+            'from_zone': from_zone,
+            'to_zone': to_zone,
+            'rules_list': rules_list,
+        })
+    return selected_data, choice

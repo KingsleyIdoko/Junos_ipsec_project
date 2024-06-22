@@ -38,7 +38,7 @@ class NatPolicyManager(BaseManager):
                 continue
 
     def get(self, interactive=False, get_all_configs=False, target=None):
-        nat_type = ["static_nat", "source_nat", "destination_nat", "All"]
+        nat_type = ["static_nat", "source_nat", "destination_nat"]
         try:
             response = self.nr.filter(name=target).run(task=pyez_get_config, database=self.database)
             nat_data = []
@@ -48,60 +48,67 @@ class NatPolicyManager(BaseManager):
                 static_rule_sets = nat_config.get('static', {}).get('rule-set', [])
                 dest_rule_sets = nat_config.get('destination', {}).get('rule-set', [])
                 choice = get_valid_selection("Select NAT type configs to retrieve: ", nat_type)
-                if choice == "static_nat":
-                    nat_data = extract_nat_config(static_rule_sets)
+                if static_rule_sets and choice == "static_nat":
+                    if interactive:
+                        print(static_rule_sets)
+                        return None
+                    return extract_nat_config(static_rule_sets, choice)
                 elif choice == "source_nat":
-                    nat_data = extract_nat_config(src_rule_sets)
-                elif choice == "destination_nat":
-                    nat_data = extract_nat_config(dest_rule_sets)
-                elif choice == "All":
-                    nat_data = extract_nat_config(src_rule_sets + static_rule_sets + dest_rule_sets)
                     if interactive:
                         if src_rule_sets:
                             print(src_rule_sets)
-                    if get_all_configs:
-                        return src_rule_sets, nat_data
+                    return extract_nat_config(src_rule_sets, choice)
+                elif choice == "destination_nat":
+                    if interactive:
+                        if dest_rule_sets:
+                            print(dest_rule_sets)
+                    nat_data = extract_nat_config(dest_rule_sets, choice)
+                elif get_all_configs:
+                    return src_rule_sets, nat_data
+                elif choice == "All":
+                    nat_data = extract_nat_config(src_rule_sets + static_rule_sets + dest_rule_sets)
                 else:
                     if interactive:
                         print("No NAT configuration exists on the device.")
-
-            if interactive:
-                return None
-            return nat_data
         except Exception as e:
             print(f"The device is not reachable. Please ensure the device is up and running.")
             return None
 
     def create(self, target):
         try:
-            nat_data = self.get(target=target)
+            nat_data, option = self.get(target=target)
+            if not nat_data:
+                print("No NAT data available.")
+                return None
             while True:
-                type_nat = ["static nat", "source nat", "destination nat"]
-                choice = get_valid_selection("Specify the type of NAT: ", type_nat)
-                if choice == "static nat":
-                    return generate_static_nat_config(nat_data)
-                elif choice == "source nat":
-                    rule_type = ["interface nat", "pool nat", "nat exempt"]
+                if option == "static_nat":
+                    return generate_static_nat_config(nat_data, target)
+                elif option == "source_nat":
+                    rule_type = ["interface_nat", "pool_nat", "nat_exempt"]
                     rule_choice = get_valid_selection("Specify the NAT rule: ", rule_type)
-                    if rule_choice == "interface nat":
+                    if rule_choice == "interface_nat":
                         choice = {'interface': None}
-                        return generate_nat_rule_config(choice, nat_data)
-                    elif rule_choice == "pool nat":
+                        return generate_nat_rule_config(choice, nat_data, target)
+                    elif rule_choice == "pool_nat":
                         choice = {'pool': None}
-                        return generate_nat_rule_config(choice, nat_data)
-                    elif rule_choice == "nat exempt":
+                        return generate_nat_rule_config(choice, nat_data, target)
+                    elif rule_choice == "nat_exempt":
                         choice = {'off': None}
-                        return generate_nat_rule_config(choice, nat_data)
-                elif choice == "destination nat":
+                        return generate_nat_rule_config(choice, nat_data, target)
+                elif option == "destination_nat":
                     pass
+                else:
+                    print("Invalid choice. Please try again.")
+                    break
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
 
+
     def update(self, target):
         try:
             rule_set, nat_data = self.get(get_all_configs=True, target=target)
-            return gen_nat_update_config(rule_set, nat_data)
+            return gen_nat_update_config(rule_set, nat_data, target)
         except Exception as e:
             print(f"An error has occurred: {e}")
             return None
