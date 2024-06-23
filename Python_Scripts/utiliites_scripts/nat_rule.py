@@ -9,7 +9,7 @@ zone_manager = SecurityZoneManager()
 address_manager = AddressBookManager(config_file="config.yml")
 protocol =  ["ah","egp","esp","gre","icmp","ospf","pim","rsvp","sctp", "tcp","udp"]
 
-def generate_nat_rule_config(nat_type,nat_data, target):
+def generate_nat_rule_config(nat_type, nat_data, target):
     addresses = address_manager.get(target=target)
     rule_list = []
     if nat_data:
@@ -183,16 +183,16 @@ def generate_next_rule_name(rule_names):
             return f'rule{i}'
     return f'rule{rule_numbers[-1] + 1}'
 
-def gen_nat_update_config(rule_set, nat_data, taget):
-    track_changes = {}  # Dictionary to track changes
-    rule_list = [rule['rules_list'] for rule in nat_data]
-    nat_pool, *_ = pool_manager.get_nat(get_pool_names=True)
+def gen_nat_update_config(nat_data, rule_set, target):
+    track_changes = {}  
+    rule_list = [rule['rules_list'] for rule in rule_set]
+    nat_pool, *_ = pool_manager.get(get_pool_names=True, target=target)
+    nat_pool = nat_pool if isinstance(nat_pool, list) else [nat_pool]
     pool_names = [rule['name'] for rule in nat_pool]
     choice = get_valid_selection("Specify the rule to update", *rule_list)
-    selected_rule = next((rule for rule in rule_set['rule'] if rule['name'] == choice), None)
+    selected_rule = next((rule for rule in nat_data['rule'] if rule['name'] == choice), None)
     continue_update = True
     old_attributes = selected_rule.copy()
-    
     while continue_update:
         rule_attributes = {
             'name': selected_rule.get('name'),
@@ -219,7 +219,6 @@ def gen_nat_update_config(rule_set, nat_data, taget):
             selected_rule['src-nat-rule-match']['source-address'] = new_value
 
         elif selected_key == 'destination-address':
-            print(addresses)
             new_value = grab_address(addresses[0])
             track_changes['destination-address'] = selected_rule['src-nat-rule-match']['destination-address']
             selected_rule['src-nat-rule-match']['destination-address'] = new_value
@@ -244,7 +243,7 @@ def gen_nat_update_config(rule_set, nat_data, taget):
 
         continue_update = validate_yes_no("Do you want to continue updating this rule (yes/no): ") == True
 
-    rule_list, global_name, from_zone, to_zone, *_ = process_nat_data(nat_data)
+    rule_list, global_name, from_zone, to_zone, *_ = process_nat_data(rule_set)
     rule_name = selected_rule.get('name')
     source_address = selected_rule['src-nat-rule-match'].get('source-address')
     dest_address = selected_rule['src-nat-rule-match'].get('destination-address')
